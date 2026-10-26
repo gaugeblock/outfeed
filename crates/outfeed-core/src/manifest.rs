@@ -4,7 +4,7 @@ use crate::error::OutfeedError;
 use crate::model::ManifestDiff;
 use std::fs;
 use std::path::Path;
-use toml_edit::{value, DocumentMut, Item};
+use toml_edit::{DocumentMut, Item, value};
 
 /// Reads the current version string from a repository root `Cargo.toml`.
 pub fn get_repo_version(repo_dir: &Path) -> Result<String, OutfeedError> {
@@ -12,9 +12,9 @@ pub fn get_repo_version(repo_dir: &Path) -> Result<String, OutfeedError> {
     let content = fs::read_to_string(&cargo_path)
         .map_err(|e| OutfeedError::Manifest(cargo_path.display().to_string(), e.to_string()))?;
 
-    let doc: DocumentMut = content
-        .parse()
-        .map_err(|e: toml_edit::TomlError| OutfeedError::Manifest(cargo_path.display().to_string(), e.to_string()))?;
+    let doc: DocumentMut = content.parse().map_err(|e: toml_edit::TomlError| {
+        OutfeedError::Manifest(cargo_path.display().to_string(), e.to_string())
+    })?;
 
     if let Some(workspace) = doc.get("workspace").and_then(|w| w.get("package"))
         && let Some(ver) = workspace.get("version").and_then(|v| v.as_str())
@@ -73,11 +73,13 @@ pub fn plan_manifest_updates(
             let entry = entry?;
             let sub_cargo = entry.path().join("Cargo.toml");
             if sub_cargo.is_file() {
-                let original = fs::read_to_string(&sub_cargo)
-                    .map_err(|e| OutfeedError::Manifest(sub_cargo.display().to_string(), e.to_string()))?;
-                let mut doc: DocumentMut = original.parse().map_err(|e: toml_edit::TomlError| {
+                let original = fs::read_to_string(&sub_cargo).map_err(|e| {
                     OutfeedError::Manifest(sub_cargo.display().to_string(), e.to_string())
                 })?;
+                let mut doc: DocumentMut =
+                    original.parse().map_err(|e: toml_edit::TomlError| {
+                        OutfeedError::Manifest(sub_cargo.display().to_string(), e.to_string())
+                    })?;
 
                 update_member_dep_versions(&mut doc, target_version);
                 let proposed = doc.to_string();
@@ -100,7 +102,10 @@ pub fn plan_manifest_updates(
         let original = fs::read_to_string(&pkg_json)?;
         let mut val: serde_json::Value = serde_json::from_str(&original)?;
         if let Some(obj) = val.as_object_mut() {
-            obj.insert("version".to_string(), serde_json::Value::String(target_version.to_string()));
+            obj.insert(
+                "version".to_string(),
+                serde_json::Value::String(target_version.to_string()),
+            );
             let proposed = format!("{}\n", serde_json::to_string_pretty(&val)?);
             if proposed != original {
                 diffs.push(ManifestDiff {
@@ -141,7 +146,10 @@ pub fn apply_manifest_diffs(repo_dir: &Path, diffs: &[ManifestDiff]) -> Result<(
 }
 
 /// Reverts manifest modifications using original content.
-pub fn rollback_manifest_diffs(repo_dir: &Path, diffs: &[ManifestDiff]) -> Result<(), OutfeedError> {
+pub fn rollback_manifest_diffs(
+    repo_dir: &Path,
+    diffs: &[ManifestDiff],
+) -> Result<(), OutfeedError> {
     for diff in diffs {
         let target = repo_dir.join(&diff.relative_path);
         if target.exists() {

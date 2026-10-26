@@ -39,7 +39,14 @@ fn parse_header(header: &str) -> (ConventionalKind, Option<String>, bool, String
     let header = header.trim();
     let colon_idx = match header.find(':') {
         Some(idx) => idx,
-        None => return (ConventionalKind::Other("unknown".to_string()), None, false, header.to_string()),
+        None => {
+            return (
+                ConventionalKind::Other("unknown".to_string()),
+                None,
+                false,
+                header.to_string(),
+            );
+        }
     };
 
     let prefix = &header[..colon_idx].trim();
@@ -101,7 +108,10 @@ fn extract_ticket_keys(summary: &str, body: Option<&str>) -> Vec<String> {
 }
 
 /// Evaluates commits and returns the recommended `BumpType` and rationale.
-pub fn calculate_bump(current_ver: &str, commits: &[CommitInfo]) -> Result<(BumpType, String), OutfeedError> {
+pub fn calculate_bump(
+    current_ver: &str,
+    commits: &[CommitInfo],
+) -> Result<(BumpType, String), OutfeedError> {
     let v = Version::parse(current_ver).map_err(|e| OutfeedError::SemVer(e.to_string()))?;
     let has_breaking = commits.iter().any(|c| c.is_breaking);
     let has_feat = commits.iter().any(|c| c.kind == ConventionalKind::Feat);
@@ -113,28 +123,52 @@ pub fn calculate_bump(current_ver: &str, commits: &[CommitInfo]) -> Result<(Bump
                 "Breaking change detected during pre-release; bumping minor base (e.g. 0.1.0 -> 0.2.0-beta.1)".to_string(),
             ))
         } else {
-            Ok((BumpType::Major, "Incompatible breaking change detected; bumping MAJOR version".to_string()))
+            Ok((
+                BumpType::Major,
+                "Incompatible breaking change detected; bumping MAJOR version".to_string(),
+            ))
         }
     } else if has_feat {
         if !v.pre.is_empty() {
             if v.pre.as_str().starts_with("alpha") {
-                Ok((BumpType::PreReleaseAlpha, "New feature detected; incrementing alpha pre-release".to_string()))
+                Ok((
+                    BumpType::PreReleaseAlpha,
+                    "New feature detected; incrementing alpha pre-release".to_string(),
+                ))
             } else {
-                Ok((BumpType::PreReleasePatch, "New feature detected; incrementing beta pre-release".to_string()))
+                Ok((
+                    BumpType::PreReleasePatch,
+                    "New feature detected; incrementing beta pre-release".to_string(),
+                ))
             }
         } else if v.major == 0 {
-            Ok((BumpType::Minor, "New feature detected in 0.x; bumping MINOR".to_string()))
+            Ok((
+                BumpType::Minor,
+                "New feature detected in 0.x; bumping MINOR".to_string(),
+            ))
         } else {
-            Ok((BumpType::Minor, "Backwards-compatible feature detected; bumping MINOR".to_string()))
+            Ok((
+                BumpType::Minor,
+                "Backwards-compatible feature detected; bumping MINOR".to_string(),
+            ))
         }
     } else if !v.pre.is_empty() {
         if v.pre.as_str().starts_with("alpha") {
-            Ok((BumpType::PreReleaseAlpha, "Fixes/refactors; incrementing alpha pre-release".to_string()))
+            Ok((
+                BumpType::PreReleaseAlpha,
+                "Fixes/refactors; incrementing alpha pre-release".to_string(),
+            ))
         } else {
-            Ok((BumpType::PreReleasePatch, "Fixes/refactors; incrementing beta pre-release".to_string()))
+            Ok((
+                BumpType::PreReleasePatch,
+                "Fixes/refactors; incrementing beta pre-release".to_string(),
+            ))
         }
     } else {
-        Ok((BumpType::Patch, "Backwards-compatible fixes; bumping PATCH".to_string()))
+        Ok((
+            BumpType::Patch,
+            "Backwards-compatible fixes; bumping PATCH".to_string(),
+        ))
     }
 }
 
@@ -185,7 +219,9 @@ fn increment_pre_identifier(pre: &str, default_prefix: &str) -> Result<String, O
     let parts: Vec<&str> = pre.split('.').collect();
     if parts.len() == 2 {
         let prefix = parts[0];
-        let num: u64 = parts[1].parse().map_err(|_| OutfeedError::SemVer(format!("Invalid pre number: {}", parts[1])))?;
+        let num: u64 = parts[1]
+            .parse()
+            .map_err(|_| OutfeedError::SemVer(format!("Invalid pre number: {}", parts[1])))?;
         Ok(format!("{prefix}.{}", num + 1))
     } else {
         Ok(format!("{default_prefix}.1"))

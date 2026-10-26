@@ -8,7 +8,7 @@ pub mod schema;
 
 use dispatch::dispatch_tool;
 use schema::list_tools;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::io::{self, BufRead, Write};
 use std::path::Path;
 
@@ -111,4 +111,3 @@ async fn handle_message(msg: &Value, root_dir: &Path) -> Option<Value> {
         }),
     }
 }
-

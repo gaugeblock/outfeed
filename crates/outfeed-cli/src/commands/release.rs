@@ -1,8 +1,8 @@
 //! Command handler for `outfeed release` macro orchestrator.
 
-use std::path::Path;
 use anyhow::{Context, Result};
-use outfeed_core::{release_repo, ReleaseOpts};
+use outfeed_core::{ReleaseOpts, release_all, release_repo};
+use std::path::Path;
 
 use crate::args::ReleaseArgs;
 
@@ -14,8 +14,66 @@ pub async fn handle_release(root: &Path, args: ReleaseArgs) -> Result<()> {
         skip_publish: args.skip_publish,
     };
 
+    if args.all {
+        println!(
+            "================================================================================"
+        );
+        println!(" [outfeed] Orchestrated Release Pipeline for ALL Suite Repositories");
+        if args.dry_run {
+            println!(" Mode: DRY RUN (simulating plan -> apply -> install -> push -> publish)");
+        }
+        println!(
+            "================================================================================"
+        );
+
+        let summaries = release_all(root, &opts)
+            .await
+            .context("Suite-wide release pipeline failed")?;
+
+        if args.json {
+            println!(
+                "{}",
+                serde_json::to_string_pretty(
+                    &summaries
+                        .iter()
+                        .map(|s| {
+                            serde_json::json!({
+                                "repo": s.repo_name,
+                                "target_version": s.target_version,
+                                "installed": s.installed,
+                                "pushed": s.pushed,
+                                "published": s.published_crates,
+                            })
+                        })
+                        .collect::<Vec<_>>()
+                )?
+            );
+        } else if summaries.is_empty() {
+            println!("✅ All suite repositories are clean. No releases needed.");
+        } else {
+            println!(
+                "✨ Suite release pipeline complete. Released {} repositories:",
+                summaries.len()
+            );
+            for s in &summaries {
+                println!(
+                    "  * {} v{}: installed={}, pushed={}, published={}",
+                    s.repo_name,
+                    s.target_version,
+                    s.installed,
+                    s.pushed,
+                    s.published_crates.len()
+                );
+            }
+        }
+        return Ok(());
+    }
+
     println!("================================================================================");
-    println!(" [outfeed] Orchestrated Release Pipeline for '{}'", args.repo);
+    println!(
+        " [outfeed] Orchestrated Release Pipeline for '{}'",
+        args.repo
+    );
     if args.dry_run {
         println!(" Mode: DRY RUN (simulating plan -> apply -> install -> push -> publish)");
     }
@@ -28,30 +86,65 @@ pub async fn handle_release(root: &Path, args: ReleaseArgs) -> Result<()> {
     match summary {
         Some(s) => {
             if args.json {
-                println!("{}", serde_json::json!({
-                    "repo": s.repo_name,
-                    "target_version": s.target_version,
-                    "installed": s.installed,
-                    "pushed": s.pushed,
-                    "published": s.published_crates,
-                }));
+                println!(
+                    "{}",
+                    serde_json::json!({
+                        "repo": s.repo_name,
+                        "target_version": s.target_version,
+                        "installed": s.installed,
+                        "pushed": s.pushed,
+                        "published": s.published_crates,
+                    })
+                );
             } else {
-                println!("✨ Release pipeline complete for {} v{}", s.repo_name, s.target_version);
-                println!("  - Manifests & Changelog: committed & tagged (v{})", s.target_version);
-                println!("  - Local binary install:   {}", if s.installed { "✅ installed" } else { "⏩ skipped" });
-                println!("  - Git remote push:        {}", if s.pushed { "✅ pushed" } else { "⏩ skipped" });
-                println!("  - Crates.io publication:  {}", if !s.published_crates.is_empty() { format!("✅ published ({} crates)", s.published_crates.len()) } else { "⏩ skipped".to_string() });
+                println!(
+                    "✨ Release pipeline complete for {} v{}",
+                    s.repo_name, s.target_version
+                );
+                println!(
+                    "  - Manifests & Changelog: committed & tagged (v{})",
+                    s.target_version
+                );
+                println!(
+                    "  - Local binary install:   {}",
+                    if s.installed {
+                        "✅ installed"
+                    } else {
+                        "⏩ skipped"
+                    }
+                );
+                println!(
+                    "  - Git remote push:        {}",
+                    if s.pushed {
+                        "✅ pushed"
+                    } else {
+                        "⏩ skipped"
+                    }
+                );
+                println!(
+                    "  - Crates.io publication:  {}",
+                    if !s.published_crates.is_empty() {
+                        format!("✅ published ({} crates)", s.published_crates.len())
+                    } else {
+                        "⏩ skipped".to_string()
+                    }
+                );
             }
         }
         None => {
             if args.json {
-                println!("{}", serde_json::json!({ "repo": args.repo, "status": "clean" }));
+                println!(
+                    "{}",
+                    serde_json::json!({ "repo": args.repo, "status": "clean" })
+                );
             } else {
-                println!("✅ No unreleased commits found for {}. Repository is clean.", args.repo);
+                println!(
+                    "✅ No unreleased commits found for {}. Repository is clean.",
+                    args.repo
+                );
             }
         }
     }
 
     Ok(())
 }
-

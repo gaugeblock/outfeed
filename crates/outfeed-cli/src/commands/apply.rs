@@ -1,12 +1,12 @@
 //! Command handler for `outfeed apply`.
 
-use std::path::Path;
 use anyhow::{Context, Result};
 use outfeed_core::{apply_release, plan_release};
+use std::path::Path;
 
-use crate::args::{ApplyArgs, PlanArgs};
 use super::plan::handle_plan;
 use super::resolve_repo_dir;
+use crate::args::{ApplyArgs, PlanArgs};
 
 pub async fn handle_apply(root: &Path, args: ApplyArgs) -> Result<()> {
     let repo_dir = resolve_repo_dir(root, &args.repo);

@@ -46,4 +46,3 @@ impl<T: ProgressReporter + ?Sized> ProgressReporter for Arc<T> {
         (**self).on_complete(repo, status);
     }
 }
-

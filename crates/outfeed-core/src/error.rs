@@ -61,4 +61,3 @@ pub enum OutfeedError {
     #[error("JSON error: {0}")]
     Json(#[from] serde_json::Error),
 }
-

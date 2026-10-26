@@ -70,7 +70,12 @@ pub struct StatusArgs {
 #[derive(Debug, Args)]
 pub struct ReleaseArgs {
     /// Target repository path or name
+    #[arg(default_value = ".")]
     pub repo: String,
+
+    /// Release all suite repositories in topological order
+    #[arg(long)]
+    pub all: bool,
 
     /// Dry run: simulate release without modifying disk, pushing, or publishing
     #[arg(long)]

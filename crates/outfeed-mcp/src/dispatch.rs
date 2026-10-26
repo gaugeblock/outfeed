@@ -1,11 +1,11 @@
 //! MCP Tool invocation dispatcher for `outfeed`.
 
 use outfeed_core::engine::{apply_release, plan_release};
-use outfeed_core::install::{install_all, install_tool, SUITE_TOOLS};
+use outfeed_core::install::{SUITE_TOOLS, install_all, install_tool};
 use outfeed_core::model::{InstallOpts, PublishOpts, PushOpts};
 use outfeed_core::publish::publish_repo;
 use outfeed_core::push::push_repo;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::path::{Path, PathBuf};
 
 fn resolve_repo_dir(root_dir: &Path, raw_repo: Option<&str>) -> PathBuf {
@@ -23,11 +23,7 @@ fn resolve_repo_dir(root_dir: &Path, raw_repo: Option<&str>) -> PathBuf {
 }
 
 /// Dispatches an MCP tool call to the corresponding outfeed engine function.
-pub async fn dispatch_tool(
-    name: &str,
-    args: &Value,
-    root_dir: &Path,
-) -> Result<Value, String> {
+pub async fn dispatch_tool(name: &str, args: &Value, root_dir: &Path) -> Result<Value, String> {
     let repo_str = args.get("repo").and_then(|v| v.as_str());
     let repo_dir = resolve_repo_dir(root_dir, repo_str);
     let override_ver = args.get("override_version").and_then(|v| v.as_str());
@@ -49,8 +45,7 @@ pub async fn dispatch_tool(
                 .await
                 .map_err(|e| e.to_string())?;
 
-            apply_release(&repo_dir, &plan, verify_tier4, false)
-                .map_err(|e| e.to_string())?;
+            apply_release(&repo_dir, &plan, verify_tier4, false).map_err(|e| e.to_string())?;
 
             Ok(json!({
                 "success": true,
@@ -63,7 +58,10 @@ pub async fn dispatch_tool(
         "outfeed_install" => {
             let tool_name = args.get("tool").and_then(|v| v.as_str()).unwrap_or("all");
             let force = args.get("force").and_then(|v| v.as_bool()).unwrap_or(false);
-            let opts = InstallOpts { debug: false, force };
+            let opts = InstallOpts {
+                debug: false,
+                force,
+            };
 
             if tool_name == "all" {
                 let results = install_all(root_dir, &opts).map_err(|e| e.to_string())?;
@@ -86,9 +84,18 @@ pub async fn dispatch_tool(
             }
         }
         "outfeed_push" => {
-            let remote = args.get("remote").and_then(|v| v.as_str()).unwrap_or("origin");
-            let dry_run = args.get("dry_run").and_then(|v| v.as_bool()).unwrap_or(false);
-            let opts = PushOpts { remote: remote.to_string(), dry_run };
+            let remote = args
+                .get("remote")
+                .and_then(|v| v.as_str())
+                .unwrap_or("origin");
+            let dry_run = args
+                .get("dry_run")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            let opts = PushOpts {
+                remote: remote.to_string(),
+                dry_run,
+            };
             let outcome = push_repo(&repo_dir, &opts).map_err(|e| e.to_string())?;
             Ok(json!({
                 "success": true,
@@ -99,8 +106,15 @@ pub async fn dispatch_tool(
             }))
         }
         "outfeed_publish" => {
-            let dry_run = args.get("dry_run").and_then(|v| v.as_bool()).unwrap_or(false);
-            let opts = PublishOpts { registry: None, dry_run, delay_secs: 15 };
+            let dry_run = args
+                .get("dry_run")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            let opts = PublishOpts {
+                registry: None,
+                dry_run,
+                delay_secs: 15,
+            };
             let published = publish_repo(&repo_dir, &opts).map_err(|e| e.to_string())?;
             Ok(json!({
                 "success": true,
@@ -111,15 +125,22 @@ pub async fn dispatch_tool(
         "outfeed_clean" => {
             let clean_all = args.get("all").and_then(|v| v.as_bool()).unwrap_or(false);
             let clean_doc = args.get("doc").and_then(|v| v.as_bool()).unwrap_or(false);
-            let clean_release = args.get("release").and_then(|v| v.as_bool()).unwrap_or(false);
-            let dry_run = args.get("dry_run").and_then(|v| v.as_bool()).unwrap_or(true);
+            let clean_release = args
+                .get("release")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            let dry_run = args
+                .get("dry_run")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(true);
             let opts = outfeed_core::model::CleanOpts {
                 clean_all,
                 clean_doc,
                 clean_release,
                 dry_run,
             };
-            let report = outfeed_core::clean_workspace(root_dir, &opts).map_err(|e| e.to_string())?;
+            let report =
+                outfeed_core::clean_workspace(root_dir, &opts).map_err(|e| e.to_string())?;
             Ok(json!({
                 "success": true,
                 "dry_run": report.dry_run,
@@ -132,4 +153,3 @@ pub async fn dispatch_tool(
         _ => Err(format!("Unknown outfeed MCP tool: {name}")),
     }
 }
-

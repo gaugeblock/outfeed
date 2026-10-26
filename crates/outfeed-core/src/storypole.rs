@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use storypole_core::index::query::{get_task_by_id, resolve_task_id};
 use storypole_core::model::decision::VerificationReceipt;
 use storypole_core::model::task::{TaskKind, TaskScope};
-use storypole_core::ops::mutations::{add_task, CreateTaskParams};
+use storypole_core::ops::mutations::{CreateTaskParams, add_task};
 use storypole_core::ops::verification::verify_task;
 use storypole_core::store::StorypoleStore;
 
@@ -27,8 +27,8 @@ pub fn fetch_task_summaries(
     root_dir: &Path,
     ticket_keys: &[String],
 ) -> Result<Vec<(String, String, String)>, OutfeedError> {
-    let store = StorypoleStore::open(root_dir)
-        .map_err(|e| OutfeedError::Storypole(e.to_string()))?;
+    let store =
+        StorypoleStore::open(root_dir).map_err(|e| OutfeedError::Storypole(e.to_string()))?;
     let mut summaries = Vec::new();
 
     for key in ticket_keys {
@@ -49,8 +49,8 @@ pub fn create_release_ticket(
     rationale: &str,
     shipped_tickets: &[String],
 ) -> Result<String, OutfeedError> {
-    let mut store = StorypoleStore::open(root_dir)
-        .map_err(|e| OutfeedError::Storypole(e.to_string()))?;
+    let mut store =
+        StorypoleStore::open(root_dir).map_err(|e| OutfeedError::Storypole(e.to_string()))?;
 
     let title = format!("chore(release): release {repo} v{version}");
     let ticket_list = if shipped_tickets.is_empty() {
@@ -88,8 +88,7 @@ pub fn create_release_ticket(
         edges: Vec::new(),
     };
 
-    let task = add_task(&mut store, params)
-        .map_err(|e| OutfeedError::Storypole(e.to_string()))?;
+    let task = add_task(&mut store, params).map_err(|e| OutfeedError::Storypole(e.to_string()))?;
     Ok(task.ticket_key)
 }
 
@@ -99,8 +98,8 @@ pub fn certify_release_ticket(
     ticket_key: &str,
     version: &str,
 ) -> Result<(), OutfeedError> {
-    let mut store = StorypoleStore::open(root_dir)
-        .map_err(|e| OutfeedError::Storypole(e.to_string()))?;
+    let mut store =
+        StorypoleStore::open(root_dir).map_err(|e| OutfeedError::Storypole(e.to_string()))?;
 
     let id = resolve_task_id(store.conn(), ticket_key)
         .map_err(|e| OutfeedError::Storypole(e.to_string()))?;

@@ -39,21 +39,42 @@ pub fn handle_clean(
     println!("================================================================================");
     println!(" [outfeed] Target Cache Hygiene Report");
     println!("================================================================================");
-    println!(" Target Directory: {}", workspace_root.join("target").display());
-    println!("   - Debug Artifacts:   {}", format_bytes(report.initial_usage.debug_bytes));
-    println!("   - Release Binaries:  {}", format_bytes(report.initial_usage.release_bytes));
-    println!("   - Doc Artifacts:     {}", format_bytes(report.initial_usage.doc_bytes));
-    println!("   - Total Usage:       {}", format_bytes(report.initial_usage.total_bytes));
+    println!(
+        " Target Directory: {}",
+        workspace_root.join("target").display()
+    );
+    println!(
+        "   - Debug Artifacts:   {}",
+        format_bytes(report.initial_usage.debug_bytes)
+    );
+    println!(
+        "   - Release Binaries:  {}",
+        format_bytes(report.initial_usage.release_bytes)
+    );
+    println!(
+        "   - Doc Artifacts:     {}",
+        format_bytes(report.initial_usage.doc_bytes)
+    );
+    println!(
+        "   - Total Usage:       {}",
+        format_bytes(report.initial_usage.total_bytes)
+    );
     println!("--------------------------------------------------------------------------------");
 
     if report.dry_run {
-        println!(" [Dry Run] Estimated reclaimable space: {}", format_bytes(report.reclaimed_bytes));
+        println!(
+            " [Dry Run] Estimated reclaimable space: {}",
+            format_bytes(report.reclaimed_bytes)
+        );
         println!(" Paths that would be removed:");
         for p in &report.paths_removed {
             println!("   - {p}");
         }
     } else {
-        println!(" [Cleaned] Successfully reclaimed: {}", format_bytes(report.reclaimed_bytes));
+        println!(
+            " [Cleaned] Successfully reclaimed: {}",
+            format_bytes(report.reclaimed_bytes)
+        );
         for p in &report.paths_removed {
             println!("   - Removed: {p}");
         }
@@ -88,17 +109,32 @@ pub fn handle_prune(
     }
 
     println!("================================================================================");
-    println!(" [outfeed] Cache Prune Report (Keep Days: {})", args.keep_days);
+    println!(
+        " [outfeed] Cache Prune Report (Keep Days: {})",
+        args.keep_days
+    );
     println!("================================================================================");
     if report.dry_run {
-        println!(" [Dry Run] Prune candidates found: {}", report.paths_removed.len());
-        println!(" Estimated reclaimable space: {}", format_bytes(report.reclaimed_bytes));
+        println!(
+            " [Dry Run] Prune candidates found: {}",
+            report.paths_removed.len()
+        );
+        println!(
+            " Estimated reclaimable space: {}",
+            format_bytes(report.reclaimed_bytes)
+        );
         for p in &report.paths_removed {
             println!("   - {p}");
         }
     } else {
-        println!(" [Pruned] Pruned {} artifact(s)", report.paths_removed.len());
-        println!(" Successfully reclaimed: {}", format_bytes(report.reclaimed_bytes));
+        println!(
+            " [Pruned] Pruned {} artifact(s)",
+            report.paths_removed.len()
+        );
+        println!(
+            " Successfully reclaimed: {}",
+            format_bytes(report.reclaimed_bytes)
+        );
     }
     println!("================================================================================");
 

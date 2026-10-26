@@ -141,7 +141,10 @@ pub fn get_commits_between(
             continue;
         }
         let sha = parts[0].trim().to_string();
-        let summary = parts.get(1).map(|s| s.trim().to_string()).unwrap_or_default();
+        let summary = parts
+            .get(1)
+            .map(|s| s.trim().to_string())
+            .unwrap_or_default();
         let body = parts
             .get(2)
             .map(|b| b.trim().to_string())
@@ -154,10 +157,7 @@ pub fn get_commits_between(
 }
 
 /// Creates a release commit and annotated git tag.
-pub fn create_release_commit_and_tag(
-    repo_dir: &Path,
-    version: &str,
-) -> Result<(), OutfeedError> {
+pub fn create_release_commit_and_tag(repo_dir: &Path, version: &str) -> Result<(), OutfeedError> {
     let commit_msg = format!("chore(release): release v{version}");
     let tag_name = format!("v{version}");
 
@@ -168,7 +168,9 @@ pub fn create_release_commit_and_tag(
         .map_err(|e| OutfeedError::Git(format!("git add failed: {e}")))?;
 
     if !add.status.success() {
-        return Err(OutfeedError::Git("Failed to stage release changes".to_string()));
+        return Err(OutfeedError::Git(
+            "Failed to stage release changes".to_string(),
+        ));
     }
 
     let commit = Command::new("git")
@@ -195,4 +197,3 @@ pub fn create_release_commit_and_tag(
 
     Ok(())
 }
-

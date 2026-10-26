@@ -1,20 +1,15 @@
 //! Command handler for `outfeed install`.
 
-use std::path::Path;
 use anyhow::{Context, Result};
 use outfeed_core::{
-    install_all_with_progress, install_tool_with_progress, InstallOpts, InstallOutcome, SUITE_TOOLS,
+    InstallOpts, InstallOutcome, SUITE_TOOLS, install_all_with_progress, install_tool_with_progress,
 };
+use std::path::Path;
 
 use crate::args::InstallArgs;
 use crate::progress::create_reporter;
 
-pub fn handle_install(
-    root: &Path,
-    args: InstallArgs,
-    verbose: u8,
-    quiet: bool,
-) -> Result<()> {
+pub fn handle_install(root: &Path, args: InstallArgs, verbose: u8, quiet: bool) -> Result<()> {
     let opts = InstallOpts {
         debug: args.debug,
         force: args.force,

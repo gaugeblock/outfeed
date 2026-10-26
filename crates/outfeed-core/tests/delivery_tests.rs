@@ -1,8 +1,8 @@
+use outfeed_core::OutfeedError;
 use outfeed_core::git::assert_main_branch;
 use outfeed_core::model::PushOpts;
 use outfeed_core::publish::resolve_publish_order;
 use outfeed_core::push::push_repo;
-use outfeed_core::OutfeedError;
 use std::fs;
 use tempfile::tempdir;
 
@@ -133,4 +133,23 @@ fn test_assert_main_branch_enforcement() {
 
     let ok_res = assert_main_branch(root);
     assert!(ok_res.is_ok());
+}
+
+#[tokio::test]
+async fn test_release_all_on_empty_or_clean_workspace() {
+    let tmp = tempdir().expect("tempdir");
+    let root = tmp.path();
+
+    let opts = outfeed_core::model::ReleaseOpts {
+        dry_run: true,
+        skip_install: true,
+        skip_push: true,
+        skip_publish: true,
+    };
+
+    // When no member repos exist in root, release_all skips safely and returns empty vec
+    let summaries = outfeed_core::release_all(root, &opts)
+        .await
+        .expect("release_all");
+    assert!(summaries.is_empty());
 }
