@@ -1,25 +1,38 @@
 //! Handlers for `outfeed clean` and `outfeed prune` subcommands.
 
 use anyhow::Result;
-use outfeed_core::clean::{clean_workspace, format_bytes, prune_workspace};
+use outfeed_core::clean::{
+    clean_workspace_with_progress, format_bytes, prune_workspace_with_progress,
+};
 use outfeed_core::model::{CleanOpts, PruneOpts};
 use std::path::Path;
 
 use crate::args::{CleanArgs, PruneArgs};
+use crate::progress::create_reporter;
 
 /// Handles the `outfeed clean` command.
-pub fn handle_clean(args: &CleanArgs, workspace_root: &Path) -> Result<()> {
+pub fn handle_clean(
+    args: &CleanArgs,
+    workspace_root: &Path,
+    _verbose: u8,
+    quiet: bool,
+) -> Result<()> {
     let opts = CleanOpts {
         clean_all: args.all,
         clean_doc: args.doc,
         clean_release: args.release,
         dry_run: args.dry_run,
     };
+    let reporter = create_reporter(quiet, args.json);
 
-    let report = clean_workspace(workspace_root, &opts)?;
+    let report = clean_workspace_with_progress(workspace_root, &opts, reporter.as_ref())?;
 
     if args.json {
         println!("{}", serde_json::to_string_pretty(&report)?);
+        return Ok(());
+    }
+
+    if quiet {
         return Ok(());
     }
 
@@ -51,16 +64,26 @@ pub fn handle_clean(args: &CleanArgs, workspace_root: &Path) -> Result<()> {
 }
 
 /// Handles the `outfeed prune` command.
-pub fn handle_prune(args: &PruneArgs, workspace_root: &Path) -> Result<()> {
+pub fn handle_prune(
+    args: &PruneArgs,
+    workspace_root: &Path,
+    _verbose: u8,
+    quiet: bool,
+) -> Result<()> {
     let opts = PruneOpts {
         keep_days: args.keep_days,
         dry_run: args.dry_run,
     };
+    let reporter = create_reporter(quiet, args.json);
 
-    let report = prune_workspace(workspace_root, &opts)?;
+    let report = prune_workspace_with_progress(workspace_root, &opts, reporter.as_ref())?;
 
     if args.json {
         println!("{}", serde_json::to_string_pretty(&report)?);
+        return Ok(());
+    }
+
+    if quiet {
         return Ok(());
     }
 

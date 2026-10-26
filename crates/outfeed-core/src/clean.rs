@@ -2,6 +2,7 @@
 
 use crate::error::OutfeedError;
 use crate::model::{CleanOpts, CleanReport, DiskUsage, PruneOpts};
+use crate::progress::{NoopProgress, ProgressReporter, RepoStatus};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
@@ -67,8 +68,17 @@ pub fn format_bytes(bytes: u64) -> String {
     }
 }
 
-/// Selectively cleans workspace target artifacts according to options.
+/// Selectively cleans workspace target artifacts according to options with a default reporter.
 pub fn clean_workspace(workspace_root: &Path, opts: &CleanOpts) -> Result<CleanReport, OutfeedError> {
+    clean_workspace_with_progress(workspace_root, opts, &NoopProgress)
+}
+
+/// Selectively cleans workspace target artifacts with progress reporting.
+pub fn clean_workspace_with_progress(
+    workspace_root: &Path,
+    opts: &CleanOpts,
+    reporter: &dyn ProgressReporter,
+) -> Result<CleanReport, OutfeedError> {
     let initial_usage = calculate_disk_usage(workspace_root);
     let target = workspace_root.join("target");
     if !target.exists() {
@@ -79,6 +89,9 @@ pub fn clean_workspace(workspace_root: &Path, opts: &CleanOpts) -> Result<CleanR
             dry_run: opts.dry_run,
         });
     }
+
+    let action_desc = if opts.dry_run { "auditing cache" } else { "cleaning cache" };
+    reporter.on_start("workspace", action_desc);
 
     let mut targets_to_clean: Vec<PathBuf> = Vec::new();
     if opts.clean_all {
@@ -118,6 +131,20 @@ pub fn clean_workspace(workspace_root: &Path, opts: &CleanOpts) -> Result<CleanR
         }
     }
 
+    let result_msg = if opts.dry_run {
+        format!("audited: {} reclaimable", format_bytes(reclaimed_bytes))
+    } else {
+        format!("reclaimed {}", format_bytes(reclaimed_bytes))
+    };
+    reporter.on_complete("workspace", &RepoStatus::Success(result_msg));
+
+    let result_msg = if opts.dry_run {
+        format!("audited: {} prunable", format_bytes(reclaimed_bytes))
+    } else {
+        format!("pruned {}", format_bytes(reclaimed_bytes))
+    };
+    reporter.on_complete("workspace", &RepoStatus::Success(result_msg));
+
     Ok(CleanReport {
         initial_usage,
         reclaimed_bytes,
@@ -126,8 +153,17 @@ pub fn clean_workspace(workspace_root: &Path, opts: &CleanOpts) -> Result<CleanR
     })
 }
 
-/// Prunes test binaries and artifacts older than N days in target/debug.
+/// Prunes test binaries and artifacts older than N days with default reporter.
 pub fn prune_workspace(workspace_root: &Path, opts: &PruneOpts) -> Result<CleanReport, OutfeedError> {
+    prune_workspace_with_progress(workspace_root, opts, &NoopProgress)
+}
+
+/// Prunes test binaries and artifacts older than N days with progress reporting.
+pub fn prune_workspace_with_progress(
+    workspace_root: &Path,
+    opts: &PruneOpts,
+    reporter: &dyn ProgressReporter,
+) -> Result<CleanReport, OutfeedError> {
     let initial_usage = calculate_disk_usage(workspace_root);
     let debug_deps = workspace_root.join("target").join("debug").join("deps");
     if !debug_deps.exists() {
@@ -138,6 +174,8 @@ pub fn prune_workspace(workspace_root: &Path, opts: &PruneOpts) -> Result<CleanR
             dry_run: opts.dry_run,
         });
     }
+
+    reporter.on_start("workspace", if opts.dry_run { "auditing stale artifacts" } else { "pruning stale artifacts" });
 
     let cutoff = SystemTime::now()
         .checked_sub(Duration::from_secs(opts.keep_days as u64 * 86400))
@@ -166,6 +204,13 @@ pub fn prune_workspace(workspace_root: &Path, opts: &PruneOpts) -> Result<CleanR
             }
         }
     }
+
+    let result_msg = if opts.dry_run {
+        format!("audited: {} prunable", format_bytes(reclaimed_bytes))
+    } else {
+        format!("pruned {}", format_bytes(reclaimed_bytes))
+    };
+    reporter.on_complete("workspace", &RepoStatus::Success(result_msg));
 
     Ok(CleanReport {
         initial_usage,

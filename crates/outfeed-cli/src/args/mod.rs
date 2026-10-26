@@ -19,6 +19,14 @@ pub struct Cli {
     #[arg(short, long, global = true)]
     pub dir: Option<PathBuf>,
 
+    /// Increase logging and child command verbosity (-v for child output, -vv for debug)
+    #[arg(short, long, action = clap::ArgAction::Count, global = true)]
+    pub verbose: u8,
+
+    /// Suppress progress spinners and non-error output
+    #[arg(short, long, global = true)]
+    pub quiet: bool,
+
     /// Subcommand to execute
     #[command(subcommand)]
     pub command: Commands,

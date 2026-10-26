@@ -2,19 +2,22 @@
 
 use std::path::Path;
 use anyhow::{Context, Result};
-use outfeed_core::{push_all, push_repo, PushOpts};
+use outfeed_core::{push_all_with_progress, push_repo_with_progress, PushOpts};
 
 use crate::args::PushArgs;
+use crate::progress::create_reporter;
 use super::resolve_repo_dir;
 
-pub fn handle_push(root: &Path, args: PushArgs) -> Result<()> {
+pub fn handle_push(root: &Path, args: PushArgs, verbose: u8, quiet: bool) -> Result<()> {
     let opts = PushOpts {
         remote: args.remote.clone(),
         dry_run: args.dry_run,
     };
+    let reporter = create_reporter(quiet, args.json);
 
     if args.all {
-        let results = push_all(root, &opts).context("Failed to push suite repositories")?;
+        let results = push_all_with_progress(root, &opts, reporter.as_ref())
+            .context("Failed to push suite repositories")?;
         if args.json {
             println!("{}", serde_json::to_string_pretty(&results.iter().map(|(r, o)| {
                 serde_json::json!({
@@ -25,18 +28,24 @@ pub fn handle_push(root: &Path, args: PushArgs) -> Result<()> {
                     "dry_run": o.dry_run,
                 })
             }).collect::<Vec<_>>())?);
-        } else {
-            for (repo, outcome) in results {
-                let tag_str = outcome.tag.as_deref().unwrap_or("none");
-                let sim_str = if outcome.dry_run { " [DRY RUN]" } else { "" };
-                println!("🚀 {repo}{sim_str}: pushed branch '{}' and tag '{tag_str}' to {}", outcome.branch, outcome.remote);
+        } else if verbose > 0 {
+            for (repo, outcome) in &results {
+                if !outcome.output.is_empty() {
+                    let formatted = outcome
+                        .output
+                        .lines()
+                        .map(|l| format!("  [{repo}] {l}"))
+                        .collect::<Vec<_>>()
+                        .join("\n");
+                    println!("{formatted}");
+                }
             }
         }
         return Ok(());
     }
 
     let repo_dir = resolve_repo_dir(root, &args.repo);
-    let outcome = push_repo(&repo_dir, &opts)
+    let outcome = push_repo_with_progress(&repo_dir, &opts, reporter.as_ref())
         .with_context(|| format!("Failed to push {}", repo_dir.display()))?;
 
     if args.json {
@@ -47,12 +56,15 @@ pub fn handle_push(root: &Path, args: PushArgs) -> Result<()> {
             "tag": outcome.tag,
             "dry_run": outcome.dry_run,
         }));
-    } else {
-        let tag_str = outcome.tag.as_deref().unwrap_or("none");
-        let sim_str = if outcome.dry_run { " [DRY RUN]" } else { "" };
-        println!("🚀 {}{sim_str}: pushed branch '{}' and tag '{tag_str}' to {}", args.repo, outcome.branch, outcome.remote);
+    } else if verbose > 0 && !outcome.output.is_empty() {
+        let formatted = outcome
+            .output
+            .lines()
+            .map(|l| format!("  [{}] {l}", args.repo))
+            .collect::<Vec<_>>()
+            .join("\n");
+        println!("{formatted}");
     }
 
     Ok(())
 }
-

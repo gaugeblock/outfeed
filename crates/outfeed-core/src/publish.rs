@@ -7,8 +7,10 @@ use std::process::Command;
 use std::thread::sleep;
 use std::time::Duration;
 
+use crate::cmd::run_captured;
 use crate::error::OutfeedError;
 use crate::model::PublishOpts;
+use crate::progress::{NoopProgress, ProgressReporter, RepoStatus};
 
 /// Workspace member metadata for publication ordering.
 #[derive(Debug, Clone)]
@@ -111,22 +113,38 @@ pub fn resolve_publish_order(repo_dir: &Path) -> Result<Vec<MemberCrate>, Outfee
     Ok(ordered)
 }
 
-/// Publishes all crates within a repository workspace in topological order.
+/// Publishes all crates within a repository workspace in topological order using default reporter.
 pub fn publish_repo(repo_dir: &Path, opts: &PublishOpts) -> Result<Vec<String>, OutfeedError> {
+    publish_repo_with_progress(repo_dir, opts, &NoopProgress)
+}
+
+/// Publishes all crates within a repository workspace with progress reporting.
+pub fn publish_repo_with_progress(
+    repo_dir: &Path,
+    opts: &PublishOpts,
+    reporter: &dyn ProgressReporter,
+) -> Result<Vec<String>, OutfeedError> {
     let order = resolve_publish_order(repo_dir)?;
     let mut published = Vec::new();
 
     // 1. Dry run gate across all crates
     for member in &order {
+        reporter.on_start(&member.name, "validating publish dry-run");
         let mut cmd = Command::new("cargo");
         cmd.arg("publish").arg("--dry-run").arg("-p").arg(&member.name).current_dir(repo_dir);
         if let Some(ref reg) = opts.registry {
             cmd.arg("--registry").arg(reg);
         }
-        let status = cmd.status().map_err(|e| OutfeedError::Publish(format!("Dry-run publish failed: {e}")))?;
-        if !status.success() {
-            return Err(OutfeedError::Publish(format!("cargo publish --dry-run failed for {}", member.name)));
+        let out = run_captured(&mut cmd)?;
+        if !out.success {
+            let err_text = out.combined_output();
+            reporter.on_complete(&member.name, &RepoStatus::Failed(err_text.clone()));
+            return Err(OutfeedError::Publish(format!(
+                "cargo publish --dry-run failed for {}:\n{err_text}",
+                member.name
+            )));
         }
+        reporter.on_complete(&member.name, &RepoStatus::Success("dry-run verified".to_string()));
     }
 
     if opts.dry_run {
@@ -136,27 +154,35 @@ pub fn publish_repo(repo_dir: &Path, opts: &PublishOpts) -> Result<Vec<String>, 
     // 2. Real publication with index delay
     let total = order.len();
     for (idx, member) in order.into_iter().enumerate() {
+        reporter.on_start(&member.name, "publishing to registry");
         let mut cmd = Command::new("cargo");
         cmd.arg("publish").arg("-p").arg(&member.name).current_dir(repo_dir);
         if let Some(ref reg) = opts.registry {
             cmd.arg("--registry").arg(reg);
         }
-        let output = cmd.output().map_err(|e| OutfeedError::Publish(format!("Publish failed: {e}")))?;
-        if !output.status.success() {
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            if stderr.contains("is already uploaded") || stderr.contains("already uploaded") {
-                eprintln!("⏩ {} is already published on registry, skipping...", member.name);
+        let out = run_captured(&mut cmd)?;
+        if !out.success {
+            let text = out.combined_output();
+            if text.contains("is already uploaded") || text.contains("already uploaded") {
+                reporter.on_complete(&member.name, &RepoStatus::Skipped("already published".to_string()));
                 published.push(member.name);
                 continue;
             }
-            eprintln!("{}", stderr);
-            return Err(OutfeedError::Publish(format!("cargo publish failed for {}", member.name)));
+            reporter.on_complete(&member.name, &RepoStatus::Failed(text.clone()));
+            return Err(OutfeedError::Publish(format!(
+                "cargo publish failed for {}:\n{text}",
+                member.name
+            )));
         }
-        published.push(member.name);
+        reporter.on_complete(&member.name, &RepoStatus::Success("published".to_string()));
+        published.push(member.name.clone());
 
         // Delay between dependent crates if not the last crate
         if idx + 1 < total && opts.delay_secs > 0 {
-            eprintln!("⏳ Waiting {}s for crates.io index propagation...", opts.delay_secs);
+            reporter.on_update(
+                &member.name,
+                &format!("waiting {}s for index propagation", opts.delay_secs),
+            );
             sleep(Duration::from_secs(opts.delay_secs));
         }
     }
