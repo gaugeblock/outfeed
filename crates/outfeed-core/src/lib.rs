@@ -22,6 +22,8 @@ pub mod semver;
 pub mod storypole;
 pub mod suite_lock;
 pub mod suite_release;
+pub mod sync;
+pub mod sync_model;
 pub mod synthesis;
 
 pub use changelog::{format_release_section, plan_changelog_update};
@@ -62,4 +64,8 @@ pub use suite_lock::{
     generate_suite_lock, write_suite_lock,
 };
 pub use suite_release::{determine_suite_version, release_suite, update_root_changelog};
+pub use sync::{audit_repo_sync, sync_suite, sync_tool};
+pub use sync_model::{
+    BranchDivergence, RepoSyncStatus, SyncOpts, calculate_divergence, is_working_tree_dirty,
+};
 pub use synthesis::synthesize_release_notes;

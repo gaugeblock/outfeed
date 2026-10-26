@@ -44,15 +44,15 @@ pub fn handle_install(root: &Path, args: InstallArgs, verbose: u8, quiet: bool) 
             );
         } else if verbose > 0 {
             for (name, outcome) in &results {
-                if let InstallOutcome::Installed { output, .. } = outcome {
-                    if !output.is_empty() {
-                        let formatted = output
-                            .lines()
-                            .map(|l| format!("  [{name}] {l}"))
-                            .collect::<Vec<_>>()
-                            .join("\n");
-                        println!("{formatted}");
-                    }
+                if let InstallOutcome::Installed { output, .. } = outcome
+                    && !output.is_empty()
+                {
+                    let formatted = output
+                        .lines()
+                        .map(|l| format!("  [{name}] {l}"))
+                        .collect::<Vec<_>>()
+                        .join("\n");
+                    println!("{formatted}");
                 }
             }
         }
@@ -83,17 +83,16 @@ pub fn handle_install(root: &Path, args: InstallArgs, verbose: u8, quiet: bool) 
                 }
             })
         );
-    } else if verbose > 0 {
-        if let InstallOutcome::Installed { output, .. } = &outcome {
-            if !output.is_empty() {
-                let formatted = output
-                    .lines()
-                    .map(|l| format!("  [{}] {l}", tool.bin_name))
-                    .collect::<Vec<_>>()
-                    .join("\n");
-                println!("{formatted}");
-            }
-        }
+    } else if verbose > 0
+        && let InstallOutcome::Installed { output, .. } = &outcome
+        && !output.is_empty()
+    {
+        let formatted = output
+            .lines()
+            .map(|l| format!("  [{}] {l}", tool.bin_name))
+            .collect::<Vec<_>>()
+            .join("\n");
+        println!("{formatted}");
     }
 
     Ok(())

@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used, clippy::expect_used)]
+
 //! Integration tests for suite clone orchestration and repository alignment.
 
 use outfeed_core::clone::{CloneOpts, CloneStatus, GitProtocol, clone_suite};

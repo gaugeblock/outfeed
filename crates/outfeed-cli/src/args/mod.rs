@@ -4,11 +4,13 @@ pub mod clone;
 pub mod delivery;
 pub mod hygiene;
 pub mod release;
+pub mod sync;
 
 pub use clone::CloneArgs;
 pub use delivery::{InstallArgs, McpArgs, PublishArgs, PushArgs};
 pub use hygiene::{CleanArgs, PruneArgs};
 pub use release::{ApplyArgs, PlanArgs, ReleaseArgs, StatusArgs};
+pub use sync::SyncArgs;
 
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
@@ -60,6 +62,9 @@ pub enum Commands {
 
     /// Clone suite member repositories with optional suite.lock alignment and installation
     Clone(CloneArgs),
+
+    /// Audit and synchronize local repositories with upstream remotes or suite.lock
+    Sync(SyncArgs),
 
     /// Clean target compilation artifacts while preserving release binaries
     Clean(CleanArgs),

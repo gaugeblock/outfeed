@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used, clippy::expect_used)]
+
 //! Integration tests for suite release orchestration and `suite.lock` generation.
 
 use outfeed_core::suite_lock::{

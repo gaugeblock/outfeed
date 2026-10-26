@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used, clippy::expect_used)]
+
 use outfeed_core::changelog::format_release_section;
 use outfeed_core::manifest::{apply_manifest_diffs, get_repo_version, plan_manifest_updates};
 use outfeed_core::model::{BumpType, ConventionalKind};

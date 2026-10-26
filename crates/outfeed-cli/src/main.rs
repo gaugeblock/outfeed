@@ -16,6 +16,7 @@ use commands::publish::handle_publish;
 use commands::push::handle_push;
 use commands::release::handle_release;
 use commands::status::handle_status;
+use commands::sync::handle_sync;
 use std::path::PathBuf;
 
 #[tokio::main]
@@ -47,6 +48,7 @@ async fn main() -> Result<()> {
         Commands::Publish(args) => handle_publish(&root_dir, args, cli.verbose, cli.quiet)?,
         Commands::Release(args) => handle_release(&root_dir, args).await?,
         Commands::Clone(args) => handle_clone(&root_dir, args, cli.quiet)?,
+        Commands::Sync(args) => handle_sync(&root_dir, args, cli.quiet)?,
         Commands::Clean(args) => handle_clean(&args, &root_dir, cli.verbose, cli.quiet)?,
         Commands::Prune(args) => handle_prune(&args, &root_dir, cli.verbose, cli.quiet)?,
         Commands::Mcp(_) => {

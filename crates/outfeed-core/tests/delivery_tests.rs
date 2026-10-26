@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used, clippy::expect_used)]
+
 use outfeed_core::OutfeedError;
 use outfeed_core::git::assert_main_branch;
 use outfeed_core::model::PushOpts;

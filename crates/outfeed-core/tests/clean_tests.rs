@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used, clippy::expect_used)]
+
 //! Unit and integration tests for outfeed clean and prune cache hygiene.
 
 use outfeed_core::clean::{calculate_disk_usage, clean_workspace, format_bytes, prune_workspace};

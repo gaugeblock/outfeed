@@ -9,6 +9,7 @@ pub mod publish;
 pub mod push;
 pub mod release;
 pub mod status;
+pub mod sync;
 
 use std::path::{Path, PathBuf};
 

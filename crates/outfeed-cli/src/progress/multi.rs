@@ -64,32 +64,32 @@ impl ProgressReporter for MultiProgressReporter {
     }
 
     fn on_update(&self, repo: &str, message: &str) {
-        if let Ok(bars) = self.bars.lock() {
-            if let Some(pb) = bars.get(repo) {
-                pb.set_message(message.to_string());
-            }
+        if let Ok(bars) = self.bars.lock()
+            && let Some(pb) = bars.get(repo)
+        {
+            pb.set_message(message.to_string());
         }
     }
 
     fn on_complete(&self, repo: &str, status: &RepoStatus) {
-        if let Ok(mut bars) = self.bars.lock() {
-            if let Some(pb) = bars.remove(repo) {
-                match status {
-                    RepoStatus::Success(msg) => {
-                        pb.set_style(self.success_style.clone());
-                        pb.set_prefix(format!("✔ {repo}:"));
-                        pb.finish_with_message(msg.clone());
-                    }
-                    RepoStatus::Skipped(msg) => {
-                        pb.set_style(self.skipped_style.clone());
-                        pb.set_prefix(format!("⊘ {repo}:"));
-                        pb.finish_with_message(msg.clone());
-                    }
-                    RepoStatus::Failed(err) => {
-                        pb.set_style(self.failed_style.clone());
-                        pb.set_prefix(format!("✖ {repo}:"));
-                        pb.finish_with_message(format!("FAILED: {err}"));
-                    }
+        if let Ok(mut bars) = self.bars.lock()
+            && let Some(pb) = bars.remove(repo)
+        {
+            match status {
+                RepoStatus::Success(msg) => {
+                    pb.set_style(self.success_style.clone());
+                    pb.set_prefix(format!("✔ {repo}:"));
+                    pb.finish_with_message(msg.clone());
+                }
+                RepoStatus::Skipped(msg) => {
+                    pb.set_style(self.skipped_style.clone());
+                    pb.set_prefix(format!("⊘ {repo}:"));
+                    pb.finish_with_message(msg.clone());
+                }
+                RepoStatus::Failed(err) => {
+                    pb.set_style(self.failed_style.clone());
+                    pb.set_prefix(format!("✖ {repo}:"));
+                    pb.finish_with_message(format!("FAILED: {err}"));
                 }
             }
         }
