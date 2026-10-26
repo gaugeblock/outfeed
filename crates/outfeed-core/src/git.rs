@@ -39,7 +39,11 @@ pub fn assert_main_branch(repo_dir: &Path) -> Result<(), OutfeedError> {
 
     // If repo is nested inside an enclosing parent git repo (meta-harness workspace root),
     // ensure the parent is also on 'main' and clean.
-    if let Some(parent) = repo_dir.parent()
+    let abs_dir = repo_dir
+        .canonicalize()
+        .unwrap_or_else(|_| repo_dir.to_path_buf());
+
+    if let Some(parent) = abs_dir.parent()
         && parent.join(".git").exists()
     {
         let parent_branch = get_current_branch(parent)?;
