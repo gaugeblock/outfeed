@@ -5,6 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [v0.1.0-beta.4] - 2026-10-26
+
+### Added
+- `outfeed`: add indicatif progress spinners, buffer child output, and standard verbosity controls (GB-68)
+
+### Maintenance
+- `storypole`: attach GB-55 design plan
+- `storypole`: migrate scoped tasks and design plans
+- `storypole`: initialize local backlog store with prefix OF
+
 ## [v0.1.0-beta.3] - 2026-10-26
 
 ### Added
