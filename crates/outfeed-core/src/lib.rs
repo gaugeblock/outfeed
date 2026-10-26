@@ -18,6 +18,8 @@ pub mod push;
 pub mod release;
 pub mod semver;
 pub mod storypole;
+pub mod suite_lock;
+pub mod suite_release;
 pub mod synthesis;
 
 pub use changelog::{format_release_section, plan_changelog_update};
@@ -51,4 +53,9 @@ pub use semver::{apply_bump, calculate_bump, parse_commit};
 pub use storypole::{
     certify_release_ticket, create_release_ticket, fetch_task_summaries, find_storypole_root,
 };
+pub use suite_lock::{
+    SuiteLock, SuiteMetadata, SuiteReleaseOpts, SuiteReleaseSummary, SuiteToolEntry,
+    generate_suite_lock, write_suite_lock,
+};
+pub use suite_release::{determine_suite_version, release_suite, update_root_changelog};
 pub use synthesis::synthesize_release_notes;

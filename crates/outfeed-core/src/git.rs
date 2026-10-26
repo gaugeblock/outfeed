@@ -106,6 +106,22 @@ pub fn get_latest_tag(repo_dir: &Path) -> Result<Option<String>, OutfeedError> {
     }
 }
 
+/// Resolves the current HEAD commit full SHA.
+pub fn get_head_commit_sha(repo_dir: &Path) -> Result<String, OutfeedError> {
+    let output = Command::new("git")
+        .args(["rev-parse", "HEAD"])
+        .current_dir(repo_dir)
+        .output()
+        .map_err(|e| OutfeedError::Git(format!("Failed to get HEAD commit: {e}")))?;
+
+    if !output.status.success() {
+        return Err(OutfeedError::Git(
+            "Failed to determine HEAD commit".to_string(),
+        ));
+    }
+    Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+}
+
 /// Fetches commit list (SHA, summary, body) between two references.
 pub fn get_commits_between(
     repo_dir: &Path,

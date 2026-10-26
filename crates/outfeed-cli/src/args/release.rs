@@ -77,6 +77,14 @@ pub struct ReleaseArgs {
     #[arg(long)]
     pub all: bool,
 
+    /// Orchestrate meta-harness suite release and generate suite.lock
+    #[arg(long)]
+    pub suite: bool,
+
+    /// Optional explicit suite milestone version (e.g. 0.1.0-beta.3)
+    #[arg(long)]
+    pub suite_version: Option<String>,
+
     /// Dry run: simulate release without modifying disk, pushing, or publishing
     #[arg(long)]
     pub dry_run: bool,
