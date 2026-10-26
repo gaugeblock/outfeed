@@ -79,6 +79,10 @@ pub fn install_tool(
         .arg(&target_dir)
         .arg("--force");
 
+    if repo_dir.join("Cargo.lock").exists() {
+        cmd.arg("--locked");
+    }
+
     if opts.debug {
         cmd.arg("--debug");
     }
