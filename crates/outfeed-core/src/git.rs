@@ -24,8 +24,52 @@ pub fn assert_clean_working_tree(repo_dir: &Path) -> Result<(), OutfeedError> {
     Ok(())
 }
 
+/// Asserts that the target repository (and any parent meta-harness repository) is on 'main' branch.
+pub fn assert_main_branch(repo_dir: &Path) -> Result<(), OutfeedError> {
+    let branch = get_current_branch(repo_dir)?;
+    if branch != "main" {
+        return Err(OutfeedError::InvalidBranch(format!(
+            "{} is on branch '{branch}'",
+            repo_dir
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("repository")
+        )));
+    }
+
+    // If repo is nested inside an enclosing parent git repo (meta-harness workspace root),
+    // ensure the parent is also on 'main' and clean.
+    if let Some(parent) = repo_dir.parent()
+        && parent.join(".git").exists()
+    {
+        let parent_branch = get_current_branch(parent)?;
+        if parent_branch != "main" {
+            return Err(OutfeedError::InvalidBranch(format!(
+                "workspace root is on branch '{parent_branch}'"
+            )));
+        }
+        assert_clean_working_tree(parent)?;
+    }
+
+    Ok(())
+}
+
 /// Resolves current git branch name.
 pub fn get_current_branch(repo_dir: &Path) -> Result<String, OutfeedError> {
+    let sym = Command::new("git")
+        .args(["symbolic-ref", "--short", "HEAD"])
+        .current_dir(repo_dir)
+        .output();
+
+    if let Ok(out) = sym
+        && out.status.success()
+    {
+        let branch = String::from_utf8_lossy(&out.stdout).trim().to_string();
+        if !branch.is_empty() {
+            return Ok(branch);
+        }
+    }
+
     let output = Command::new("git")
         .args(["rev-parse", "--abbrev-ref", "HEAD"])
         .current_dir(repo_dir)

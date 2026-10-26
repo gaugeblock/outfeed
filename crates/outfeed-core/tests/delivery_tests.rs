@@ -1,6 +1,8 @@
+use outfeed_core::git::assert_main_branch;
 use outfeed_core::model::PushOpts;
 use outfeed_core::publish::resolve_publish_order;
 use outfeed_core::push::push_repo;
+use outfeed_core::OutfeedError;
 use std::fs;
 use tempfile::tempdir;
 
@@ -102,4 +104,33 @@ fn test_push_repo_dry_run() {
     assert!(outcome.dry_run);
     assert_eq!(outcome.branch, "main");
     assert_eq!(outcome.remote, "origin");
+}
+
+#[test]
+fn test_assert_main_branch_enforcement() {
+    let tmp = tempdir().expect("tempdir");
+    let root = tmp.path();
+
+    let _ = std::process::Command::new("git")
+        .args(["init", "-b", "feat/my-cool-feature"])
+        .current_dir(root)
+        .output();
+
+    let res = assert_main_branch(root);
+    assert!(res.is_err());
+    match res {
+        Err(OutfeedError::InvalidBranch(msg)) => {
+            assert!(msg.contains("feat/my-cool-feature"));
+        }
+        other => panic!("Expected InvalidBranch, got {:?}", other),
+    }
+
+    // Switch to main
+    let _ = std::process::Command::new("git")
+        .args(["checkout", "-b", "main"])
+        .current_dir(root)
+        .output();
+
+    let ok_res = assert_main_branch(root);
+    assert!(ok_res.is_ok());
 }

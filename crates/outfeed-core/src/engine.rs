@@ -2,7 +2,10 @@
 
 use crate::changelog::plan_changelog_update;
 use crate::error::OutfeedError;
-use crate::git::{assert_clean_working_tree, create_release_commit_and_tag, get_commits_between, get_latest_tag};
+use crate::git::{
+    assert_clean_working_tree, assert_main_branch, create_release_commit_and_tag,
+    get_commits_between, get_latest_tag,
+};
 use crate::manifest::{apply_manifest_diffs, get_repo_version, plan_manifest_updates, rollback_manifest_diffs};
 use crate::model::{BumpType, ReleasePlan};
 use crate::semver::{apply_bump, calculate_bump, parse_commit};
@@ -18,6 +21,7 @@ pub async fn plan_release(
     skip_storypole: bool,
 ) -> Result<ReleasePlan, OutfeedError> {
     assert_clean_working_tree(repo_dir)?;
+    assert_main_branch(repo_dir)?;
 
     let repo_name = repo_dir
         .file_name()
@@ -110,6 +114,7 @@ pub fn apply_release(
     skip_storypole: bool,
 ) -> Result<(), OutfeedError> {
     assert_clean_working_tree(repo_dir)?;
+    assert_main_branch(repo_dir)?;
 
     // 1. Write manifests & changelog
     apply_manifest_diffs(repo_dir, &plan.manifest_diffs)?;
@@ -149,10 +154,7 @@ pub fn apply_release(
         }
     }
 
-    // 4. Git commit & tag
-    create_release_commit_and_tag(repo_dir, &plan.target_version)?;
-
-    // 5. Closed-loop Storypole integration
+    // 4. Closed-loop Storypole integration (created before commit so ticket is included in release commit)
     if !skip_storypole
         && let Some(sp_root) = find_storypole_root(repo_dir)
         && let Ok(ticket_key) = create_release_ticket(
@@ -165,6 +167,9 @@ pub fn apply_release(
     {
         let _ = certify_release_ticket(&sp_root, &ticket_key, &plan.target_version);
     }
+
+    // 5. Git commit & tag (captures all manifest diffs and updated Storypole ledger atomically)
+    create_release_commit_and_tag(repo_dir, &plan.target_version)?;
 
     Ok(())
 }

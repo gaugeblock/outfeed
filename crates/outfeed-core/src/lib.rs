@@ -28,7 +28,10 @@ pub use clean::{
 pub use cmd::{run_captured, CommandOutput};
 pub use engine::{apply_release, plan_release};
 pub use error::OutfeedError;
-pub use git::{assert_clean_working_tree, create_release_commit_and_tag, get_commits_between, get_latest_tag};
+pub use git::{
+    assert_clean_working_tree, assert_main_branch, create_release_commit_and_tag,
+    get_commits_between, get_latest_tag,
+};
 pub use install::{
     get_installed_version, install_all, install_all_with_progress, install_tool,
     install_tool_with_progress, InstallOutcome, SuiteTool, SUITE_TOOLS,
