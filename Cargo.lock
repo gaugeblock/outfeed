@@ -790,14 +790,14 @@ checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 
 [[package]]
 name = "outfeed"
-version = "0.1.0-beta.2"
+version = "0.1.0-beta.3"
 dependencies = [
  "outfeed-core",
 ]
 
 [[package]]
 name = "outfeed-cli"
-version = "0.1.0-beta.2"
+version = "0.1.0-beta.3"
 dependencies = [
  "anyhow",
  "clap",
@@ -812,7 +812,7 @@ dependencies = [
 
 [[package]]
 name = "outfeed-core"
-version = "0.1.0-beta.2"
+version = "0.1.0-beta.3"
 dependencies = [
  "chrono",
  "sawhorse-core",
@@ -831,7 +831,7 @@ dependencies = [
 
 [[package]]
 name = "outfeed-mcp"
-version = "0.1.0-beta.2"
+version = "0.1.0-beta.3"
 dependencies = [
  "outfeed-core",
  "serde",
