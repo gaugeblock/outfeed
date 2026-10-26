@@ -5,12 +5,14 @@
 
 pub mod changelog;
 pub mod clean;
+pub mod clone;
 pub mod cmd;
 pub mod engine;
 pub mod error;
 pub mod git;
 pub mod install;
 pub mod manifest;
+pub mod mcp_sync;
 pub mod model;
 pub mod progress;
 pub mod publish;
@@ -27,12 +29,13 @@ pub use clean::{
     calculate_disk_usage, clean_workspace, clean_workspace_with_progress, dir_size, format_bytes,
     prune_workspace, prune_workspace_with_progress,
 };
+pub use clone::{CloneOpts, CloneStatus, CloneSummary, GitProtocol, clone_suite, clone_tool};
 pub use cmd::{CommandOutput, run_captured};
 pub use engine::{apply_release, plan_release};
 pub use error::OutfeedError;
 pub use git::{
     assert_clean_working_tree, assert_main_branch, create_release_commit_and_tag,
-    get_commits_between, get_latest_tag,
+    get_commits_between, get_head_commit_sha, get_latest_tag,
 };
 pub use install::{
     InstallOutcome, SUITE_TOOLS, SuiteTool, get_installed_version, install_all,
@@ -41,6 +44,7 @@ pub use install::{
 pub use manifest::{
     apply_manifest_diffs, get_repo_version, plan_manifest_updates, rollback_manifest_diffs,
 };
+pub use mcp_sync::sync_antigravity_mcp;
 pub use model::{
     BumpType, CleanOpts, CleanReport, CommitInfo, ConventionalKind, DiskUsage, InstallOpts,
     ManifestDiff, PruneOpts, PublishOpts, PushOpts, ReleaseOpts, ReleasePlan,

@@ -1,9 +1,11 @@
 //! Command line arguments for outfeed.
 
+pub mod clone;
 pub mod delivery;
 pub mod hygiene;
 pub mod release;
 
+pub use clone::CloneArgs;
 pub use delivery::{InstallArgs, McpArgs, PublishArgs, PushArgs};
 pub use hygiene::{CleanArgs, PruneArgs};
 pub use release::{ApplyArgs, PlanArgs, ReleaseArgs, StatusArgs};
@@ -55,6 +57,9 @@ pub enum Commands {
 
     /// Orchestrated release pipeline: plan -> apply -> install -> push -> publish
     Release(ReleaseArgs),
+
+    /// Clone suite member repositories with optional suite.lock alignment and installation
+    Clone(CloneArgs),
 
     /// Clean target compilation artifacts while preserving release binaries
     Clean(CleanArgs),

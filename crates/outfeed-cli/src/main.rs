@@ -9,6 +9,7 @@ use args::{Cli, Commands};
 use clap::Parser;
 use commands::apply::handle_apply;
 use commands::clean::{handle_clean, handle_prune};
+use commands::clone::handle_clone;
 use commands::install::handle_install;
 use commands::plan::handle_plan;
 use commands::publish::handle_publish;
@@ -45,6 +46,7 @@ async fn main() -> Result<()> {
         Commands::Push(args) => handle_push(&root_dir, args, cli.verbose, cli.quiet)?,
         Commands::Publish(args) => handle_publish(&root_dir, args, cli.verbose, cli.quiet)?,
         Commands::Release(args) => handle_release(&root_dir, args).await?,
+        Commands::Clone(args) => handle_clone(&root_dir, args, cli.quiet)?,
         Commands::Clean(args) => handle_clean(&args, &root_dir, cli.verbose, cli.quiet)?,
         Commands::Prune(args) => handle_prune(&args, &root_dir, cli.verbose, cli.quiet)?,
         Commands::Mcp(_) => {

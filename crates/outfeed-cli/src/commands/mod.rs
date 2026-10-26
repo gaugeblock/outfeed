@@ -2,6 +2,7 @@
 
 pub mod apply;
 pub mod clean;
+pub mod clone;
 pub mod install;
 pub mod plan;
 pub mod publish;
