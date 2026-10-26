@@ -141,15 +141,22 @@ pub fn publish_repo(repo_dir: &Path, opts: &PublishOpts) -> Result<Vec<String>, 
         if let Some(ref reg) = opts.registry {
             cmd.arg("--registry").arg(reg);
         }
-        let status = cmd.status().map_err(|e| OutfeedError::Publish(format!("Publish failed: {e}")))?;
-        if !status.success() {
+        let output = cmd.output().map_err(|e| OutfeedError::Publish(format!("Publish failed: {e}")))?;
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            if stderr.contains("is already uploaded") || stderr.contains("already uploaded") {
+                eprintln!("⏩ {} is already published on registry, skipping...", member.name);
+                published.push(member.name);
+                continue;
+            }
+            eprintln!("{}", stderr);
             return Err(OutfeedError::Publish(format!("cargo publish failed for {}", member.name)));
         }
         published.push(member.name);
 
         // Delay between dependent crates if not the last crate
         if idx + 1 < total && opts.delay_secs > 0 {
-            tracing::info!("Waiting {}s for crates.io index propagation...", opts.delay_secs);
+            eprintln!("⏳ Waiting {}s for crates.io index propagation...", opts.delay_secs);
             sleep(Duration::from_secs(opts.delay_secs));
         }
     }
