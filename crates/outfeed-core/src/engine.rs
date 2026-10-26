@@ -29,7 +29,7 @@ pub async fn plan_release(
     let latest_tag = get_latest_tag(repo_dir)?;
     let raw_commits = get_commits_between(repo_dir, latest_tag.as_deref(), "HEAD")?;
 
-    if raw_commits.is_empty() {
+    if raw_commits.is_empty() && override_version.is_none() {
         let tag_info = latest_tag.unwrap_or_else(|| "repository root".to_string());
         return Err(OutfeedError::Git(format!(
             "No unreleased commits found on {repo_name} since {tag_info}"
@@ -50,7 +50,15 @@ pub async fn plan_release(
         }
     }
 
-    let (bump_type, bump_rationale) = calculate_bump(&current_version, &commits)?;
+    let (bump_type, bump_rationale) = if let Some(override_ver) = override_version {
+        (
+            BumpType::PreReleasePatch,
+            format!("Explicit version override to {override_ver}"),
+        )
+    } else {
+        calculate_bump(&current_version, &commits)?
+    };
+
     let target_version = match override_version {
         Some(v) => v.to_string(),
         None => apply_bump(&current_version, bump_type)?,
@@ -68,8 +76,14 @@ pub async fn plan_release(
         Vec::new()
     };
 
-    let changelog_markdown =
-        synthesize_release_notes(&repo_name, &target_version, &commits, &task_summaries).await?;
+    let changelog_markdown = if commits.is_empty() {
+        format!(
+            "## [v{target_version}] - {}\n\n### Changed\n- Version promotion to {target_version}\n",
+            chrono::Utc::now().format("%Y-%m-%d")
+        )
+    } else {
+        synthesize_release_notes(&repo_name, &target_version, &commits, &task_summaries).await?
+    };
 
     let mut manifest_diffs = plan_manifest_updates(repo_dir, &target_version)?;
     let changelog_diff = plan_changelog_update(repo_dir, &changelog_markdown)?;
