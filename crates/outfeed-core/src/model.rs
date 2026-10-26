@@ -101,3 +101,65 @@ pub struct ReleasePlan {
     pub manifest_diffs: Vec<ManifestDiff>,
 }
 
+/// Options controlling CLI binary installation.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct InstallOpts {
+    /// Build with debug profile instead of release.
+    pub debug: bool,
+    /// Force rebuild/reinstall even if versions match.
+    pub force: bool,
+}
+
+/// Options controlling git remote push.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PushOpts {
+    /// Git remote name (defaults to "origin").
+    pub remote: String,
+    /// Simulate without pushing to remote.
+    pub dry_run: bool,
+}
+
+impl Default for PushOpts {
+    fn default() -> Self {
+        Self {
+            remote: "origin".to_string(),
+            dry_run: false,
+        }
+    }
+}
+
+/// Options controlling crates.io publishing.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PublishOpts {
+    /// Target registry (defaults to crates.io).
+    pub registry: Option<String>,
+    /// Simulate publication without uploading.
+    pub dry_run: bool,
+    /// Delay in seconds between intra-repo dependent crates.
+    pub delay_secs: u64,
+}
+
+impl Default for PublishOpts {
+    fn default() -> Self {
+        Self {
+            registry: None,
+            dry_run: false,
+            delay_secs: 15,
+        }
+    }
+}
+
+/// Options controlling the orchestrated release macro.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct ReleaseOpts {
+    /// Simulate release without modifying disk or pushing.
+    pub dry_run: bool,
+    /// Skip installing binary locally.
+    pub skip_install: bool,
+    /// Skip pushing commits and tags to remote.
+    pub skip_push: bool,
+    /// Skip publishing crates to registry.
+    pub skip_publish: bool,
+}
+
+

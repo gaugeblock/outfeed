@@ -42,6 +42,61 @@ pub fn list_tools() -> Value {
                     }
                 }
             }
+        },
+        {
+            "name": "outfeed_install",
+            "description": "Compile and install suite CLI binaries into global PATH (~/.cargo/bin)",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "tool": {
+                        "type": "string",
+                        "description": "Target tool name or 'all' for complete suite (default: all)"
+                    },
+                    "force": {
+                        "type": "boolean",
+                        "description": "Force rebuild and install even if versions match"
+                    }
+                }
+            }
+        },
+        {
+            "name": "outfeed_push",
+            "description": "Push release branch and tag to Git remote",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "repo": {
+                        "type": "string",
+                        "description": "Target repository path or name (defaults to current dir)"
+                    },
+                    "remote": {
+                        "type": "string",
+                        "description": "Git remote name (default: origin)"
+                    },
+                    "dry_run": {
+                        "type": "boolean",
+                        "description": "Simulate push without modifying remote"
+                    }
+                }
+            }
+        },
+        {
+            "name": "outfeed_publish",
+            "description": "Publish member crates to crates.io in topological order with --dry-run validation",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "repo": {
+                        "type": "string",
+                        "description": "Target repository path or name (defaults to current dir)"
+                    },
+                    "dry_run": {
+                        "type": "boolean",
+                        "description": "Simulate packaging without uploading to registry"
+                    }
+                }
+            }
         }
     ])
 }

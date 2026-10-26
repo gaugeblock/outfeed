@@ -37,6 +37,18 @@ pub enum OutfeedError {
     #[error("Synthesis error: {0}")]
     Synthesis(String),
 
+    /// Binary installation failure.
+    #[error("Install error: {0}")]
+    Install(String),
+
+    /// Git push failure.
+    #[error("Push error: {0}")]
+    Push(String),
+
+    /// Registry publish failure.
+    #[error("Publish error: {0}")]
+    Publish(String),
+
     /// General I/O failure.
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
