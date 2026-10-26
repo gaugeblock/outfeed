@@ -49,6 +49,10 @@ pub enum OutfeedError {
     #[error("Publish error: {0}")]
     Publish(String),
 
+    /// Cache hygiene or clean failure.
+    #[error("Clean error: {0}")]
+    Clean(String),
+
     /// General I/O failure.
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),

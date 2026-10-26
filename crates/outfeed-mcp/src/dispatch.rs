@@ -108,6 +108,27 @@ pub async fn dispatch_tool(
                 "published_crates": published,
             }))
         }
+        "outfeed_clean" => {
+            let clean_all = args.get("all").and_then(|v| v.as_bool()).unwrap_or(false);
+            let clean_doc = args.get("doc").and_then(|v| v.as_bool()).unwrap_or(false);
+            let clean_release = args.get("release").and_then(|v| v.as_bool()).unwrap_or(false);
+            let dry_run = args.get("dry_run").and_then(|v| v.as_bool()).unwrap_or(true);
+            let opts = outfeed_core::model::CleanOpts {
+                clean_all,
+                clean_doc,
+                clean_release,
+                dry_run,
+            };
+            let report = outfeed_core::clean_workspace(root_dir, &opts).map_err(|e| e.to_string())?;
+            Ok(json!({
+                "success": true,
+                "dry_run": report.dry_run,
+                "reclaimed_bytes": report.reclaimed_bytes,
+                "reclaimed_human": outfeed_core::clean::format_bytes(report.reclaimed_bytes),
+                "paths_removed": report.paths_removed,
+                "initial_usage": report.initial_usage,
+            }))
+        }
         _ => Err(format!("Unknown outfeed MCP tool: {name}")),
     }
 }

@@ -97,6 +97,31 @@ pub fn list_tools() -> Value {
                     }
                 }
             }
+        },
+        {
+            "name": "outfeed_clean",
+            "description": "Clean target compilation artifacts while preserving release binaries, with dry-run size audit",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "all": {
+                        "type": "boolean",
+                        "description": "Full clean of entire target/ directory"
+                    },
+                    "doc": {
+                        "type": "boolean",
+                        "description": "Clean documentation artifacts (target/doc)"
+                    },
+                    "release": {
+                        "type": "boolean",
+                        "description": "Clean release artifacts (target/release)"
+                    },
+                    "dry_run": {
+                        "type": "boolean",
+                        "description": "Report disk usage and reclaimable space without deleting (default true)"
+                    }
+                }
+            }
         }
     ])
 }
