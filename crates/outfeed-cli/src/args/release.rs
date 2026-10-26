@@ -17,6 +17,10 @@ pub struct PlanArgs {
     #[arg(long)]
     pub skip_storypole: bool,
 
+    /// Bypass LLM release note synthesis and use deterministic formatting
+    #[arg(long, visible_alias = "deterministic")]
+    pub no_llm: bool,
+
     /// Output full plan as JSON
     #[arg(long)]
     pub json: bool,
@@ -40,6 +44,10 @@ pub struct ApplyArgs {
     /// Skip Storypole chore ticket creation and verification
     #[arg(long)]
     pub skip_storypole: bool,
+
+    /// Bypass LLM release note synthesis and use deterministic formatting
+    #[arg(long, visible_alias = "deterministic")]
+    pub no_llm: bool,
 
     /// Dry run: plan and display diffs without writing to disk or making git commits
     #[arg(long)]
@@ -100,6 +108,10 @@ pub struct ReleaseArgs {
     /// Skip publishing crates to registry
     #[arg(long)]
     pub skip_publish: bool,
+
+    /// Bypass LLM release note synthesis and use deterministic formatting
+    #[arg(long, visible_alias = "deterministic")]
+    pub no_llm: bool,
 
     /// Output as JSON
     #[arg(long)]

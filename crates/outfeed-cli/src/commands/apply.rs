@@ -19,6 +19,7 @@ pub async fn handle_apply(root: &Path, args: ApplyArgs) -> Result<()> {
                 repo: args.repo,
                 override_version: args.override_version,
                 skip_storypole: args.skip_storypole,
+                no_llm: args.no_llm,
                 json: args.json,
             },
         )
@@ -29,6 +30,7 @@ pub async fn handle_apply(root: &Path, args: ApplyArgs) -> Result<()> {
         &repo_dir,
         args.override_version.as_deref(),
         args.skip_storypole,
+        args.no_llm,
     )
     .await
     .context("Failed to generate release plan")?;

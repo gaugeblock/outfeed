@@ -147,10 +147,45 @@ async fn test_release_all_on_empty_or_clean_workspace() {
         skip_install: true,
         skip_push: true,
         skip_publish: true,
+        no_llm: true,
     };
 
     // When no member repos exist in root, release_all skips safely and returns empty vec
-    let summaries = outfeed_core::release_all(root, &opts)
+    let summaries = outfeed_core::release_all(root, &opts, &outfeed_core::progress::NoopProgress)
+        .await
+        .expect("release_all");
+    assert!(summaries.is_empty());
+}
+
+#[tokio::test]
+async fn test_release_all_with_progress_reporting() {
+    let tmp = tempdir().expect("tempdir");
+    let root = tmp.path();
+
+    struct RecordingReporter {
+        started: std::sync::Mutex<Vec<String>>,
+    }
+    impl outfeed_core::progress::ProgressReporter for RecordingReporter {
+        fn on_start(&self, repo: &str, _msg: &str) {
+            self.started.lock().unwrap().push(repo.to_string());
+        }
+        fn on_update(&self, _repo: &str, _msg: &str) {}
+        fn on_complete(&self, _repo: &str, _status: &outfeed_core::progress::RepoStatus) {}
+    }
+
+    let reporter = RecordingReporter {
+        started: std::sync::Mutex::new(Vec::new()),
+    };
+
+    let opts = outfeed_core::model::ReleaseOpts {
+        dry_run: true,
+        skip_install: true,
+        skip_push: true,
+        skip_publish: true,
+        no_llm: true,
+    };
+
+    let summaries = outfeed_core::release_all(root, &opts, &reporter)
         .await
         .expect("release_all");
     assert!(summaries.is_empty());

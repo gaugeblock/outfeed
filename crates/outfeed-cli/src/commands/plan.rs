@@ -13,6 +13,7 @@ pub async fn handle_plan(root: &Path, args: PlanArgs) -> Result<()> {
         &repo_dir,
         args.override_version.as_deref(),
         args.skip_storypole,
+        args.no_llm,
     )
     .await
     .context("Failed to plan release")?;

@@ -14,14 +14,30 @@ pub async fn synthesize_release_notes(
     version: &str,
     commits: &[CommitInfo],
     task_summaries: &[(String, String, String)],
+    no_llm: bool,
 ) -> Result<String, OutfeedError> {
-    // Attempt LLM synthesis via Sawhorse
-    if let Ok(config) = SawhorseConfig::discover()
+    if !no_llm
+        && let Ok(config) = SawhorseConfig::discover()
         && let Ok(router) = RoleRouter::from_config(config)
-        && let Ok(notes) = call_sawhorse(&router, repo_name, version, commits, task_summaries).await
-        && !notes.trim().is_empty()
     {
-        return Ok(notes);
+        let fut = call_sawhorse(&router, repo_name, version, commits, task_summaries);
+        match tokio::time::timeout(std::time::Duration::from_secs(10), fut).await {
+            Ok(Ok(notes)) if !notes.trim().is_empty() => return Ok(notes),
+            Ok(Err(err)) => {
+                tracing::info!(
+                    repo = %repo_name,
+                    error = %err,
+                    "LLM synthesis unavailable; falling back to deterministic changelog"
+                );
+            }
+            Err(_) => {
+                tracing::info!(
+                    repo = %repo_name,
+                    "LLM synthesis timed out (10s); falling back to deterministic changelog"
+                );
+            }
+            _ => {}
+        }
     }
 
     // Deterministic fallback

@@ -6,6 +6,7 @@ use crate::engine::{apply_release, plan_release};
 use crate::error::OutfeedError;
 use crate::install::{SUITE_TOOLS, install_tool};
 use crate::model::{InstallOpts, PublishOpts, PushOpts, ReleaseOpts};
+use crate::progress::{ProgressReporter, RepoStatus};
 use crate::publish::publish_repo;
 use crate::push::push_repo;
 
@@ -29,6 +30,7 @@ pub async fn release_repo(
     workspace_root: &Path,
     repo_name: &str,
     opts: &ReleaseOpts,
+    reporter: &dyn ProgressReporter,
 ) -> Result<Option<ReleaseSummary>, OutfeedError> {
     let repo_dir = if repo_name == "." || repo_name.is_empty() {
         workspace_root.to_path_buf()
@@ -55,19 +57,33 @@ pub async fn release_repo(
         repo_name
     };
 
+    reporter.on_start(actual_name, "evaluating commits and changelog...");
+
     // 1. Plan
-    let plan = match plan_release(&repo_dir, None, false).await {
+    let plan = match plan_release(&repo_dir, None, false, opts.no_llm).await {
         Ok(p) => p,
         Err(OutfeedError::Git(ref msg)) if msg.contains("No unreleased commits") => {
+            reporter.on_complete(
+                actual_name,
+                &RepoStatus::Skipped("clean (no unreleased commits)".to_string()),
+            );
             return Ok(None);
         }
-        Err(err) => return Err(err),
+        Err(err) => {
+            reporter.on_complete(actual_name, &RepoStatus::Failed(err.to_string()));
+            return Err(err);
+        }
     };
     if plan.commits.is_empty() {
+        reporter.on_complete(
+            actual_name,
+            &RepoStatus::Skipped("clean (no unreleased commits)".to_string()),
+        );
         return Ok(None);
     }
 
     let target_version = plan.target_version.clone();
+    reporter.on_update(actual_name, &format!("planning v{target_version}..."));
 
     // 2. Apply (or simulate if dry_run)
     if opts.dry_run {
@@ -75,6 +91,10 @@ pub async fn release_repo(
             "[DRY RUN] Would release {} v{}",
             actual_name,
             target_version
+        );
+        reporter.on_complete(
+            actual_name,
+            &RepoStatus::Success(format!("[dry-run] proposed v{target_version}")),
         );
         return Ok(Some(ReleaseSummary {
             repo_name: actual_name.to_string(),
@@ -85,29 +105,56 @@ pub async fn release_repo(
         }));
     }
 
-    apply_release(&repo_dir, &plan, true, false)?;
+    reporter.on_update(
+        actual_name,
+        &format!("committing and tagging v{target_version}..."),
+    );
+    if let Err(err) = apply_release(&repo_dir, &plan, true, false) {
+        reporter.on_complete(actual_name, &RepoStatus::Failed(err.to_string()));
+        return Err(err);
+    }
 
     // 3. Install locally
     let mut installed = false;
     if !opts.skip_install
         && let Some(tool) = SUITE_TOOLS.iter().find(|t| t.name == actual_name)
     {
-        install_tool(workspace_root, tool, &InstallOpts::default())?;
+        reporter.on_update(actual_name, "compiling and installing binary...");
+        if let Err(err) = install_tool(workspace_root, tool, &InstallOpts::default()) {
+            reporter.on_complete(actual_name, &RepoStatus::Failed(err.to_string()));
+            return Err(err);
+        }
         installed = true;
     }
 
     // 4. Push to Git remote
     let mut pushed = false;
     if !opts.skip_push {
-        push_repo(&repo_dir, &PushOpts::default())?;
+        reporter.on_update(actual_name, "pushing to Git remote...");
+        if let Err(err) = push_repo(&repo_dir, &PushOpts::default()) {
+            reporter.on_complete(actual_name, &RepoStatus::Failed(err.to_string()));
+            return Err(err);
+        }
         pushed = true;
     }
 
     // 5. Publish to registry
     let mut published_crates = Vec::new();
     if !opts.skip_publish {
-        published_crates = publish_repo(&repo_dir, &PublishOpts::default())?;
+        reporter.on_update(actual_name, "publishing crates to registry...");
+        published_crates = match publish_repo(&repo_dir, &PublishOpts::default()) {
+            Ok(crates) => crates,
+            Err(err) => {
+                reporter.on_complete(actual_name, &RepoStatus::Failed(err.to_string()));
+                return Err(err);
+            }
+        };
     }
+
+    reporter.on_complete(
+        actual_name,
+        &RepoStatus::Success(format!("released v{target_version}")),
+    );
 
     Ok(Some(ReleaseSummary {
         repo_name: actual_name.to_string(),
@@ -122,6 +169,7 @@ pub async fn release_repo(
 pub async fn release_all(
     workspace_root: &Path,
     opts: &ReleaseOpts,
+    reporter: &dyn ProgressReporter,
 ) -> Result<Vec<ReleaseSummary>, OutfeedError> {
     let mut summaries = Vec::new();
     for tool in SUITE_TOOLS {
@@ -129,7 +177,7 @@ pub async fn release_all(
         if !repo_dir.exists() {
             continue;
         }
-        if let Some(summary) = release_repo(workspace_root, tool.name, opts).await? {
+        if let Some(summary) = release_repo(workspace_root, tool.name, opts, reporter).await? {
             summaries.push(summary);
         }
     }

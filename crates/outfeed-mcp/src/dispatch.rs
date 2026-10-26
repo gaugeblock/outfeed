@@ -27,10 +27,14 @@ pub async fn dispatch_tool(name: &str, args: &Value, root_dir: &Path) -> Result<
     let repo_str = args.get("repo").and_then(|v| v.as_str());
     let repo_dir = resolve_repo_dir(root_dir, repo_str);
     let override_ver = args.get("override_version").and_then(|v| v.as_str());
+    let no_llm = args
+        .get("no_llm")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
 
     match name {
         "outfeed_plan" => {
-            let plan = plan_release(&repo_dir, override_ver, false)
+            let plan = plan_release(&repo_dir, override_ver, false, no_llm)
                 .await
                 .map_err(|e| e.to_string())?;
             serde_json::to_value(&plan).map_err(|e| e.to_string())
@@ -41,7 +45,7 @@ pub async fn dispatch_tool(name: &str, args: &Value, root_dir: &Path) -> Result<
                 .and_then(|v| v.as_bool())
                 .unwrap_or(true);
 
-            let plan = plan_release(&repo_dir, override_ver, false)
+            let plan = plan_release(&repo_dir, override_ver, false, no_llm)
                 .await
                 .map_err(|e| e.to_string())?;
 

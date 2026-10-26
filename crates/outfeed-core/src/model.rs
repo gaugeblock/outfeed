@@ -160,6 +160,8 @@ pub struct ReleaseOpts {
     pub skip_push: bool,
     /// Skip publishing crates to registry.
     pub skip_publish: bool,
+    /// Bypass LLM release note synthesis and use deterministic formatting.
+    pub no_llm: bool,
 }
 
 /// Breakdown of disk usage across target directories.

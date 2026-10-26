@@ -23,6 +23,7 @@ pub async fn plan_release(
     repo_dir: &Path,
     override_version: Option<&str>,
     skip_storypole: bool,
+    no_llm: bool,
 ) -> Result<ReleasePlan, OutfeedError> {
     assert_clean_working_tree(repo_dir)?;
     assert_main_branch(repo_dir)?;
@@ -90,7 +91,14 @@ pub async fn plan_release(
             chrono::Utc::now().format("%Y-%m-%d")
         )
     } else {
-        synthesize_release_notes(&repo_name, &target_version, &commits, &task_summaries).await?
+        synthesize_release_notes(
+            &repo_name,
+            &target_version,
+            &commits,
+            &task_summaries,
+            no_llm,
+        )
+        .await?
     };
 
     let mut manifest_diffs = plan_manifest_updates(repo_dir, &target_version)?;
