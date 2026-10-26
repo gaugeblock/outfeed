@@ -56,7 +56,13 @@ pub async fn release_repo(
     };
 
     // 1. Plan
-    let plan = plan_release(&repo_dir, None, false).await?;
+    let plan = match plan_release(&repo_dir, None, false).await {
+        Ok(p) => p,
+        Err(OutfeedError::Git(ref msg)) if msg.contains("No unreleased commits") => {
+            return Ok(None);
+        }
+        Err(err) => return Err(err),
+    };
     if plan.commits.is_empty() {
         return Ok(None);
     }
