@@ -13,7 +13,11 @@ fn test_parse_conventional_commits() {
     assert!(!c1.is_breaking);
     assert_eq!(c1.referenced_tickets, vec!["GB-41".to_string()]);
 
-    let c2 = parse_commit("sha2", "fix!: change public trait signature", Some("BREAKING CHANGE: breaks all API"));
+    let c2 = parse_commit(
+        "sha2",
+        "fix!: change public trait signature",
+        Some("BREAKING CHANGE: breaks all API"),
+    );
     assert_eq!(c2.kind, ConventionalKind::Fix);
     assert!(c2.is_breaking);
 

@@ -23,4 +23,3 @@ impl ProgressReporter for StreamReporter {
         }
     }
 }
-

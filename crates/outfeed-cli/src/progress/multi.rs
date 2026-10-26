@@ -1,10 +1,10 @@
 //! Dynamic MultiProgress reporter using `indicatif` for interactive TTY terminals.
 
+use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
+use outfeed_core::{ProgressReporter, RepoStatus};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
-use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use outfeed_core::{ProgressReporter, RepoStatus};
 
 /// Interactive terminal progress reporter holding multiple spinners.
 pub struct MultiProgressReporter {
@@ -95,4 +95,3 @@ impl ProgressReporter for MultiProgressReporter {
         }
     }
 }
-

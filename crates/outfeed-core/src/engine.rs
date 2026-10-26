@@ -6,10 +6,14 @@ use crate::git::{
     assert_clean_working_tree, assert_main_branch, create_release_commit_and_tag,
     get_commits_between, get_latest_tag,
 };
-use crate::manifest::{apply_manifest_diffs, get_repo_version, plan_manifest_updates, rollback_manifest_diffs};
+use crate::manifest::{
+    apply_manifest_diffs, get_repo_version, plan_manifest_updates, rollback_manifest_diffs,
+};
 use crate::model::{BumpType, ReleasePlan};
 use crate::semver::{apply_bump, calculate_bump, parse_commit};
-use crate::storypole::{certify_release_ticket, create_release_ticket, fetch_task_summaries, find_storypole_root};
+use crate::storypole::{
+    certify_release_ticket, create_release_ticket, fetch_task_summaries, find_storypole_root,
+};
 use crate::synthesis::synthesize_release_notes;
 use std::path::Path;
 use std::process::Command;

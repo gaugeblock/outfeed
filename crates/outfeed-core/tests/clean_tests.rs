@@ -60,7 +60,10 @@ fn test_clean_workspace_dry_run_and_safe_default() {
 
     assert!(dry_report.dry_run);
     assert_eq!(dry_report.reclaimed_bytes, 4096);
-    assert!(debug_file.exists(), "debug file should still exist after dry run");
+    assert!(
+        debug_file.exists(),
+        "debug file should still exist after dry run"
+    );
     assert!(release_file.exists(), "release file should still exist");
 
     // 2. Safe default clean (purges debug, preserves release)
@@ -95,7 +98,10 @@ fn test_clean_workspace_all() {
     )
     .expect("clean all");
 
-    assert!(!target.exists(), "target directory should be completely gone");
+    assert!(
+        !target.exists(),
+        "target directory should be completely gone"
+    );
     assert_eq!(report.reclaimed_bytes, 4);
 }
 

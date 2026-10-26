@@ -4,8 +4,8 @@ use std::path::Path;
 
 use crate::engine::{apply_release, plan_release};
 use crate::error::OutfeedError;
-use crate::install::{install_tool, SUITE_TOOLS};
-use crate::model::{InstallOpts, PushOpts, PublishOpts, ReleaseOpts};
+use crate::install::{SUITE_TOOLS, install_tool};
+use crate::model::{InstallOpts, PublishOpts, PushOpts, ReleaseOpts};
 use crate::publish::publish_repo;
 use crate::push::push_repo;
 
@@ -30,10 +30,30 @@ pub async fn release_repo(
     repo_name: &str,
     opts: &ReleaseOpts,
 ) -> Result<Option<ReleaseSummary>, OutfeedError> {
-    let repo_dir = workspace_root.join(repo_name);
+    let repo_dir = if repo_name == "." || repo_name.is_empty() {
+        workspace_root.to_path_buf()
+    } else {
+        let p = Path::new(repo_name);
+        if p.is_dir() {
+            p.to_path_buf()
+        } else {
+            workspace_root.join(repo_name)
+        }
+    };
     if !repo_dir.exists() {
-        return Err(OutfeedError::Git(format!("Repository not found: {repo_name}")));
+        return Err(OutfeedError::Git(format!(
+            "Repository not found: {repo_name}"
+        )));
     }
+
+    let actual_name = if repo_name == "." || repo_name.is_empty() {
+        repo_dir
+            .file_name()
+            .and_then(|f| f.to_str())
+            .unwrap_or(repo_name)
+    } else {
+        repo_name
+    };
 
     // 1. Plan
     let plan = plan_release(&repo_dir, None, false).await?;
@@ -45,9 +65,13 @@ pub async fn release_repo(
 
     // 2. Apply (or simulate if dry_run)
     if opts.dry_run {
-        tracing::info!("[DRY RUN] Would release {} v{}", repo_name, target_version);
+        tracing::info!(
+            "[DRY RUN] Would release {} v{}",
+            actual_name,
+            target_version
+        );
         return Ok(Some(ReleaseSummary {
-            repo_name: repo_name.to_string(),
+            repo_name: actual_name.to_string(),
             target_version,
             installed: !opts.skip_install,
             pushed: !opts.skip_push,
@@ -60,7 +84,7 @@ pub async fn release_repo(
     // 3. Install locally
     let mut installed = false;
     if !opts.skip_install
-        && let Some(tool) = SUITE_TOOLS.iter().find(|t| t.name == repo_name)
+        && let Some(tool) = SUITE_TOOLS.iter().find(|t| t.name == actual_name)
     {
         install_tool(workspace_root, tool, &InstallOpts::default())?;
         installed = true;
@@ -80,10 +104,28 @@ pub async fn release_repo(
     }
 
     Ok(Some(ReleaseSummary {
-        repo_name: repo_name.to_string(),
+        repo_name: actual_name.to_string(),
         target_version,
         installed,
         pushed,
         published_crates,
     }))
+}
+
+/// Executes the release lifecycle across all suite repositories in topological order.
+pub async fn release_all(
+    workspace_root: &Path,
+    opts: &ReleaseOpts,
+) -> Result<Vec<ReleaseSummary>, OutfeedError> {
+    let mut summaries = Vec::new();
+    for tool in SUITE_TOOLS {
+        let repo_dir = workspace_root.join(tool.name);
+        if !repo_dir.exists() {
+            continue;
+        }
+        if let Some(summary) = release_repo(workspace_root, tool.name, opts).await? {
+            summaries.push(summary);
+        }
+    }
+    Ok(summaries)
 }

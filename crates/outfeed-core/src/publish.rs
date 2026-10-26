@@ -29,20 +29,26 @@ pub fn resolve_publish_order(repo_dir: &Path) -> Result<Vec<MemberCrate>, Outfee
     let content = fs::read_to_string(&manifest_path).map_err(OutfeedError::Io)?;
     let doc = content
         .parse::<toml_edit::DocumentMut>()
-        .map_err(|e: toml_edit::TomlError| OutfeedError::Manifest(manifest_path.display().to_string(), e.to_string()))?;
+        .map_err(|e: toml_edit::TomlError| {
+            OutfeedError::Manifest(manifest_path.display().to_string(), e.to_string())
+        })?;
 
     let mut members = Vec::new();
     let mut names = HashSet::new();
 
     // Check root package
-    if let Some(pkg) = doc.get("package") && let Some(name) = pkg.get("name").and_then(|n| n.as_str()) {
+    if let Some(pkg) = doc.get("package")
+        && let Some(name) = pkg.get("name").and_then(|n| n.as_str())
+    {
         members.push((name.to_string(), ".".to_string(), manifest_path.clone()));
         names.insert(name.to_string());
     }
 
     // Check crates/*
     let crates_dir = repo_dir.join("crates");
-    if crates_dir.is_dir() && let Ok(entries) = fs::read_dir(&crates_dir) {
+    if crates_dir.is_dir()
+        && let Ok(entries) = fs::read_dir(&crates_dir)
+    {
         for entry in entries.flatten() {
             let sub_manifest = entry.path().join("Cargo.toml");
             if sub_manifest.is_file()
@@ -62,9 +68,12 @@ pub fn resolve_publish_order(repo_dir: &Path) -> Result<Vec<MemberCrate>, Outfee
     let mut crate_map = HashMap::new();
     for (name, rel_path, path) in members {
         let sub_txt = fs::read_to_string(&path).map_err(OutfeedError::Io)?;
-        let sub_doc = sub_txt
-            .parse::<toml_edit::DocumentMut>()
-            .map_err(|e: toml_edit::TomlError| OutfeedError::Manifest(path.display().to_string(), e.to_string()))?;
+        let sub_doc =
+            sub_txt
+                .parse::<toml_edit::DocumentMut>()
+                .map_err(|e: toml_edit::TomlError| {
+                    OutfeedError::Manifest(path.display().to_string(), e.to_string())
+                })?;
 
         let mut internal_deps = Vec::new();
         if let Some(deps) = sub_doc.get("dependencies").and_then(|d| d.as_table()) {
@@ -74,7 +83,14 @@ pub fn resolve_publish_order(repo_dir: &Path) -> Result<Vec<MemberCrate>, Outfee
                 }
             }
         }
-        crate_map.insert(name.clone(), MemberCrate { name, rel_path, internal_deps });
+        crate_map.insert(
+            name.clone(),
+            MemberCrate {
+                name,
+                rel_path,
+                internal_deps,
+            },
+        );
     }
 
     // Topologically sort: crates with no dependencies first
@@ -90,7 +106,9 @@ pub fn resolve_publish_order(repo_dir: &Path) -> Result<Vec<MemberCrate>, Outfee
         ordered: &mut Vec<MemberCrate>,
     ) -> Result<(), OutfeedError> {
         if visiting.contains(name) {
-            return Err(OutfeedError::Publish(format!("Cycle detected in workspace dependencies: {name}")));
+            return Err(OutfeedError::Publish(format!(
+                "Cycle detected in workspace dependencies: {name}"
+            )));
         }
         if !visited.contains(name) {
             visiting.insert(name.to_string());
@@ -131,7 +149,11 @@ pub fn publish_repo_with_progress(
     for member in &order {
         reporter.on_start(&member.name, "validating publish dry-run");
         let mut cmd = Command::new("cargo");
-        cmd.arg("publish").arg("--dry-run").arg("-p").arg(&member.name).current_dir(repo_dir);
+        cmd.arg("publish")
+            .arg("--dry-run")
+            .arg("-p")
+            .arg(&member.name)
+            .current_dir(repo_dir);
         if let Some(ref reg) = opts.registry {
             cmd.arg("--registry").arg(reg);
         }
@@ -144,7 +166,10 @@ pub fn publish_repo_with_progress(
                 member.name
             )));
         }
-        reporter.on_complete(&member.name, &RepoStatus::Success("dry-run verified".to_string()));
+        reporter.on_complete(
+            &member.name,
+            &RepoStatus::Success("dry-run verified".to_string()),
+        );
     }
 
     if opts.dry_run {
@@ -156,7 +181,10 @@ pub fn publish_repo_with_progress(
     for (idx, member) in order.into_iter().enumerate() {
         reporter.on_start(&member.name, "publishing to registry");
         let mut cmd = Command::new("cargo");
-        cmd.arg("publish").arg("-p").arg(&member.name).current_dir(repo_dir);
+        cmd.arg("publish")
+            .arg("-p")
+            .arg(&member.name)
+            .current_dir(repo_dir);
         if let Some(ref reg) = opts.registry {
             cmd.arg("--registry").arg(reg);
         }
@@ -164,7 +192,10 @@ pub fn publish_repo_with_progress(
         if !out.success {
             let text = out.combined_output();
             if text.contains("is already uploaded") || text.contains("already uploaded") {
-                reporter.on_complete(&member.name, &RepoStatus::Skipped("already published".to_string()));
+                reporter.on_complete(
+                    &member.name,
+                    &RepoStatus::Skipped("already published".to_string()),
+                );
                 published.push(member.name);
                 continue;
             }

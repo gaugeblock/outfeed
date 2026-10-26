@@ -220,6 +220,3 @@ pub struct CleanReport {
     /// Whether this was a dry run.
     pub dry_run: bool,
 }
-
-
-

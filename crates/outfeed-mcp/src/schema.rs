@@ -1,6 +1,6 @@
 //! MCP Tool and resource schemas for `outfeed`.
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 /// Returns the list of tools provided by the `outfeed` MCP server.
 pub fn list_tools() -> Value {
@@ -125,4 +125,3 @@ pub fn list_tools() -> Value {
         }
     ])
 }
-

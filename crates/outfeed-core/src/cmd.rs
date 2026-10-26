@@ -1,7 +1,7 @@
 //! Child process execution and output capture utilities.
 
-use std::process::{Command, Stdio};
 use crate::error::OutfeedError;
+use std::process::{Command, Stdio};
 
 /// Captured output from a child process execution.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -65,4 +65,3 @@ pub fn run_captured(cmd: &mut Command) -> Result<CommandOutput, OutfeedError> {
         stderr,
     })
 }
-

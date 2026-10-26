@@ -69,7 +69,10 @@ pub fn format_bytes(bytes: u64) -> String {
 }
 
 /// Selectively cleans workspace target artifacts according to options with a default reporter.
-pub fn clean_workspace(workspace_root: &Path, opts: &CleanOpts) -> Result<CleanReport, OutfeedError> {
+pub fn clean_workspace(
+    workspace_root: &Path,
+    opts: &CleanOpts,
+) -> Result<CleanReport, OutfeedError> {
     clean_workspace_with_progress(workspace_root, opts, &NoopProgress)
 }
 
@@ -90,7 +93,11 @@ pub fn clean_workspace_with_progress(
         });
     }
 
-    let action_desc = if opts.dry_run { "auditing cache" } else { "cleaning cache" };
+    let action_desc = if opts.dry_run {
+        "auditing cache"
+    } else {
+        "cleaning cache"
+    };
     reporter.on_start("workspace", action_desc);
 
     let mut targets_to_clean: Vec<PathBuf> = Vec::new();
@@ -154,7 +161,10 @@ pub fn clean_workspace_with_progress(
 }
 
 /// Prunes test binaries and artifacts older than N days with default reporter.
-pub fn prune_workspace(workspace_root: &Path, opts: &PruneOpts) -> Result<CleanReport, OutfeedError> {
+pub fn prune_workspace(
+    workspace_root: &Path,
+    opts: &PruneOpts,
+) -> Result<CleanReport, OutfeedError> {
     prune_workspace_with_progress(workspace_root, opts, &NoopProgress)
 }
 
@@ -175,7 +185,14 @@ pub fn prune_workspace_with_progress(
         });
     }
 
-    reporter.on_start("workspace", if opts.dry_run { "auditing stale artifacts" } else { "pruning stale artifacts" });
+    reporter.on_start(
+        "workspace",
+        if opts.dry_run {
+            "auditing stale artifacts"
+        } else {
+            "pruning stale artifacts"
+        },
+    );
 
     let cutoff = SystemTime::now()
         .checked_sub(Duration::from_secs(opts.keep_days as u64 * 86400))
@@ -191,7 +208,11 @@ pub fn prune_workspace_with_progress(
             && let Ok(modified) = meta.modified()
             && modified < cutoff
         {
-            let size = if path.is_dir() { dir_size(&path) } else { meta.len() };
+            let size = if path.is_dir() {
+                dir_size(&path)
+            } else {
+                meta.len()
+            };
             reclaimed_bytes += size;
             paths_removed.push(path.display().to_string());
 

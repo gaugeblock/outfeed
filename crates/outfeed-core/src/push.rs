@@ -26,10 +26,7 @@ pub struct PushOutcome {
 }
 
 /// Pushes the active branch and release tag for a repository using a default reporter.
-pub fn push_repo(
-    repo_dir: &Path,
-    opts: &PushOpts,
-) -> Result<PushOutcome, OutfeedError> {
+pub fn push_repo(repo_dir: &Path, opts: &PushOpts) -> Result<PushOutcome, OutfeedError> {
     push_repo_with_progress(repo_dir, opts, &NoopProgress)
 }
 
