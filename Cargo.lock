@@ -2182,27 +2182,27 @@ version = "0.1.0-beta.2"
 
 [[patch.unused]]
 name = "miter-ast"
-version = "0.1.0-beta.1"
+version = "0.1.0-beta.2"
 
 [[patch.unused]]
 name = "miter-cli"
-version = "0.1.0-beta.1"
+version = "0.1.0-beta.2"
 
 [[patch.unused]]
 name = "miter-engine"
-version = "0.1.0-beta.1"
+version = "0.1.0-beta.2"
 
 [[patch.unused]]
 name = "miter-harness"
-version = "0.1.0-beta.1"
+version = "0.1.0-beta.2"
 
 [[patch.unused]]
 name = "miter-mcp"
-version = "0.1.0-beta.1"
+version = "0.1.0-beta.2"
 
 [[patch.unused]]
 name = "miter-storage"
-version = "0.1.0-beta.1"
+version = "0.1.0-beta.2"
 
 [[patch.unused]]
 name = "rabbet"
