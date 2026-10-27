@@ -157,5 +157,12 @@ pub fn rollback_manifest_diffs(
                 .map_err(|e| OutfeedError::Manifest(target.display().to_string(), e.to_string()))?;
         }
     }
+    // Revert Cargo.lock if tracked to prevent dirty working tree on verification failure
+    if repo_dir.join("Cargo.lock").exists() {
+        let _ = std::process::Command::new("git")
+            .args(["checkout", "HEAD", "--", "Cargo.lock"])
+            .current_dir(repo_dir)
+            .output();
+    }
     Ok(())
 }
