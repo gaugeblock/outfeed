@@ -125,6 +125,18 @@ pub struct ReleaseArgs {
     #[arg(long, visible_alias = "deterministic")]
     pub no_llm: bool,
 
+    /// Do not clean intermediate target artifacts between suite repositories
+    #[arg(long)]
+    pub no_clean_between_repos: bool,
+
+    /// Minimum required available disk space in GB for pre-flight check
+    #[arg(long)]
+    pub min_disk_gb: Option<f64>,
+
+    /// Skip disk space pre-flight validation
+    #[arg(long)]
+    pub skip_disk_check: bool,
+
     /// Output as JSON
     #[arg(long)]
     pub json: bool,

@@ -7,6 +7,7 @@ pub mod changelog;
 pub mod clean;
 pub mod clone;
 pub mod cmd;
+pub mod disk_space;
 pub mod engine;
 pub mod error;
 pub mod git;
@@ -35,6 +36,11 @@ pub use clean::{
 };
 pub use clone::{CloneOpts, CloneStatus, CloneSummary, GitProtocol, clone_suite, clone_tool};
 pub use cmd::{CommandOutput, run_captured};
+pub use disk_space::{
+    DEFAULT_MIN_SINGLE_REPO_DISK_BYTES, DEFAULT_MIN_SUITE_DISK_BYTES,
+    DEFAULT_MIN_SUITE_NO_CLEAN_DISK_BYTES, check_disk_space_headroom, clean_repo_target_cache,
+    get_available_disk_space, parse_df_available_bytes,
+};
 pub use engine::{apply_release, apply_release_with_progress, plan_release};
 pub use error::OutfeedError;
 pub use git::{
@@ -61,7 +67,9 @@ pub use semver::{apply_bump, calculate_bump, parse_commit};
 pub use storypole::{
     certify_release_ticket, create_release_ticket, fetch_task_summaries, find_storypole_root,
 };
-pub use suite_check::{RepoPreflightCheck, check_suite_preflight};
+pub use suite_check::{
+    PreflightOpts, RepoPreflightCheck, check_suite_preflight, check_suite_preflight_with_opts,
+};
 pub use suite_lock::{
     SuiteLock, SuiteMetadata, SuiteReleaseOpts, SuiteReleaseSummary, SuiteToolEntry,
     generate_suite_lock, write_suite_lock,

@@ -61,6 +61,12 @@ pub async fn release_repo(
 
     // 1. Plan (dry-run uses deterministic formatting to simulate pipeline without remote overhead)
     let no_llm = opts.no_llm || opts.dry_run;
+    if !opts.skip_disk_check {
+        let required = opts
+            .min_disk_bytes
+            .unwrap_or(crate::disk_space::DEFAULT_MIN_SINGLE_REPO_DISK_BYTES);
+        crate::disk_space::check_disk_space_headroom(workspace_root, required)?;
+    }
     let plan = match plan_release(&repo_dir, None, false, no_llm).await {
         Ok(p) => p,
         Err(OutfeedError::Git(ref msg)) if msg.contains("No unreleased commits") => {
@@ -196,6 +202,18 @@ pub async fn execute_suite_plan(
             release_repo(workspace_root, &entry.repo_name, opts, reporter).await?
         {
             summaries.push(summary);
+
+            if opts.clean_between_repos
+                && !opts.dry_run
+                && let Ok(reclaimed) = crate::disk_space::clean_repo_target_cache(workspace_root)
+                && reclaimed > 0
+            {
+                let formatted = crate::clean::format_bytes(reclaimed);
+                reporter.on_update(
+                    &entry.repo_name,
+                    &format!("reclaimed {formatted} compilation cache"),
+                );
+            }
         }
     }
     Ok(summaries)

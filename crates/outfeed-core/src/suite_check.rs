@@ -2,10 +2,34 @@
 
 use std::path::Path;
 
+use crate::disk_space::{
+    DEFAULT_MIN_SUITE_DISK_BYTES, DEFAULT_MIN_SUITE_NO_CLEAN_DISK_BYTES, check_disk_space_headroom,
+};
 use crate::error::OutfeedError;
 use crate::git::get_current_branch;
 use crate::install::SUITE_TOOLS;
 use crate::sync_model::is_working_tree_dirty;
+
+/// Options controlling pre-flight validation checks.
+#[derive(Debug, Clone)]
+pub struct PreflightOpts {
+    /// Minimum required available disk space in bytes (None for default).
+    pub min_disk_bytes: Option<u64>,
+    /// Skip disk space verification.
+    pub skip_disk_check: bool,
+    /// Whether inter-repo cache cleaning will be active (influences default headroom threshold).
+    pub clean_between_repos: bool,
+}
+
+impl Default for PreflightOpts {
+    fn default() -> Self {
+        Self {
+            min_disk_bytes: None,
+            skip_disk_check: false,
+            clean_between_repos: true,
+        }
+    }
+}
 
 /// Result of pre-flight check on an individual repository.
 #[derive(Debug, Clone)]
@@ -29,11 +53,29 @@ impl RepoPreflightCheck {
     }
 }
 
-/// Executes pre-flight validation across workspace root and all member repositories.
+/// Executes pre-flight validation across workspace root and all member repositories with default options.
 pub fn check_suite_preflight(
     workspace_root: &Path,
 ) -> Result<Vec<RepoPreflightCheck>, OutfeedError> {
-    // 1. Check workspace root
+    check_suite_preflight_with_opts(workspace_root, &PreflightOpts::default())
+}
+
+/// Executes pre-flight validation across workspace root and all member repositories with explicit options.
+pub fn check_suite_preflight_with_opts(
+    workspace_root: &Path,
+    opts: &PreflightOpts,
+) -> Result<Vec<RepoPreflightCheck>, OutfeedError> {
+    // 1. Check disk space headroom if enabled
+    if !opts.skip_disk_check {
+        let required = opts.min_disk_bytes.unwrap_or(if opts.clean_between_repos {
+            DEFAULT_MIN_SUITE_DISK_BYTES
+        } else {
+            DEFAULT_MIN_SUITE_NO_CLEAN_DISK_BYTES
+        });
+        check_disk_space_headroom(workspace_root, required)?;
+    }
+
+    // 2. Check workspace root
     let root_branch = get_current_branch(workspace_root)?;
     if root_branch != "main" {
         return Err(OutfeedError::InvalidBranch(format!(

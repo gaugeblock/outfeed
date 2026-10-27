@@ -53,6 +53,17 @@ pub enum OutfeedError {
     #[error("Clean error: {0}")]
     Clean(String),
 
+    /// Insufficient available disk space for release.
+    #[error(
+        "Insufficient disk space: available {available}, required {required}. Run 'outfeed clean --all' to reclaim compilation cache."
+    )]
+    InsufficientDiskSpace {
+        /// Human-readable available bytes string.
+        available: String,
+        /// Human-readable required bytes string.
+        required: String,
+    },
+
     /// General I/O failure.
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),

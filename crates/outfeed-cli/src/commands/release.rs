@@ -4,9 +4,7 @@ use std::io::{self, Write};
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use outfeed_core::{
-    ReleaseOpts, check_suite_preflight, execute_suite_plan, plan_suite_releases, release_repo,
-};
+use outfeed_core::{ReleaseOpts, execute_suite_plan, plan_suite_releases, release_repo};
 
 use super::suite_release::handle_suite_release;
 use crate::args::ReleaseArgs;
@@ -17,6 +15,7 @@ pub async fn handle_release(root: &Path, args: ReleaseArgs) -> Result<()> {
         return handle_suite_release(root, &args).await;
     }
 
+    let min_disk_bytes = args.min_disk_gb.map(|gb| (gb * 1_000_000_000.0) as u64);
     let opts = ReleaseOpts {
         dry_run: args.dry_run,
         skip_install: args.skip_install,
@@ -25,6 +24,9 @@ pub async fn handle_release(root: &Path, args: ReleaseArgs) -> Result<()> {
         no_llm: args.no_llm,
         no_verify: args.no_verify,
         jobs: args.jobs,
+        clean_between_repos: !args.no_clean_between_repos,
+        min_disk_bytes,
+        skip_disk_check: args.skip_disk_check,
     };
 
     let reporter = create_reporter(false, args.json);
@@ -48,7 +50,13 @@ pub async fn handle_release(root: &Path, args: ReleaseArgs) -> Result<()> {
 
         // Phase 1: Parallel Pre-flight validation
         reporter.on_start("suite", "validating pre-flight invariants...");
-        check_suite_preflight(root).context("Suite release pre-flight check failed")?;
+        let preflight_opts = outfeed_core::PreflightOpts {
+            min_disk_bytes,
+            skip_disk_check: args.skip_disk_check,
+            clean_between_repos: !args.no_clean_between_repos,
+        };
+        outfeed_core::check_suite_preflight_with_opts(root, &preflight_opts)
+            .context("Suite release pre-flight check failed")?;
 
         // Phase 2: Upfront Suite Release Plan
         reporter.on_update(
