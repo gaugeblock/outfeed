@@ -5,6 +5,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [v0.1.0-beta.6] - 2026-10-27
+
+### Added
+- `outfeed-core`: add crates.io registry sync and topological publish --all (GB-101)
+- `outfeed-core`: add disk space pre-flight check and inter-repo cache hygiene (GB-100)
+- `outfeed-cli`: live progress spinners, immediate header presentation, and fast suite planning (GB-85)
+- `outfeed-cli`: add --yes flag and --jobs concurrency controls to outfeed release (GB-83)
+- `outfeed-core`: implement Check -> Plan -> Execute 3-phase suite release pipeline (GB-82)
+- `outfeed-core`: expand synthesis max_tokens to 4096 and timeout to 30s for reasoning models (GB-80)
+- `outfeed-cli`: enhance outfeed release with progress reporting, --no-llm deterministic flag, and graceful error handling (GB-77)
+- `outfeed-cli`: implement outfeed sync to audit and align local checkouts with remotes or suite.lock (GB-75)
+- `outfeed-cli`: implement outfeed clone command for suite and selective setup (GB-74)
+- `outfeed-core`: orchestrate meta-harness suite release and suite.lock generation (GB-73)
+- `outfeed-cli`: add --all suite-wide orchestration flag to outfeed release (GB-72)
+
+### Fixed
+- `outfeed-core`: roll back Cargo.lock on release verification failure
+- `outfeed-core`: capture verification output, fix misleading step labels, and add --no-verify to release (GB-78)
+- `outfeed-core`: treat absence of unreleased commits as no-op in release orchestration
+
+### Maintenance
+- `outfeed`: standardize README and establish 9-doc architecture
+- `deps`: update Cargo.lock patch tables
+- Merge branch 'feat/gb-72-outfeed-release-all' (GB-72)
+
 ## [v0.1.0-beta.5] - 2026-10-26
 
 ### Fixed
