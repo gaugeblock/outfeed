@@ -21,7 +21,7 @@ pub async fn synthesize_release_notes(
         && let Ok(router) = RoleRouter::from_config(config)
     {
         let fut = call_sawhorse(&router, repo_name, version, commits, task_summaries);
-        match tokio::time::timeout(std::time::Duration::from_secs(10), fut).await {
+        match tokio::time::timeout(std::time::Duration::from_secs(30), fut).await {
             Ok(Ok(notes)) if !notes.trim().is_empty() => return Ok(notes),
             Ok(Err(err)) => {
                 tracing::info!(
@@ -33,7 +33,7 @@ pub async fn synthesize_release_notes(
             Err(_) => {
                 tracing::info!(
                     repo = %repo_name,
-                    "LLM synthesis timed out (10s); falling back to deterministic changelog"
+                    "LLM synthesis timed out (30s); falling back to deterministic changelog"
                 );
             }
             _ => {}
@@ -52,9 +52,18 @@ async fn call_sawhorse(
     task_summaries: &[(String, String, String)],
 ) -> Result<String, OutfeedError> {
     let prompt = build_synthesis_prompt(repo_name, version, commits, task_summaries);
+    tracing::debug!(
+        repo = %repo_name,
+        version = %version,
+        commits = commits.len(),
+        tasks = task_summaries.len(),
+        prompt_chars = prompt.len(),
+        max_tokens = 4096,
+        "Dispatching changelog synthesis to sawhorse router"
+    );
     let mut req = InferenceRequest::new(ModelRole::Planner, prompt);
     req.temperature = 0.2;
-    req.max_tokens = 1024;
+    req.max_tokens = 4096;
 
     let resp = router
         .complete(&req)
