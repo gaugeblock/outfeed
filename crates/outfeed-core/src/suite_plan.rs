@@ -117,9 +117,10 @@ impl SuiteReleasePlan {
 }
 
 /// Evaluates all suite member repositories and compiles the SuiteReleasePlan.
+/// Uses fast deterministic commit evaluation for the upfront summary table.
 pub async fn plan_suite_releases(
     workspace_root: &Path,
-    no_llm: bool,
+    _no_llm: bool,
 ) -> Result<SuiteReleasePlan, OutfeedError> {
     let mut entries = Vec::new();
 
@@ -135,7 +136,8 @@ pub async fn plan_suite_releases(
                 .unwrap_or_else(|_| "v0.1.0-beta.1".to_string())
         });
 
-        match plan_release(&repo_dir, None, false, no_llm).await {
+        // Fast deterministic SemVer evaluation for upfront plan presentation
+        match plan_release(&repo_dir, None, false, true).await {
             Ok(p) if !p.commits.is_empty() => {
                 let mut tasks = Vec::new();
                 for c in &p.commits {

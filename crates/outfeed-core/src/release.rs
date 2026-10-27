@@ -59,8 +59,9 @@ pub async fn release_repo(
 
     reporter.on_start(actual_name, "evaluating commits and changelog...");
 
-    // 1. Plan
-    let plan = match plan_release(&repo_dir, None, false, opts.no_llm).await {
+    // 1. Plan (dry-run uses deterministic formatting to simulate pipeline without remote overhead)
+    let no_llm = opts.no_llm || opts.dry_run;
+    let plan = match plan_release(&repo_dir, None, false, no_llm).await {
         Ok(p) => p,
         Err(OutfeedError::Git(ref msg)) if msg.contains("No unreleased commits") => {
             reporter.on_complete(

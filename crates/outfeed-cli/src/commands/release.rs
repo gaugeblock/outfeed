@@ -30,13 +30,38 @@ pub async fn handle_release(root: &Path, args: ReleaseArgs) -> Result<()> {
     let reporter = create_reporter(false, args.json);
 
     if args.all {
+        if !args.json {
+            println!(
+                "================================================================================"
+            );
+            println!(" [outfeed] Orchestrated Release Pipeline for ALL Suite Repositories");
+            if args.dry_run {
+                println!(" Mode: DRY RUN (simulating plan -> apply -> install -> push -> publish)");
+            }
+            if args.no_llm {
+                println!(" Strategy: DETERMINISTIC (bypassing external LLM synthesis)");
+            }
+            println!(
+                "================================================================================"
+            );
+        }
+
         // Phase 1: Parallel Pre-flight validation
+        reporter.on_start("suite", "validating pre-flight invariants...");
         check_suite_preflight(root).context("Suite release pre-flight check failed")?;
 
         // Phase 2: Upfront Suite Release Plan
+        reporter.on_update(
+            "suite",
+            "evaluating unreleased commits across 10 repositories...",
+        );
         let plan = plan_suite_releases(root, opts.no_llm)
             .await
             .context("Suite-wide release planning failed")?;
+        reporter.on_complete(
+            "suite",
+            &outfeed_core::RepoStatus::Success("plan compiled".to_string()),
+        );
 
         if !args.json {
             println!("{}", plan.format_table());
@@ -71,13 +96,7 @@ pub async fn handle_release(root: &Path, args: ReleaseArgs) -> Result<()> {
             println!(
                 "================================================================================"
             );
-            println!(" [outfeed] Executing Suite Release Pipeline");
-            if args.dry_run {
-                println!(" Mode: DRY RUN (simulating plan -> apply -> install -> push -> publish)");
-            }
-            if args.no_llm {
-                println!(" Strategy: DETERMINISTIC (bypassing external LLM synthesis)");
-            }
+            println!(" [outfeed] Phase 3: Executing Suite Release Pipeline");
             println!(
                 "================================================================================"
             );

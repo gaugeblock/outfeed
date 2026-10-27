@@ -96,7 +96,8 @@ fn build_synthesis_prompt(
     }
 
     format!(
-        "You are an expert systems release engineer generating a changelog entry for {repo_name} v{version}.\n\
+        "/no-think\n\
+         You are an expert systems release engineer generating a changelog entry for {repo_name} v{version}.\n\
          Generate Markdown strictly conforming to Keep a Changelog starting with '## [v{version}] - YYYY-MM-DD'.\n\
          Group changes into: ### Added, ### Fixed, ### Changed, ### Maintenance.\n\
          Synthesize concise, professional bullet points linking task keys (e.g. GB-XX) and crate names.\n\
