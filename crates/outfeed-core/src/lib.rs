@@ -33,7 +33,7 @@ pub use clean::{
 };
 pub use clone::{CloneOpts, CloneStatus, CloneSummary, GitProtocol, clone_suite, clone_tool};
 pub use cmd::{CommandOutput, run_captured};
-pub use engine::{apply_release, plan_release};
+pub use engine::{apply_release, apply_release_with_progress, plan_release};
 pub use error::OutfeedError;
 pub use git::{
     assert_clean_working_tree, assert_main_branch, create_release_commit_and_tag,

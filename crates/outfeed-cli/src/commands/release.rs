@@ -19,6 +19,7 @@ pub async fn handle_release(root: &Path, args: ReleaseArgs) -> Result<()> {
         skip_push: args.skip_push,
         skip_publish: args.skip_publish,
         no_llm: args.no_llm,
+        no_verify: args.no_verify,
     };
 
     let reporter = create_reporter(false, args.json);

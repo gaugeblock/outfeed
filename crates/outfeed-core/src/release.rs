@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-use crate::engine::{apply_release, plan_release};
+use crate::engine::{apply_release_with_progress, plan_release};
 use crate::error::OutfeedError;
 use crate::install::{SUITE_TOOLS, install_tool};
 use crate::model::{InstallOpts, PublishOpts, PushOpts, ReleaseOpts};
@@ -105,11 +105,9 @@ pub async fn release_repo(
         }));
     }
 
-    reporter.on_update(
-        actual_name,
-        &format!("committing and tagging v{target_version}..."),
-    );
-    if let Err(err) = apply_release(&repo_dir, &plan, true, false) {
+    if let Err(err) =
+        apply_release_with_progress(&repo_dir, &plan, !opts.no_verify, false, reporter)
+    {
         reporter.on_complete(actual_name, &RepoStatus::Failed(err.to_string()));
         return Err(err);
     }

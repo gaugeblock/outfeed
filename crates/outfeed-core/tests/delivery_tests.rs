@@ -148,6 +148,7 @@ async fn test_release_all_on_empty_or_clean_workspace() {
         skip_push: true,
         skip_publish: true,
         no_llm: true,
+        no_verify: false,
     };
 
     // When no member repos exist in root, release_all skips safely and returns empty vec
@@ -183,6 +184,7 @@ async fn test_release_all_with_progress_reporting() {
         skip_push: true,
         skip_publish: true,
         no_llm: true,
+        no_verify: false,
     };
 
     let summaries = outfeed_core::release_all(root, &opts, &reporter)

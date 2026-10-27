@@ -162,6 +162,8 @@ pub struct ReleaseOpts {
     pub skip_publish: bool,
     /// Bypass LLM release note synthesis and use deterministic formatting.
     pub no_llm: bool,
+    /// Skip Tier 4 verification test suite during release.
+    pub no_verify: bool,
 }
 
 /// Breakdown of disk usage across target directories.

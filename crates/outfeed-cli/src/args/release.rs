@@ -109,6 +109,10 @@ pub struct ReleaseArgs {
     #[arg(long)]
     pub skip_publish: bool,
 
+    /// Skip Tier 4 verification test suite during release
+    #[arg(long)]
+    pub no_verify: bool,
+
     /// Bypass LLM release note synthesis and use deterministic formatting
     #[arg(long, visible_alias = "deterministic")]
     pub no_llm: bool,
