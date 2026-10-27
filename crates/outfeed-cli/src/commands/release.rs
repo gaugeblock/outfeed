@@ -1,8 +1,12 @@
 //! Command handler for `outfeed release` macro orchestrator.
 
-use anyhow::{Context, Result};
-use outfeed_core::{ReleaseOpts, release_all, release_repo};
+use std::io::{self, Write};
 use std::path::Path;
+
+use anyhow::{Context, Result};
+use outfeed_core::{
+    ReleaseOpts, check_suite_preflight, execute_suite_plan, plan_suite_releases, release_repo,
+};
 
 use super::suite_release::handle_suite_release;
 use crate::args::ReleaseArgs;
@@ -20,16 +24,54 @@ pub async fn handle_release(root: &Path, args: ReleaseArgs) -> Result<()> {
         skip_publish: args.skip_publish,
         no_llm: args.no_llm,
         no_verify: args.no_verify,
+        jobs: args.jobs,
     };
 
     let reporter = create_reporter(false, args.json);
 
     if args.all {
+        // Phase 1: Parallel Pre-flight validation
+        check_suite_preflight(root).context("Suite release pre-flight check failed")?;
+
+        // Phase 2: Upfront Suite Release Plan
+        let plan = plan_suite_releases(root, opts.no_llm)
+            .await
+            .context("Suite-wide release planning failed")?;
+
+        if !args.json {
+            println!("{}", plan.format_table());
+        }
+
+        if plan.planned_releases() == 0 {
+            if args.json {
+                println!("{}", serde_json::json!([]));
+            } else {
+                println!("✅ All suite repositories are clean. No releases needed.");
+            }
+            return Ok(());
+        }
+
+        // Confirmation gate (bypassed with --dry-run, --yes, or --json)
+        if !args.dry_run && !args.yes && !args.json {
+            print!("\nProceed with release? [y/N]: ");
+            io::stdout().flush().context("Failed to flush stdout")?;
+            let mut input = String::new();
+            io::stdin()
+                .read_line(&mut input)
+                .context("Failed to read user confirmation")?;
+            let trimmed = input.trim().to_ascii_lowercase();
+            if trimmed != "y" && trimmed != "yes" {
+                println!("Release aborted by user.");
+                return Ok(());
+            }
+            println!();
+        }
+
         if !args.json {
             println!(
                 "================================================================================"
             );
-            println!(" [outfeed] Orchestrated Release Pipeline for ALL Suite Repositories");
+            println!(" [outfeed] Executing Suite Release Pipeline");
             if args.dry_run {
                 println!(" Mode: DRY RUN (simulating plan -> apply -> install -> push -> publish)");
             }
@@ -41,7 +83,7 @@ pub async fn handle_release(root: &Path, args: ReleaseArgs) -> Result<()> {
             );
         }
 
-        let summaries = release_all(root, &opts, reporter.as_ref())
+        let summaries = execute_suite_plan(root, &plan, &opts, reporter.as_ref())
             .await
             .context("Suite-wide release pipeline failed")?;
 

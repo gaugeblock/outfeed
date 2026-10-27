@@ -97,6 +97,14 @@ pub struct ReleaseArgs {
     #[arg(long)]
     pub dry_run: bool,
 
+    /// Automatically confirm suite release plan without interactive prompt
+    #[arg(short = 'y', long = "yes")]
+    pub yes: bool,
+
+    /// Maximum concurrent release jobs (default: 1)
+    #[arg(short = 'j', long = "jobs", default_value = "1")]
+    pub jobs: usize,
+
     /// Skip installing binary locally
     #[arg(long)]
     pub skip_install: bool,
