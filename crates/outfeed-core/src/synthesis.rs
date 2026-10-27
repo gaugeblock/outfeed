@@ -61,7 +61,8 @@ async fn call_sawhorse(
         max_tokens = 4096,
         "Dispatching changelog synthesis to sawhorse router"
     );
-    let mut req = InferenceRequest::new(ModelRole::Planner, prompt);
+    let mut req = InferenceRequest::new(ModelRole::Planner, prompt)
+        .with_reasoning_effort(sawhorse_core::types::ReasoningEffort::None);
     req.temperature = 0.2;
     req.max_tokens = 4096;
 

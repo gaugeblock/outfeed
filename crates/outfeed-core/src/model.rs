@@ -150,7 +150,7 @@ impl Default for PublishOpts {
 }
 
 /// Options controlling the orchestrated release macro.
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReleaseOpts {
     /// Simulate release without modifying disk or pushing.
     pub dry_run: bool,
@@ -164,6 +164,22 @@ pub struct ReleaseOpts {
     pub no_llm: bool,
     /// Skip Tier 4 verification test suite during release.
     pub no_verify: bool,
+    /// Maximum concurrent release jobs (default: 1).
+    pub jobs: usize,
+}
+
+impl Default for ReleaseOpts {
+    fn default() -> Self {
+        Self {
+            dry_run: false,
+            skip_install: false,
+            skip_push: false,
+            skip_publish: false,
+            no_llm: false,
+            no_verify: false,
+            jobs: 1,
+        }
+    }
 }
 
 /// Breakdown of disk usage across target directories.

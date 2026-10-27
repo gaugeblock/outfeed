@@ -142,6 +142,28 @@ async fn test_release_all_on_empty_or_clean_workspace() {
     let tmp = tempdir().expect("tempdir");
     let root = tmp.path();
 
+    let _ = std::process::Command::new("git")
+        .args(["init", "-b", "main"])
+        .current_dir(root)
+        .output();
+    let _ = std::process::Command::new("git")
+        .args(["config", "user.name", "Test User"])
+        .current_dir(root)
+        .output();
+    let _ = std::process::Command::new("git")
+        .args(["config", "user.email", "test@example.com"])
+        .current_dir(root)
+        .output();
+    fs::write(root.join("README.md"), "# Suite Root").expect("write root readme");
+    let _ = std::process::Command::new("git")
+        .args(["add", "."])
+        .current_dir(root)
+        .output();
+    let _ = std::process::Command::new("git")
+        .args(["commit", "-m", "chore: init suite root"])
+        .current_dir(root)
+        .output();
+
     let opts = outfeed_core::model::ReleaseOpts {
         dry_run: true,
         skip_install: true,
@@ -149,6 +171,7 @@ async fn test_release_all_on_empty_or_clean_workspace() {
         skip_publish: true,
         no_llm: true,
         no_verify: false,
+        jobs: 1,
     };
 
     // When no member repos exist in root, release_all skips safely and returns empty vec
@@ -162,6 +185,28 @@ async fn test_release_all_on_empty_or_clean_workspace() {
 async fn test_release_all_with_progress_reporting() {
     let tmp = tempdir().expect("tempdir");
     let root = tmp.path();
+
+    let _ = std::process::Command::new("git")
+        .args(["init", "-b", "main"])
+        .current_dir(root)
+        .output();
+    let _ = std::process::Command::new("git")
+        .args(["config", "user.name", "Test User"])
+        .current_dir(root)
+        .output();
+    let _ = std::process::Command::new("git")
+        .args(["config", "user.email", "test@example.com"])
+        .current_dir(root)
+        .output();
+    fs::write(root.join("README.md"), "# Suite Root").expect("write root readme");
+    let _ = std::process::Command::new("git")
+        .args(["add", "."])
+        .current_dir(root)
+        .output();
+    let _ = std::process::Command::new("git")
+        .args(["commit", "-m", "chore: init suite root"])
+        .current_dir(root)
+        .output();
 
     struct RecordingReporter {
         started: std::sync::Mutex<Vec<String>>,
@@ -185,6 +230,7 @@ async fn test_release_all_with_progress_reporting() {
         skip_publish: true,
         no_llm: true,
         no_verify: false,
+        jobs: 1,
     };
 
     let summaries = outfeed_core::release_all(root, &opts, &reporter)

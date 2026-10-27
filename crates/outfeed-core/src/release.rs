@@ -163,19 +163,37 @@ pub async fn release_repo(
     }))
 }
 
-/// Executes the release lifecycle across all suite repositories in topological order.
+/// Executes the release lifecycle across all suite repositories using the 3-phase pipeline.
 pub async fn release_all(
     workspace_root: &Path,
     opts: &ReleaseOpts,
     reporter: &dyn ProgressReporter,
 ) -> Result<Vec<ReleaseSummary>, OutfeedError> {
+    // Phase 1: Pre-flight validation
+    crate::suite_check::check_suite_preflight(workspace_root)?;
+
+    // Phase 2: Upfront Suite Release Plan
+    let plan = crate::suite_plan::plan_suite_releases(workspace_root, opts.no_llm).await?;
+
+    // Phase 3: Execute Suite Plan
+    execute_suite_plan(workspace_root, &plan, opts, reporter).await
+}
+
+/// Executes Phase 3 on a pre-compiled SuiteReleasePlan in topological order.
+pub async fn execute_suite_plan(
+    workspace_root: &Path,
+    plan: &crate::suite_plan::SuiteReleasePlan,
+    opts: &ReleaseOpts,
+    reporter: &dyn ProgressReporter,
+) -> Result<Vec<ReleaseSummary>, OutfeedError> {
     let mut summaries = Vec::new();
-    for tool in SUITE_TOOLS {
-        let repo_dir = workspace_root.join(tool.name);
-        if !repo_dir.exists() {
+    for entry in &plan.entries {
+        if entry.action == crate::suite_plan::SuitePlanAction::SkipClean {
             continue;
         }
-        if let Some(summary) = release_repo(workspace_root, tool.name, opts, reporter).await? {
+        if let Some(summary) =
+            release_repo(workspace_root, &entry.repo_name, opts, reporter).await?
+        {
             summaries.push(summary);
         }
     }

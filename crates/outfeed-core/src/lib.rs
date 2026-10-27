@@ -20,7 +20,9 @@ pub mod push;
 pub mod release;
 pub mod semver;
 pub mod storypole;
+pub mod suite_check;
 pub mod suite_lock;
+pub mod suite_plan;
 pub mod suite_release;
 pub mod sync;
 pub mod sync_model;
@@ -54,15 +56,17 @@ pub use model::{
 pub use progress::{NoopProgress, ProgressReporter, RepoStatus};
 pub use publish::{MemberCrate, publish_repo, publish_repo_with_progress, resolve_publish_order};
 pub use push::{PushOutcome, push_all, push_all_with_progress, push_repo, push_repo_with_progress};
-pub use release::{ReleaseSummary, release_all, release_repo};
+pub use release::{ReleaseSummary, execute_suite_plan, release_all, release_repo};
 pub use semver::{apply_bump, calculate_bump, parse_commit};
 pub use storypole::{
     certify_release_ticket, create_release_ticket, fetch_task_summaries, find_storypole_root,
 };
+pub use suite_check::{RepoPreflightCheck, check_suite_preflight};
 pub use suite_lock::{
     SuiteLock, SuiteMetadata, SuiteReleaseOpts, SuiteReleaseSummary, SuiteToolEntry,
     generate_suite_lock, write_suite_lock,
 };
+pub use suite_plan::{SuitePlanAction, SuiteReleasePlan, SuiteRepoPlanEntry, plan_suite_releases};
 pub use suite_release::{determine_suite_version, release_suite, update_root_changelog};
 pub use sync::{audit_repo_sync, sync_suite, sync_tool};
 pub use sync_model::{
