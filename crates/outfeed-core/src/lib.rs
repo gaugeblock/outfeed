@@ -17,11 +17,14 @@ pub mod mcp_sync;
 pub mod model;
 pub mod progress;
 pub mod publish;
+pub mod publish_order;
 pub mod push;
+pub mod registry;
 pub mod release;
 pub mod semver;
 pub mod storypole;
 pub mod suite_check;
+pub mod suite_exec;
 pub mod suite_lock;
 pub mod suite_plan;
 pub mod suite_release;
@@ -60,8 +63,15 @@ pub use model::{
     ManifestDiff, PruneOpts, PublishOpts, PushOpts, ReleaseOpts, ReleasePlan,
 };
 pub use progress::{NoopProgress, ProgressReporter, RepoStatus};
-pub use publish::{MemberCrate, publish_repo, publish_repo_with_progress, resolve_publish_order};
+pub use publish::{
+    MemberCrate, publish_all, publish_all_with_progress, publish_repo, publish_repo_with_progress,
+    resolve_publish_order,
+};
 pub use push::{PushOutcome, push_all, push_all_with_progress, push_repo, push_repo_with_progress};
+pub use registry::{
+    are_repo_crates_published, get_published_crate_version, is_version_published,
+    parse_cargo_search_version,
+};
 pub use release::{ReleaseSummary, execute_suite_plan, release_all, release_repo};
 pub use semver::{apply_bump, calculate_bump, parse_commit};
 pub use storypole::{

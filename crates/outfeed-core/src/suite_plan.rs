@@ -18,6 +18,8 @@ pub enum SuitePlanAction {
     ReleaseMinor,
     /// Increments major version.
     ReleaseMajor,
+    /// Tagged version is not yet published to registry.
+    PublishPending,
     /// No commits to release.
     SkipClean,
 }
@@ -29,6 +31,7 @@ impl SuitePlanAction {
             Self::ReleasePatch => "Release (Patch)",
             Self::ReleaseMinor => "Release (Minor)",
             Self::ReleaseMajor => "Release (Major)",
+            Self::PublishPending => "Publish (Pending)",
             Self::SkipClean => "Skip (Clean)",
         }
     }
@@ -165,15 +168,32 @@ pub async fn plan_suite_releases(
                 });
             }
             _ => {
-                entries.push(SuiteRepoPlanEntry {
-                    repo_name: tool.name.to_string(),
-                    current_version,
-                    target_version: None,
-                    action: SuitePlanAction::SkipClean,
-                    unreleased_commits: 0,
-                    referenced_tasks: Vec::new(),
-                    plan: None,
-                });
+                let bare_version = current_version.trim_start_matches('v');
+                let is_published =
+                    crate::registry::are_repo_crates_published(&repo_dir, bare_version)
+                        .unwrap_or(true);
+
+                if !is_published {
+                    entries.push(SuiteRepoPlanEntry {
+                        repo_name: tool.name.to_string(),
+                        current_version: current_version.clone(),
+                        target_version: Some(current_version),
+                        action: SuitePlanAction::PublishPending,
+                        unreleased_commits: 0,
+                        referenced_tasks: Vec::new(),
+                        plan: None,
+                    });
+                } else {
+                    entries.push(SuiteRepoPlanEntry {
+                        repo_name: tool.name.to_string(),
+                        current_version,
+                        target_version: None,
+                        action: SuitePlanAction::SkipClean,
+                        unreleased_commits: 0,
+                        referenced_tasks: Vec::new(),
+                        plan: None,
+                    });
+                }
             }
         }
     }

@@ -57,6 +57,10 @@ pub struct PublishArgs {
     #[arg(default_value = ".")]
     pub repo: String,
 
+    /// Publish all suite repositories in topological dependency order
+    #[arg(long)]
+    pub all: bool,
+
     /// Target registry (default: crates.io)
     #[arg(long)]
     pub registry: Option<String>,
