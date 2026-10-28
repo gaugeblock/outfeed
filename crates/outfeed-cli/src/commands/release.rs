@@ -7,7 +7,7 @@ use anyhow::{Context, Result};
 use outfeed_core::{ReleaseOpts, execute_suite_plan, plan_suite_releases, release_repo};
 
 use super::suite_release::handle_suite_release;
-use crate::args::ReleaseArgs;
+use crate::args::{ReleaseArgs, default_release_jobs};
 use crate::progress::create_reporter;
 
 pub async fn handle_release(root: &Path, args: ReleaseArgs) -> Result<()> {
@@ -23,7 +23,7 @@ pub async fn handle_release(root: &Path, args: ReleaseArgs) -> Result<()> {
         skip_publish: args.skip_publish,
         no_llm: args.no_llm,
         no_verify: args.no_verify,
-        jobs: args.jobs,
+        jobs: args.jobs.unwrap_or_else(default_release_jobs),
         clean_between_repos: args.clean_between_repos,
         min_disk_bytes,
         skip_disk_check: args.skip_disk_check,

@@ -33,6 +33,14 @@ Suite releases MUST retain the shared compilation cache between repositories and
 3. **Continuous enforcement.** Free space is measured before and after every repository release through `outfeed_core::headroom`.
 4. **Tiered remediation.** `< 3.5 GB` free prunes extension-less test executables in `target/debug/deps` plus `target/package` staging while preserving rlibs, rmeta files and proc-macro libraries; `< 2.0 GB` free escalates to an emergency target cache clean so disk exhaustion can never halt a release.
 
+### Invariant 7: Topological Wave Parallelism
+Suite execution MUST respect the dependency order of the member repositories while exploiting the independence inside each layer:
+1. **Leaf-first waves.** Repositories are released in five waves — `miter`; `storypole`/`sawhorse`/`dado`/`rabbet`; `chalkline`/`batten`; `joiner`; `benchwork`/`outfeed`. A repository may only run in a wave after every earlier wave has finished.
+2. **Bounded concurrency.** At most `ReleaseOpts::jobs` entries run concurrently; the CLI resolves an unset `--jobs` to the logical CPU count, and `--jobs 1` retains strictly serial behaviour.
+3. **Serialized shared resources.** The adaptive disk guard is mutex-guarded so it can never prune beneath an in-flight build, and the shared `target` directory remains arbitrated by the cargo lock.
+4. **Deterministic reporting.** Worker results are collected in wave and plan order regardless of completion order, so progress output and summaries are reproducible.
+5. **Failure containment.** A worker failure is surfaced as a typed error after sibling workers in the same wave are joined; no repository outside the failed wave is skipped silently.
+
 ---
 
 ## 2. Formal State Machines

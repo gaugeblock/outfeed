@@ -9,7 +9,7 @@ pub mod sync;
 pub use clone::CloneArgs;
 pub use delivery::{InstallArgs, McpArgs, PublishArgs, PushArgs};
 pub use hygiene::{CleanArgs, PruneArgs};
-pub use release::{ApplyArgs, PlanArgs, ReleaseArgs, StatusArgs};
+pub use release::{ApplyArgs, PlanArgs, ReleaseArgs, StatusArgs, default_release_jobs};
 pub use sync::SyncArgs;
 
 use clap::{Parser, Subcommand};

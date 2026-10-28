@@ -65,7 +65,10 @@ pub struct ReleaseOpts {
     pub no_llm: bool,
     /// Skip Tier 4 verification test suite during release.
     pub no_verify: bool,
-    /// Maximum concurrent release jobs (default: 1).
+    /// Maximum concurrent release jobs.
+    ///
+    /// `1` keeps the strictly serial path used by library callers and tests; the CLI resolves an
+    /// unset `--jobs` to the logical CPU count so dependency waves run in parallel by default.
     pub jobs: usize,
     /// Force a full intermediate-artifact clean (target/debug, target/package) between suite
     /// repositories.

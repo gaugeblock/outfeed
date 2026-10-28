@@ -1,31 +1,14 @@
 //! Suite-wide release execution and self-healing orchestration.
 
 use std::path::Path;
+use std::sync::Mutex;
 
 use crate::error::OutfeedError;
 use crate::model::ReleaseOpts;
 use crate::progress::ProgressReporter;
-use crate::release::{ReleaseSummary, release_repo};
+use crate::release::ReleaseSummary;
 use crate::suite_plan::SuiteReleasePlan;
-
-/// Enforces adaptive disk headroom around a repository release step.
-///
-/// Free space is measured before the repository is compiled and again after its build and
-/// test wave, so a suite run can never exhaust the disk while still retaining the shared
-/// compilation cache whenever the measured headroom allows it.
-fn guard_disk_headroom(
-    workspace_root: &Path,
-    opts: &ReleaseOpts,
-    repo_name: &str,
-    reporter: &dyn ProgressReporter,
-) -> Result<(), OutfeedError> {
-    if opts.skip_disk_check || opts.dry_run {
-        return Ok(());
-    }
-    let status = crate::headroom::enforce_disk_headroom(workspace_root)?;
-    reporter.on_update(repo_name, &status.summary());
-    Ok(())
-}
+use crate::suite_waves::{EntryOutcome, partition_release_waves, release_entry, run_wave};
 
 /// Executes the release lifecycle across all suite repositories using the 3-phase pipeline.
 pub async fn release_all(
@@ -43,72 +26,49 @@ pub async fn release_all(
     execute_suite_plan(workspace_root, &plan, opts, reporter).await
 }
 
-/// Executes Phase 3 on a pre-compiled SuiteReleasePlan in topological order.
+/// Executes Phase 3 on a pre-compiled `SuiteReleasePlan` in topological dependency waves.
+///
+/// Repositories inside a wave share no unreleased changes, so up to `opts.jobs` of them are
+/// released concurrently. A single `jobs` value keeps the strictly serial behaviour and runs on
+/// the caller's runtime; disk-guard passes stay serialized through a shared mutex in either mode.
 pub async fn execute_suite_plan(
     workspace_root: &Path,
     plan: &SuiteReleasePlan,
     opts: &ReleaseOpts,
     reporter: &dyn ProgressReporter,
 ) -> Result<Vec<ReleaseSummary>, OutfeedError> {
+    let headroom = Mutex::new(());
     let mut summaries = Vec::new();
-    for entry in &plan.entries {
-        if entry.action == crate::suite_plan::SuitePlanAction::SkipClean {
-            continue;
-        }
 
-        if entry.action == crate::suite_plan::SuitePlanAction::PublishPending {
-            let repo_dir = workspace_root.join(&entry.repo_name);
-            let target_version = entry
-                .target_version
-                .clone()
-                .unwrap_or_else(|| entry.current_version.clone());
-            reporter.on_start(
-                &entry.repo_name,
-                &format!("publishing pending {target_version} to registry"),
-            );
-            let publish_opts = crate::model::PublishOpts {
-                dry_run: opts.dry_run,
-                ..Default::default()
-            };
-            let published_crates =
-                crate::publish::publish_repo_with_progress(&repo_dir, &publish_opts, reporter)?;
-            reporter.on_complete(
-                &entry.repo_name,
-                &crate::progress::RepoStatus::Success(format!("published {target_version}")),
-            );
-            summaries.push(ReleaseSummary {
-                repo_name: entry.repo_name.clone(),
-                target_version,
-                installed: false,
-                pushed: false,
-                published_crates,
-            });
-            continue;
-        }
-
-        // Adaptive headroom guard: measure free space before this repository is compiled.
-        guard_disk_headroom(workspace_root, opts, &entry.repo_name, reporter)?;
-
-        if let Some(summary) =
-            release_repo(workspace_root, &entry.repo_name, opts, reporter).await?
-        {
-            summaries.push(summary);
-
-            if opts.clean_between_repos
-                && !opts.dry_run
-                && let Ok(reclaimed) = crate::disk_space::clean_repo_target_cache(workspace_root)
-                && reclaimed > 0
-            {
-                let formatted = crate::clean::format_bytes(reclaimed);
-                reporter.on_update(
-                    &entry.repo_name,
-                    &format!("reclaimed {formatted} compilation cache"),
-                );
+    for wave in partition_release_waves(plan) {
+        let outcomes = if opts.jobs <= 1 || wave.len() == 1 {
+            // Sequential fast path: stay on the caller's runtime, no nested runtimes.
+            let mut outcomes = Vec::with_capacity(wave.len());
+            for entry in &wave {
+                let name = entry.repo_name.clone();
+                let outcome = release_entry(workspace_root, entry, opts, reporter, &headroom).await;
+                outcomes.push((name, outcome));
             }
+            outcomes
+        } else {
+            run_wave(workspace_root, opts, &wave, reporter, &headroom)
+        };
 
-            // Adaptive headroom guard: re-measure after the build and test wave.
-            guard_disk_headroom(workspace_root, opts, &entry.repo_name, reporter)?;
+        collect_outcomes(outcomes, &mut summaries)?;
+    }
+
+    Ok(summaries)
+}
+
+/// Accumulates per-repository summaries, surfacing the first repository failure.
+fn collect_outcomes(
+    outcomes: Vec<EntryOutcome>,
+    summaries: &mut Vec<ReleaseSummary>,
+) -> Result<(), OutfeedError> {
+    for (_repo_name, outcome) in outcomes {
+        if let Some(summary) = outcome? {
+            summaries.push(summary);
         }
     }
-    Ok(summaries)
+    Ok(())
 }

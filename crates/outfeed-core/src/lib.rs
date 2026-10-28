@@ -29,6 +29,7 @@ pub mod suite_exec;
 pub mod suite_lock;
 pub mod suite_plan;
 pub mod suite_release;
+pub mod suite_waves;
 pub mod sync;
 pub mod sync_model;
 pub mod synthesis;
@@ -92,6 +93,7 @@ pub use suite_lock::{
 };
 pub use suite_plan::{SuitePlanAction, SuiteReleasePlan, SuiteRepoPlanEntry, plan_suite_releases};
 pub use suite_release::{determine_suite_version, release_suite, update_root_changelog};
+pub use suite_waves::{SUITE_RELEASE_WAVES, partition_release_waves};
 pub use sync::{audit_repo_sync, sync_suite, sync_tool};
 pub use sync_model::{
     BranchDivergence, RepoSyncStatus, SyncOpts, calculate_divergence, is_working_tree_dirty,

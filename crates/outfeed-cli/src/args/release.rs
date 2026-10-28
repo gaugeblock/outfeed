@@ -101,9 +101,9 @@ pub struct ReleaseArgs {
     #[arg(short = 'y', long = "yes")]
     pub yes: bool,
 
-    /// Maximum concurrent release jobs (default: 1)
-    #[arg(short = 'j', long = "jobs", default_value = "1")]
-    pub jobs: usize,
+    /// Maximum concurrent release jobs (default: available CPU parallelism)
+    #[arg(short = 'j', long = "jobs")]
+    pub jobs: Option<usize>,
 
     /// Skip installing binary locally
     #[arg(long)]
@@ -141,4 +141,11 @@ pub struct ReleaseArgs {
     /// Output as JSON
     #[arg(long)]
     pub json: bool,
+}
+
+/// Resolves the default release concurrency: one worker per logical CPU, floor of four.
+pub fn default_release_jobs() -> usize {
+    std::thread::available_parallelism()
+        .map(|parallelism| parallelism.get())
+        .unwrap_or(4)
 }
