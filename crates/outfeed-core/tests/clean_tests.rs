@@ -2,9 +2,15 @@
 
 //! Unit and integration tests for outfeed clean and prune cache hygiene.
 
-use outfeed_core::clean::{calculate_disk_usage, clean_workspace, format_bytes, prune_workspace};
+use outfeed_core::clean::{
+    calculate_disk_usage, clean_workspace, clean_workspace_with_progress, format_bytes,
+    prune_workspace,
+};
 use outfeed_core::model::{CleanOpts, PruneOpts};
+use outfeed_core::progress::{ProgressReporter, RepoStatus};
 use std::fs;
+use std::sync::Mutex;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use tempfile::tempdir;
 
 #[test]
@@ -128,4 +134,58 @@ fn test_prune_workspace() {
 
     assert_eq!(report.reclaimed_bytes, 16);
     assert!(!candidate.exists(), "candidate should be pruned");
+}
+
+#[derive(Debug, Default)]
+struct CountingReporter {
+    completions: AtomicUsize,
+    messages: Mutex<Vec<String>>,
+}
+
+impl ProgressReporter for CountingReporter {
+    fn on_start(&self, _repo: &str, _action: &str) {}
+
+    fn on_update(&self, _repo: &str, _message: &str) {}
+
+    fn on_complete(&self, _repo: &str, status: &RepoStatus) {
+        self.completions.fetch_add(1, Ordering::SeqCst);
+        if let RepoStatus::Success(message) = status
+            && let Ok(mut messages) = self.messages.lock()
+        {
+            messages.push(message.clone());
+        }
+    }
+}
+
+#[test]
+fn test_clean_workspace_emits_a_single_completion_event() {
+    let dir = tempdir().expect("tempdir");
+    let debug = dir.path().join("target").join("debug");
+    fs::create_dir_all(&debug).expect("create debug");
+    fs::write(debug.join("artifact"), vec![0u8; 512]).expect("write artifact");
+
+    let reporter = CountingReporter::default();
+    let report = clean_workspace_with_progress(
+        dir.path(),
+        &CleanOpts {
+            dry_run: false,
+            ..Default::default()
+        },
+        &reporter,
+    )
+    .expect("clean workspace");
+
+    assert_eq!(report.reclaimed_bytes, 512);
+    assert_eq!(
+        reporter.completions.load(Ordering::SeqCst),
+        1,
+        "a clean pass must report exactly one completion event"
+    );
+    let messages = reporter.messages.lock().expect("messages");
+    assert_eq!(messages.len(), 1);
+    assert!(
+        messages[0].starts_with("reclaimed"),
+        "the single event must use clean wording, got {:?}",
+        messages[0]
+    );
 }

@@ -145,13 +145,6 @@ pub fn clean_workspace_with_progress(
     };
     reporter.on_complete("workspace", &RepoStatus::Success(result_msg));
 
-    let result_msg = if opts.dry_run {
-        format!("audited: {} prunable", format_bytes(reclaimed_bytes))
-    } else {
-        format!("pruned {}", format_bytes(reclaimed_bytes))
-    };
-    reporter.on_complete("workspace", &RepoStatus::Success(result_msg));
-
     Ok(CleanReport {
         initial_usage,
         reclaimed_bytes,

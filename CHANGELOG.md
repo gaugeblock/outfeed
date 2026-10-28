@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- `outfeed-core`: `clean_workspace_with_progress` emits a single completion event instead of reporting both `reclaimed` and `pruned` for the same pass (GB-133).
+
 ### Added
 - `outfeed-core`: adaptive disk space headroom guard with continuous pre/post-repository monitoring, surgical test-binary pruning below 3.5 GB, and emergency target clean below 2.0 GB (GB-122).
 - `outfeed-core`: `outfeed_core::headroom` module exposing `enforce_disk_headroom`, `prune_test_binaries`, and `clean_target_package` (GB-122).
