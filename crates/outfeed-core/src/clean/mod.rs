@@ -140,6 +140,9 @@ pub fn prune_workspace_with_progress(
     let entries = fs::read_dir(&debug_deps).map_err(OutfeedError::Io)?;
     for entry in entries.flatten() {
         let path = entry.path();
+        if !is_prunable_artifact(&path) {
+            continue;
+        }
         if let Ok(meta) = entry.metadata()
             && let Ok(modified) = meta.modified()
             && modified < cutoff
@@ -175,4 +178,25 @@ pub fn prune_workspace_with_progress(
         paths_removed,
         dry_run: opts.dry_run,
     })
+}
+
+/// File extensions that carry reusable compilation artifacts and must survive pruning.
+const PRESERVED_EXTENSIONS: &[&str] = &[
+    "rlib", "rmeta", "so", "dylib", "dll", "a", "lib", "o", "obj", "d", "pdb", "msvc",
+];
+
+/// Returns true when an entry in `target/debug/deps` may be pruned.
+///
+/// Only relinkable outputs are prunable: extension-less executables (test and example binaries)
+/// and directories. Compiled dependencies (`.rlib`, `.rmeta`), proc-macro libraries
+/// (`.so`/`.dylib`) and dep-info files (`.d`) are preserved so a prune never triggers a rebuild
+/// wave.
+pub fn is_prunable_artifact(path: &Path) -> bool {
+    if path.is_dir() {
+        return true;
+    }
+    match path.extension().and_then(|ext| ext.to_str()) {
+        Some(ext) => !PRESERVED_EXTENSIONS.contains(&ext.to_ascii_lowercase().as_str()),
+        None => true,
+    }
 }

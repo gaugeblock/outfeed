@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- `outfeed-core`: `outfeed prune` no longer deletes compiled dependencies, proc-macro libraries or dep-info files; pruning is now limited to extension-less executables and directories via `clean::is_prunable_artifact`, so a prune can never trigger a rebuild wave (GB-135).
+
 ### Changed
 - `outfeed-core`: `outfeed release --all` now releases from the Phase 2 plan instead of re-planning every repository, eliminating a second `git log` walk and changelog synthesis per release; `plan_suite_releases` honours its `no_llm` argument (GB-126).
 - `outfeed-core`: the 99.2% clone between single-repository and suite commit/tag flows is unified into `git::stage_commit_and_tag` (GB-126).

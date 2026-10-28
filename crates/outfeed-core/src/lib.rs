@@ -41,7 +41,7 @@ pub use crate::release::{
 pub use changelog::{format_release_section, plan_changelog_update};
 pub use clean::{
     calculate_disk_usage, clean_workspace, clean_workspace_with_progress, dir_size, format_bytes,
-    prune_workspace, prune_workspace_with_progress,
+    is_prunable_artifact, prune_workspace, prune_workspace_with_progress,
 };
 pub use clone::{CloneOpts, CloneStatus, CloneSummary, GitProtocol, clone_suite, clone_tool};
 pub use cmd::{CommandOutput, run_captured};

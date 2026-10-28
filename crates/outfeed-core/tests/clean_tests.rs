@@ -4,7 +4,7 @@
 
 use outfeed_core::clean::{
     calculate_disk_usage, clean_workspace, clean_workspace_with_progress, format_bytes,
-    prune_workspace,
+    is_prunable_artifact, prune_workspace,
 };
 use outfeed_core::model::{CleanOpts, PruneOpts};
 use outfeed_core::progress::{ProgressReporter, RepoStatus};
@@ -188,4 +188,62 @@ fn test_clean_workspace_emits_a_single_completion_event() {
         "the single event must use clean wording, got {:?}",
         messages[0]
     );
+}
+
+#[test]
+fn test_prunable_artifact_classification_preserves_compiled_artifacts() {
+    use std::path::Path;
+    use std::path::PathBuf;
+
+    // Extension-less executables and directories are prunable.
+    assert!(is_prunable_artifact(Path::new("outfeed_core-1a2b3c")));
+    assert!(is_prunable_artifact(Path::new("deps/incremental")));
+
+    // Compiled dependencies, proc-macro libraries and dep-info survive.
+    for preserved in [
+        "liboutfeed_core-1a2b3c.rlib",
+        "liboutfeed_core-1a2b3c.rmeta",
+        "libserde_derive-8c7b.dylib",
+        "libfoo-1234.so",
+        "outfeed_core-1a2b3c.d",
+    ] {
+        assert!(
+            !is_prunable_artifact(Path::new(preserved)),
+            "{preserved} must survive pruning"
+        );
+    }
+
+    // A real directory on disk is always prunable.
+    let dir = tempdir().expect("tempdir");
+    let nested: PathBuf = dir.path().join("nested");
+    fs::create_dir_all(&nested).expect("create nested");
+    assert!(is_prunable_artifact(&nested));
+}
+
+#[test]
+fn test_prune_workspace_keeps_rlibs_while_removing_binaries() {
+    let dir = tempdir().expect("tempdir");
+    let deps = dir.path().join("target").join("debug").join("deps");
+    fs::create_dir_all(&deps).expect("create deps");
+
+    let test_bin = deps.join("outfeed_core-1a2b3c");
+    let rlib = deps.join("liboutfeed_core-1a2b3c.rlib");
+    let proc_macro = deps.join("libserde_derive-8c7b.dylib");
+    fs::write(&test_bin, vec![0u8; 256]).expect("write bin");
+    fs::write(&rlib, vec![0u8; 512]).expect("write rlib");
+    fs::write(&proc_macro, vec![0u8; 128]).expect("write proc macro");
+
+    let report = prune_workspace(
+        dir.path(),
+        &PruneOpts {
+            keep_days: 0,
+            dry_run: false,
+        },
+    )
+    .expect("prune");
+
+    assert_eq!(report.reclaimed_bytes, 256, "only the binary is reclaimed");
+    assert!(!test_bin.exists(), "stale test binary should be pruned");
+    assert!(rlib.exists(), "compiled dependency must survive");
+    assert!(proc_macro.exists(), "proc-macro library must survive");
 }
