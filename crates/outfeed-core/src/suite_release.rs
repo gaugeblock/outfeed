@@ -2,7 +2,6 @@
 
 use std::fs;
 use std::path::Path;
-use std::process::Command;
 
 use chrono::Utc;
 
@@ -128,39 +127,11 @@ fn commit_and_tag_suite(
     version: &str,
     tag: &str,
 ) -> Result<(), OutfeedError> {
-    let commit_msg = format!("chore(release): release suite-v{version}");
-
-    let add = Command::new("git")
-        .args(["add", "suite.lock", "CHANGELOG.md"])
-        .current_dir(workspace_root)
-        .output()
-        .map_err(|e| OutfeedError::Git(format!("Failed to stage suite release files: {e}")))?;
-
-    if !add.status.success() {
-        return Err(OutfeedError::Git("Failed to stage suite.lock".to_string()));
-    }
-
-    let commit = Command::new("git")
-        .args(["commit", "-m", &commit_msg])
-        .current_dir(workspace_root)
-        .output()
-        .map_err(|e| OutfeedError::Git(format!("Failed to commit suite release: {e}")))?;
-
-    if !commit.status.success() {
-        let stderr = String::from_utf8_lossy(&commit.stderr);
-        return Err(OutfeedError::Git(format!("Suite commit failed: {stderr}")));
-    }
-
-    let tag_cmd = Command::new("git")
-        .args(["tag", "-a", tag, "-m", &format!("{tag} ecosystem release")])
-        .current_dir(workspace_root)
-        .output()
-        .map_err(|e| OutfeedError::Git(format!("Failed to create suite tag: {e}")))?;
-
-    if !tag_cmd.status.success() {
-        let stderr = String::from_utf8_lossy(&tag_cmd.stderr);
-        return Err(OutfeedError::Git(format!("Suite tag failed: {stderr}")));
-    }
-
-    Ok(())
+    crate::git::stage_commit_and_tag(
+        workspace_root,
+        &["suite.lock", "CHANGELOG.md"],
+        &format!("chore(release): release suite-v{version}"),
+        tag,
+        &format!("{tag} ecosystem release"),
+    )
 }

@@ -1,11 +1,11 @@
 //! Orchestrated release workflow combining plan, apply, install, push, and publish.
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::engine::{apply_release_with_progress, plan_release};
 use crate::error::OutfeedError;
 use crate::install::{SUITE_TOOLS, install_tool};
-use crate::model::{InstallOpts, PublishOpts, PushOpts, ReleaseOpts};
+use crate::model::{InstallOpts, PublishOpts, PushOpts, ReleaseOpts, ReleasePlan};
 use crate::progress::{ProgressReporter, RepoStatus};
 use crate::publish::publish_repo;
 use crate::push::push_repo;
@@ -32,12 +32,54 @@ pub async fn release_repo(
     opts: &ReleaseOpts,
     reporter: &dyn ProgressReporter,
 ) -> Result<Option<ReleaseSummary>, OutfeedError> {
+    let (repo_dir, actual_name) = resolve_repo(workspace_root, repo_name)?;
+
+    reporter.on_start(&actual_name, "evaluating commits and changelog...");
+
+    // 1. Plan (dry-run uses deterministic formatting to simulate pipeline without remote overhead)
+    let no_llm = opts.no_llm || opts.dry_run;
+    guard_disk_headroom(workspace_root, opts)?;
+    let plan = match plan_release(&repo_dir, None, false, no_llm).await {
+        Ok(p) => p,
+        Err(OutfeedError::Git(ref msg)) if msg.contains("No unreleased commits") => {
+            reporter.on_complete(
+                &actual_name,
+                &RepoStatus::Skipped("clean (no unreleased commits)".to_string()),
+            );
+            return Ok(None);
+        }
+        Err(err) => {
+            reporter.on_complete(&actual_name, &RepoStatus::Failed(err.to_string()));
+            return Err(err);
+        }
+    };
+    if plan.commits.is_empty() {
+        reporter.on_complete(
+            &actual_name,
+            &RepoStatus::Skipped("clean (no unreleased commits)".to_string()),
+        );
+        return Ok(None);
+    }
+
+    finish_planned_release(
+        workspace_root,
+        &repo_dir,
+        &actual_name,
+        &plan,
+        opts,
+        reporter,
+    )
+    .map(Some)
+}
+
+/// Resolves a repository directory and its display name from a plan entry.
+fn resolve_repo(workspace_root: &Path, repo_name: &str) -> Result<(PathBuf, String), OutfeedError> {
     let repo_dir = if repo_name == "." || repo_name.is_empty() {
         workspace_root.to_path_buf()
     } else {
-        let p = Path::new(repo_name);
-        if p.is_dir() {
-            p.to_path_buf()
+        let candidate = Path::new(repo_name);
+        if candidate.is_dir() {
+            candidate.to_path_buf()
         } else {
             workspace_root.join(repo_name)
         }
@@ -53,42 +95,59 @@ pub async fn release_repo(
             .file_name()
             .and_then(|f| f.to_str())
             .unwrap_or(repo_name)
+            .to_string()
     } else {
-        repo_name
+        repo_name.to_string()
     };
+    Ok((repo_dir, actual_name))
+}
 
-    reporter.on_start(actual_name, "evaluating commits and changelog...");
-
-    // 1. Plan (dry-run uses deterministic formatting to simulate pipeline without remote overhead)
-    let no_llm = opts.no_llm || opts.dry_run;
-    if !opts.skip_disk_check {
-        let required = opts
-            .min_disk_bytes
-            .unwrap_or(crate::disk_space::DEFAULT_MIN_SINGLE_REPO_DISK_BYTES);
-        crate::disk_space::check_disk_space_headroom(workspace_root, required)?;
+/// Applies the single-repository disk headroom pre-flight unless it is disabled.
+fn guard_disk_headroom(workspace_root: &Path, opts: &ReleaseOpts) -> Result<(), OutfeedError> {
+    if opts.skip_disk_check {
+        return Ok(());
     }
-    let plan = match plan_release(&repo_dir, None, false, no_llm).await {
-        Ok(p) => p,
-        Err(OutfeedError::Git(ref msg)) if msg.contains("No unreleased commits") => {
-            reporter.on_complete(
-                actual_name,
-                &RepoStatus::Skipped("clean (no unreleased commits)".to_string()),
-            );
-            return Ok(None);
-        }
-        Err(err) => {
-            reporter.on_complete(actual_name, &RepoStatus::Failed(err.to_string()));
-            return Err(err);
-        }
-    };
-    if plan.commits.is_empty() {
-        reporter.on_complete(
-            actual_name,
-            &RepoStatus::Skipped("clean (no unreleased commits)".to_string()),
-        );
-        return Ok(None);
-    }
+    let required = opts
+        .min_disk_bytes
+        .unwrap_or(crate::disk_space::DEFAULT_MIN_SINGLE_REPO_DISK_BYTES);
+    crate::disk_space::check_disk_space_headroom(workspace_root, required)?;
+    Ok(())
+}
 
+/// Releases a repository from a plan that Phase 2 already computed.
+///
+/// Reusing the suite plan avoids a second `git log` walk and a second changelog synthesis for
+/// every repository in `outfeed release --all`.
+pub async fn release_repo_with_plan(
+    workspace_root: &Path,
+    repo_name: &str,
+    plan: &ReleasePlan,
+    opts: &ReleaseOpts,
+    reporter: &dyn ProgressReporter,
+) -> Result<Option<ReleaseSummary>, OutfeedError> {
+    let (repo_dir, actual_name) = resolve_repo(workspace_root, repo_name)?;
+    reporter.on_start(&actual_name, "reusing suite plan (no re-planning)...");
+    guard_disk_headroom(workspace_root, opts)?;
+    finish_planned_release(
+        workspace_root,
+        &repo_dir,
+        &actual_name,
+        plan,
+        opts,
+        reporter,
+    )
+    .map(Some)
+}
+
+/// Executes Phases 3-5 for a computed plan: apply, install, push, and publish.
+fn finish_planned_release(
+    workspace_root: &Path,
+    repo_dir: &Path,
+    actual_name: &str,
+    plan: &ReleasePlan,
+    opts: &ReleaseOpts,
+    reporter: &dyn ProgressReporter,
+) -> Result<ReleaseSummary, OutfeedError> {
     let target_version = plan.target_version.clone();
     reporter.on_update(actual_name, &format!("planning v{target_version}..."));
 
@@ -103,17 +162,16 @@ pub async fn release_repo(
             actual_name,
             &RepoStatus::Success(format!("[dry-run] proposed v{target_version}")),
         );
-        return Ok(Some(ReleaseSummary {
+        return Ok(ReleaseSummary {
             repo_name: actual_name.to_string(),
             target_version,
             installed: !opts.skip_install,
             pushed: !opts.skip_push,
             published_crates: vec!["[simulated]".to_string()],
-        }));
+        });
     }
 
-    if let Err(err) =
-        apply_release_with_progress(&repo_dir, &plan, !opts.no_verify, false, reporter)
+    if let Err(err) = apply_release_with_progress(repo_dir, plan, !opts.no_verify, false, reporter)
     {
         reporter.on_complete(actual_name, &RepoStatus::Failed(err.to_string()));
         return Err(err);
@@ -136,7 +194,7 @@ pub async fn release_repo(
     let mut pushed = false;
     if !opts.skip_push {
         reporter.on_update(actual_name, "pushing to Git remote...");
-        if let Err(err) = push_repo(&repo_dir, &PushOpts::default()) {
+        if let Err(err) = push_repo(repo_dir, &PushOpts::default()) {
             reporter.on_complete(actual_name, &RepoStatus::Failed(err.to_string()));
             return Err(err);
         }
@@ -147,7 +205,7 @@ pub async fn release_repo(
     let mut published_crates = Vec::new();
     if !opts.skip_publish {
         reporter.on_update(actual_name, "publishing crates to registry...");
-        published_crates = match publish_repo(&repo_dir, &PublishOpts::default()) {
+        published_crates = match publish_repo(repo_dir, &PublishOpts::default()) {
             Ok(crates) => crates,
             Err(err) => {
                 reporter.on_complete(actual_name, &RepoStatus::Failed(err.to_string()));
@@ -161,13 +219,13 @@ pub async fn release_repo(
         &RepoStatus::Success(format!("released v{target_version}")),
     );
 
-    Ok(Some(ReleaseSummary {
+    Ok(ReleaseSummary {
         repo_name: actual_name.to_string(),
         target_version,
         installed,
         pushed,
         published_crates,
-    }))
+    })
 }
 
 pub use crate::suite_exec::{execute_suite_plan, release_all};

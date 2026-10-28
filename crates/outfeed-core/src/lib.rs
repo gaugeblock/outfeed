@@ -35,6 +35,9 @@ pub mod sync_model;
 pub mod synthesis;
 pub mod verify_runner;
 
+pub use crate::release::{
+    ReleaseSummary, execute_suite_plan, release_all, release_repo, release_repo_with_plan,
+};
 pub use changelog::{format_release_section, plan_changelog_update};
 pub use clean::{
     calculate_disk_usage, clean_workspace, clean_workspace_with_progress, dir_size, format_bytes,
@@ -80,7 +83,6 @@ pub use registry::{
     are_repo_crates_published, get_published_crate_version, is_version_published,
     parse_cargo_search_version,
 };
-pub use release::{ReleaseSummary, execute_suite_plan, release_all, release_repo};
 pub use semver::{apply_bump, calculate_bump, parse_commit};
 pub use storypole::{
     certify_release_ticket, create_release_ticket, fetch_task_summaries, find_storypole_root,

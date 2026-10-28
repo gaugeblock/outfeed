@@ -2,6 +2,7 @@
 
 #![allow(clippy::expect_used)]
 
+use super::pool::run_wave_with;
 use super::*;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;

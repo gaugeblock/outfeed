@@ -138,8 +138,7 @@ pub(crate) async fn release_entry(
     // Adaptive headroom guard: measure free space before this repository is compiled.
     guard_disk_headroom(workspace_root, opts, &entry.repo_name, reporter, headroom)?;
 
-    let Some(summary) = release_repo(workspace_root, &entry.repo_name, opts, reporter).await?
-    else {
+    let Some(summary) = release_from_plan(workspace_root, entry, opts, reporter).await? else {
         return Ok(None);
     };
 
@@ -161,78 +160,30 @@ pub(crate) async fn release_entry(
     Ok(Some(summary))
 }
 
-/// Executes one wave, running at most `ReleaseOpts::jobs` entries concurrently.
-///
-/// Results are returned in wave order regardless of completion order, so callers can report
-/// deterministically. Each worker owns a current-thread Tokio runtime; nothing is spawned onto
-/// the caller's runtime, which keeps the release loop free of `'static` bounds.
-pub(crate) fn run_wave(
+/// Releases an entry, reusing the Phase 2 plan when one was computed.
+async fn release_from_plan(
     workspace_root: &Path,
+    entry: &SuiteRepoPlanEntry,
     opts: &ReleaseOpts,
-    entries: &[&SuiteRepoPlanEntry],
     reporter: &dyn ProgressReporter,
-    headroom: &HeadroomLock,
-) -> Vec<EntryOutcome> {
-    run_wave_with(
-        entries,
-        opts.jobs,
-        |entry| match tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-        {
-            Ok(runtime) => runtime.block_on(release_entry(
+) -> Result<Option<ReleaseSummary>, OutfeedError> {
+    match entry.plan.as_ref() {
+        Some(plan) => {
+            crate::release::release_repo_with_plan(
                 workspace_root,
-                entry,
+                &entry.repo_name,
+                plan,
                 opts,
                 reporter,
-                headroom,
-            )),
-            Err(err) => Err(OutfeedError::Install(format!(
-                "failed to start release worker runtime for {}: {err}",
-                entry.repo_name
-            ))),
-        },
-    )
-}
-
-/// Runs `worker` for every entry, at most `jobs` at a time, preserving entry order in the result.
-fn run_wave_with<F>(entries: &[&SuiteRepoPlanEntry], jobs: usize, worker: F) -> Vec<EntryOutcome>
-where
-    F: Fn(&SuiteRepoPlanEntry) -> Result<Option<ReleaseSummary>, OutfeedError> + Sync,
-{
-    let jobs = jobs.max(1);
-    let mut outcomes = Vec::with_capacity(entries.len());
-
-    for chunk in entries.chunks(jobs) {
-        let results: Vec<EntryOutcome> = std::thread::scope(|scope| {
-            let handles: Vec<(&str, _)> = chunk
-                .iter()
-                .map(|entry| {
-                    let name = entry.repo_name.as_str();
-                    let worker = &worker;
-                    let handle = scope.spawn(move || (name.to_string(), worker(entry)));
-                    (name, handle)
-                })
-                .collect();
-
-            handles
-                .into_iter()
-                .map(|(name, handle)| match handle.join() {
-                    Ok(outcome) => outcome,
-                    Err(_) => (
-                        name.to_string(),
-                        Err(OutfeedError::Install(format!(
-                            "release worker for {name} panicked"
-                        ))),
-                    ),
-                })
-                .collect()
-        });
-        outcomes.extend(results);
+            )
+            .await
+        }
+        None => release_repo(workspace_root, &entry.repo_name, opts, reporter).await,
     }
-
-    outcomes
 }
+
+mod pool;
+pub(crate) use pool::run_wave;
 
 #[cfg(test)]
 mod tests;

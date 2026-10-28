@@ -172,13 +172,20 @@ pub fn get_commits_between(
     Ok(commits)
 }
 
-/// Creates a release commit and annotated git tag.
-pub fn create_release_commit_and_tag(repo_dir: &Path, version: &str) -> Result<(), OutfeedError> {
-    let commit_msg = format!("chore(release): release v{version}");
-    let tag_name = format!("v{version}");
-
+/// Stages `paths`, commits with `message`, and cuts annotated tag `tag` with `tag_message`.
+///
+/// Shared by the single-repository and suite release paths, which previously carried two
+/// near-identical copies of this subprocess sequence.
+pub fn stage_commit_and_tag(
+    repo_dir: &Path,
+    paths: &[&str],
+    message: &str,
+    tag: &str,
+    tag_message: &str,
+) -> Result<(), OutfeedError> {
     let add = Command::new("git")
-        .args(["add", "-A"])
+        .arg("add")
+        .args(paths)
         .current_dir(repo_dir)
         .output()
         .map_err(|e| OutfeedError::Git(format!("git add failed: {e}")))?;
@@ -190,7 +197,7 @@ pub fn create_release_commit_and_tag(repo_dir: &Path, version: &str) -> Result<(
     }
 
     let commit = Command::new("git")
-        .args(["commit", "-m", &commit_msg])
+        .args(["commit", "-m", message])
         .current_dir(repo_dir)
         .output()
         .map_err(|e| OutfeedError::Git(format!("git commit failed: {e}")))?;
@@ -200,16 +207,28 @@ pub fn create_release_commit_and_tag(repo_dir: &Path, version: &str) -> Result<(
         return Err(OutfeedError::Git(format!("git commit failed: {stderr}")));
     }
 
-    let tag = Command::new("git")
-        .args(["tag", "-a", &tag_name, "-m", &tag_name])
+    let tag_out = Command::new("git")
+        .args(["tag", "-a", tag, "-m", tag_message])
         .current_dir(repo_dir)
         .output()
         .map_err(|e| OutfeedError::Git(format!("git tag failed: {e}")))?;
 
-    if !tag.status.success() {
-        let stderr = String::from_utf8_lossy(&tag.stderr);
+    if !tag_out.status.success() {
+        let stderr = String::from_utf8_lossy(&tag_out.stderr);
         return Err(OutfeedError::Git(format!("git tag failed: {stderr}")));
     }
 
     Ok(())
+}
+
+/// Creates a release commit and annotated git tag.
+pub fn create_release_commit_and_tag(repo_dir: &Path, version: &str) -> Result<(), OutfeedError> {
+    let tag = format!("v{version}");
+    stage_commit_and_tag(
+        repo_dir,
+        &["-A"],
+        &format!("chore(release): release v{version}"),
+        &tag,
+        &tag,
+    )
 }

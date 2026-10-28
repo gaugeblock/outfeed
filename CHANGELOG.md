@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- `outfeed-core`: `outfeed release --all` now releases from the Phase 2 plan instead of re-planning every repository, eliminating a second `git log` walk and changelog synthesis per release; `plan_suite_releases` honours its `no_llm` argument (GB-126).
+- `outfeed-core`: the 99.2% clone between single-repository and suite commit/tag flows is unified into `git::stage_commit_and_tag` (GB-126).
+- `outfeed-core`: `clean.rs` and `semver.rs` are split into modules (`clean/{mod,size}.rs`, `semver/{mod,commit}.rs`) and the wave worker pool moved to `suite_waves/pool.rs`, keeping every source file inside the 250-line law (GB-126).
+
 ### Added
 - `outfeed-core`: `outfeed_core::verify_runner` selects `cargo-nextest` when it is installed (falling back to `cargo test`) and runs doctests separately, so Tier 4 verification stops paying for two full compiles (GB-124).
 
