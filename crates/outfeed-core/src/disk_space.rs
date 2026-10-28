@@ -11,10 +11,22 @@ use crate::error::OutfeedError;
 /// Default minimum available bytes required for single repository release (2.5 GB).
 pub const DEFAULT_MIN_SINGLE_REPO_DISK_BYTES: u64 = 2_500_000_000;
 
-/// Default minimum available bytes required for full suite release with inter-repo clean (4.0 GB).
+/// Default minimum available bytes required for full suite release with cache retention (4.0 GB).
 pub const DEFAULT_MIN_SUITE_DISK_BYTES: u64 = 4_000_000_000;
 
-/// Default minimum available bytes required for suite release without inter-repo clean (20.0 GB).
+/// Adaptive pruning threshold: free space below 3.5 GB triggers surgical pruning of stale
+/// test executables while preserving compiled dependencies and proc-macros.
+pub const ADAPTIVE_PRUNE_DISK_THRESHOLD_BYTES: u64 = 3_500_000_000;
+
+/// Emergency threshold: free space below 2.0 GB triggers a full target cache clean so that
+/// disk exhaustion can never halt a suite release.
+pub const EMERGENCY_CLEAN_DISK_THRESHOLD_BYTES: u64 = 2_000_000_000;
+
+/// Legacy reservation for suite releases that wipe the cache between repositories (20.0 GB).
+///
+/// Retained for API compatibility only: cache retention is the default, the shared target
+/// directory plateaus around 5.0 GB, and the adaptive headroom guard reclaims space on demand,
+/// so no pre-flight check requires this headroom anymore.
 pub const DEFAULT_MIN_SUITE_NO_CLEAN_DISK_BYTES: u64 = 20_000_000_000;
 
 /// Queries the available filesystem capacity in bytes for a given path using POSIX df.

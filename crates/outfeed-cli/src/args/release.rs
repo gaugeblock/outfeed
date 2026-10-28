@@ -125,9 +125,10 @@ pub struct ReleaseArgs {
     #[arg(long, visible_alias = "deterministic")]
     pub no_llm: bool,
 
-    /// Do not clean intermediate target artifacts between suite repositories
+    /// Force a full intermediate-artifact clean (target/debug, target/package) between
+    /// suite repositories instead of retaining the shared compilation cache
     #[arg(long)]
-    pub no_clean_between_repos: bool,
+    pub clean_between_repos: bool,
 
     /// Minimum required available disk space in GB for pre-flight check
     #[arg(long)]

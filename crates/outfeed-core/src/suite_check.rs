@@ -2,33 +2,26 @@
 
 use std::path::Path;
 
-use crate::disk_space::{
-    DEFAULT_MIN_SUITE_DISK_BYTES, DEFAULT_MIN_SUITE_NO_CLEAN_DISK_BYTES, check_disk_space_headroom,
-};
+use crate::disk_space::{DEFAULT_MIN_SUITE_DISK_BYTES, check_disk_space_headroom};
 use crate::error::OutfeedError;
 use crate::git::get_current_branch;
 use crate::install::SUITE_TOOLS;
 use crate::sync_model::is_working_tree_dirty;
 
 /// Options controlling pre-flight validation checks.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct PreflightOpts {
     /// Minimum required available disk space in bytes (None for default).
     pub min_disk_bytes: Option<u64>,
     /// Skip disk space verification.
     pub skip_disk_check: bool,
-    /// Whether inter-repo cache cleaning will be active (influences default headroom threshold).
+    /// Force a full intermediate-artifact clean between suite repositories.
+    ///
+    /// Cache retention is the default, so this no longer influences the disk headroom
+    /// requirement: the threshold is always [`DEFAULT_MIN_SUITE_DISK_BYTES`] and on-demand
+    /// pruning is delegated to the adaptive headroom guard in [`crate::suite_exec`]. Retained
+    /// for API compatibility with [`crate::model::ReleaseOpts`].
     pub clean_between_repos: bool,
-}
-
-impl Default for PreflightOpts {
-    fn default() -> Self {
-        Self {
-            min_disk_bytes: None,
-            skip_disk_check: false,
-            clean_between_repos: true,
-        }
-    }
 }
 
 /// Result of pre-flight check on an individual repository.
@@ -67,11 +60,11 @@ pub fn check_suite_preflight_with_opts(
 ) -> Result<Vec<RepoPreflightCheck>, OutfeedError> {
     // 1. Check disk space headroom if enabled
     if !opts.skip_disk_check {
-        let required = opts.min_disk_bytes.unwrap_or(if opts.clean_between_repos {
-            DEFAULT_MIN_SUITE_DISK_BYTES
-        } else {
-            DEFAULT_MIN_SUITE_NO_CLEAN_DISK_BYTES
-        });
+        // Cache retention is the default and the shared target directory plateaus around
+        // 5.0 GB, so a single realistic threshold governs every suite run. Free space below
+        // this level is reclaimed on demand by the adaptive headroom guard, not by
+        // demanding an unrealistic static reservation.
+        let required = opts.min_disk_bytes.unwrap_or(DEFAULT_MIN_SUITE_DISK_BYTES);
         check_disk_space_headroom(workspace_root, required)?;
     }
 

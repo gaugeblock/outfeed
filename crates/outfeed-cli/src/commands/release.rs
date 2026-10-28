@@ -24,7 +24,7 @@ pub async fn handle_release(root: &Path, args: ReleaseArgs) -> Result<()> {
         no_llm: args.no_llm,
         no_verify: args.no_verify,
         jobs: args.jobs,
-        clean_between_repos: !args.no_clean_between_repos,
+        clean_between_repos: args.clean_between_repos,
         min_disk_bytes,
         skip_disk_check: args.skip_disk_check,
     };
@@ -53,7 +53,7 @@ pub async fn handle_release(root: &Path, args: ReleaseArgs) -> Result<()> {
         let preflight_opts = outfeed_core::PreflightOpts {
             min_disk_bytes,
             skip_disk_check: args.skip_disk_check,
-            clean_between_repos: !args.no_clean_between_repos,
+            clean_between_repos: args.clean_between_repos,
         };
         outfeed_core::check_suite_preflight_with_opts(root, &preflight_opts)
             .context("Suite release pre-flight check failed")?;

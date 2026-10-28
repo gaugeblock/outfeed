@@ -26,6 +26,13 @@ Conventional commit signals (`fix`, `feat`) set a baseline SemVer increment, but
 ### Invariant 5: Closed-Loop Storypole Chore Synchronization
 Applying a release creates an atomic release event and task verification receipt in Storypole, transitioning pending milestone tickets into `Verified` status and recording the cut Git tag SHA.
 
+### Invariant 6: Adaptive Disk Headroom with Cache Retention
+Suite releases MUST retain the shared compilation cache between repositories and MUST NOT require an unrealistic static reservation for doing so:
+1. **Cache retention is the default.** Inter-repository cleaning (`--clean-between-repos`) is opt-in, so optimised dependencies and proc-macros are compiled once and reused across all 10 repositories.
+2. **Pre-flight demands 4.0 GB.** Because retention plateaus the shared `target` directory near 5.0 GB, every suite pre-flight uses `DEFAULT_MIN_SUITE_DISK_BYTES` regardless of the cleaning mode.
+3. **Continuous enforcement.** Free space is measured before and after every repository release through `outfeed_core::headroom`.
+4. **Tiered remediation.** `< 3.5 GB` free prunes extension-less test executables in `target/debug/deps` plus `target/package` staging while preserving rlibs, rmeta files and proc-macro libraries; `< 2.0 GB` free escalates to an emergency target cache clean so disk exhaustion can never halt a release.
+
 ---
 
 ## 2. Formal State Machines
@@ -106,6 +113,8 @@ The following 35 types define the complete public and boundary interface for `ou
 | **`DeliveryOpts`** | `struct` | `outfeed_core::model` | Configuration options for delivery operations |
 | **`DiskUsage`** | `struct` | `outfeed_core::model` | Breakdown of disk usage across target directories |
 | **`GitProtocol`** | `enum` | `outfeed_core::clone` | Git protocol used for cloning suite repositories (`Ssh`, `Https`) |
+| **`HeadroomAction`** | `enum` | `outfeed_core::headroom` | Remediation tier applied by the adaptive disk headroom guard (`Retained`, `Pruned`, `EmergencyClean`) |
+| **`HeadroomStatus`** | `struct` | `outfeed_core::headroom` | Free-space measurement and reclaimed bytes from one adaptive headroom pass |
 | **`InstallArgs`** | `struct` | `outfeed_cli::args` | Arguments for `outfeed install` binary compilation |
 | **`InstallOpts`** | `struct` | `outfeed_core::model` | Options controlling CLI binary installation |
 | **`InstallOutcome`** | `enum` | `outfeed_core::install` | Result outcome of installing a tool (`Installed`, `Skipped`, `Failed`) |

@@ -67,7 +67,13 @@ pub struct ReleaseOpts {
     pub no_verify: bool,
     /// Maximum concurrent release jobs (default: 1).
     pub jobs: usize,
-    /// Clean intermediate compilation artifacts (target/debug, target/package) between suite repositories.
+    /// Force a full intermediate-artifact clean (target/debug, target/package) between suite
+    /// repositories.
+    ///
+    /// Disabled by default: build caches are retained so optimised dependencies and
+    /// proc-macros are compiled once and reused across every repository. Disk safety is
+    /// instead enforced continuously by the adaptive headroom guard, which prunes
+    /// surgically on demand.
     pub clean_between_repos: bool,
     /// Optional minimum required disk space in bytes for pre-flight check.
     pub min_disk_bytes: Option<u64>,
@@ -85,7 +91,7 @@ impl Default for ReleaseOpts {
             no_llm: false,
             no_verify: false,
             jobs: 1,
-            clean_between_repos: true,
+            clean_between_repos: false,
             min_disk_bytes: None,
             skip_disk_check: false,
         }

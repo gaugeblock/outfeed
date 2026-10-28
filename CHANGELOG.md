@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `outfeed-core`: adaptive disk space headroom guard with continuous pre/post-repository monitoring, surgical test-binary pruning below 3.5 GB, and emergency target clean below 2.0 GB (GB-122).
+- `outfeed-core`: `outfeed_core::headroom` module exposing `enforce_disk_headroom`, `prune_test_binaries`, and `clean_target_package` (GB-122).
+
+### Changed
+- `outfeed-core`: cache retention between suite repositories is now the default (`ReleaseOpts::clean_between_repos = false`), reusing optimised dependency and proc-macro artifacts across all 10 releases (GB-122).
+- `outfeed-core`: suite pre-flight disk headroom is a single realistic 4.0 GB threshold; the 20.0 GB no-clean reservation is gone (GB-122).
+- `outfeed-cli`: `outfeed release --no-clean-between-repos` replaced by opt-in `--clean-between-repos` (GB-122).
+
 ## [v0.1.0-beta.7] - 2026-05-09
 
 ### Maintenance

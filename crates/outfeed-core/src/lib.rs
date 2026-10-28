@@ -11,6 +11,7 @@ pub mod disk_space;
 pub mod engine;
 pub mod error;
 pub mod git;
+pub mod headroom;
 pub mod install;
 pub mod manifest;
 pub mod mcp_sync;
@@ -40,8 +41,9 @@ pub use clean::{
 pub use clone::{CloneOpts, CloneStatus, CloneSummary, GitProtocol, clone_suite, clone_tool};
 pub use cmd::{CommandOutput, run_captured};
 pub use disk_space::{
-    DEFAULT_MIN_SINGLE_REPO_DISK_BYTES, DEFAULT_MIN_SUITE_DISK_BYTES,
-    DEFAULT_MIN_SUITE_NO_CLEAN_DISK_BYTES, check_disk_space_headroom, clean_repo_target_cache,
+    ADAPTIVE_PRUNE_DISK_THRESHOLD_BYTES, DEFAULT_MIN_SINGLE_REPO_DISK_BYTES,
+    DEFAULT_MIN_SUITE_DISK_BYTES, DEFAULT_MIN_SUITE_NO_CLEAN_DISK_BYTES,
+    EMERGENCY_CLEAN_DISK_THRESHOLD_BYTES, check_disk_space_headroom, clean_repo_target_cache,
     get_available_disk_space, parse_df_available_bytes,
 };
 pub use engine::{apply_release, apply_release_with_progress, plan_release};
@@ -49,6 +51,10 @@ pub use error::OutfeedError;
 pub use git::{
     assert_clean_working_tree, assert_main_branch, create_release_commit_and_tag,
     get_commits_between, get_head_commit_sha, get_latest_tag,
+};
+pub use headroom::{
+    HeadroomAction, HeadroomStatus, clean_target_package, enforce_disk_headroom,
+    enforce_disk_headroom_with_thresholds, prune_test_binaries,
 };
 pub use install::{
     InstallOutcome, SUITE_TOOLS, SuiteTool, get_installed_version, install_all,

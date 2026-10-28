@@ -21,6 +21,7 @@ Part of the **[`gaugeblock`](https://gaugeblock.dev)** neurosymbolic code synthe
 | **Registry Publishing** | Failed crates.io publish due to dependency race conditions | **Topological leaf-first DAG publishing** with index propagation verification |
 | **Ecosystem Sync** | Diverged git branches and mismatched suite versions | **Atomic `suite.lock` synchronization** aligning all 10 member repositories |
 | **Agent Integration** | Fragile bash scripts wrapping git commands | **First-class Model Context Protocol (MCP) server** (`outfeed mcp`) |
+| **Disk Safety** | Manual `rm -rf target` between releases, or rebuilding `syn`/`tokio` ten times | **Adaptive headroom guard** retains the shared cache and prunes surgically only below 3.5 GB free |
 
 ---
 
@@ -56,7 +57,7 @@ The `outfeed` binary provides comprehensive release planning, manifest bumping, 
 | `outfeed install` | `--all`, `--target`, `--force` | Compiles and installs CLI binaries into global `PATH` (`~/.cargo/bin`) |
 | `outfeed push` | `--all`, `--remote`, `--dry-run` | Pushes branch updates and annotated release tags to Git remote |
 | `outfeed publish` | `--all`, `--dry-run`, `--token` | Publishes member crates to crates.io in topological leaf-first order |
-| `outfeed release` | `--all`, `--yes`, `--no-llm` | Executes full orchestrated release pipeline (plan $\to$ apply $\to$ install $\to$ push $\to$ publish) |
+| `outfeed release` | `--all`, `--yes`, `--no-llm`, `--clean-between-repos` | Executes full orchestrated release pipeline (plan $\to$ apply $\to$ install $\to$ push $\to$ publish) with cache retention and adaptive disk headroom guarding |
 | `outfeed clone` | `--all`, `--protocol`, `--locked`, `--install` | Clones suite member repositories with optional `suite.lock` alignment |
 | `outfeed sync` | `--all`, `--locked`, `--pull`, `--push` | Audits and synchronizes local repositories with upstream remotes or `suite.lock` |
 | `outfeed clean` | `--all`, `--dry-run` | Cleans target compilation artifacts while preserving release binaries |

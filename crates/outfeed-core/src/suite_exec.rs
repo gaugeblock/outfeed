@@ -8,6 +8,25 @@ use crate::progress::ProgressReporter;
 use crate::release::{ReleaseSummary, release_repo};
 use crate::suite_plan::SuiteReleasePlan;
 
+/// Enforces adaptive disk headroom around a repository release step.
+///
+/// Free space is measured before the repository is compiled and again after its build and
+/// test wave, so a suite run can never exhaust the disk while still retaining the shared
+/// compilation cache whenever the measured headroom allows it.
+fn guard_disk_headroom(
+    workspace_root: &Path,
+    opts: &ReleaseOpts,
+    repo_name: &str,
+    reporter: &dyn ProgressReporter,
+) -> Result<(), OutfeedError> {
+    if opts.skip_disk_check || opts.dry_run {
+        return Ok(());
+    }
+    let status = crate::headroom::enforce_disk_headroom(workspace_root)?;
+    reporter.on_update(repo_name, &status.summary());
+    Ok(())
+}
+
 /// Executes the release lifecycle across all suite repositories using the 3-phase pipeline.
 pub async fn release_all(
     workspace_root: &Path,
@@ -67,6 +86,9 @@ pub async fn execute_suite_plan(
             continue;
         }
 
+        // Adaptive headroom guard: measure free space before this repository is compiled.
+        guard_disk_headroom(workspace_root, opts, &entry.repo_name, reporter)?;
+
         if let Some(summary) =
             release_repo(workspace_root, &entry.repo_name, opts, reporter).await?
         {
@@ -83,6 +105,9 @@ pub async fn execute_suite_plan(
                     &format!("reclaimed {formatted} compilation cache"),
                 );
             }
+
+            // Adaptive headroom guard: re-measure after the build and test wave.
+            guard_disk_headroom(workspace_root, opts, &entry.repo_name, reporter)?;
         }
     }
     Ok(summaries)
