@@ -11,115 +11,121 @@ Part of the **[`gaugeblock`](https://gaugeblock.dev)** neurosymbolic code synthe
 
 ---
 
-## 1. Architecture Overview
+## 1. Why `outfeed`?
 
-```text
-┌────────────────────────────────────────────────────────┐
-│ Workspace Checkouts & Git Repositories                 │
-│ Conventional Commits  •  Git Tags  •  Cargo.toml       │
-└───────────────────────────┬────────────────────────────┘
-                            │
-                            ▼
-┌────────────────────────────────────────────────────────┐
-│ outfeed 3-Phase Release Pipeline (Check -> Plan -> Run)│
-│ - Preflight Check: Porcelain Git tree, main branch, CI │
-│ - Deterministic SemVer: Conventional Commit grouping   │
-│ - AST Drift Inspector: miter public signature diffs    │
-│ - Changelog Synthesizer: sawhorse AI generation        │
-│ - Manifest Synchronizer: toml_edit lossless updates    │
-│ - Storypole Closed-Loop: Release chores & verified tags│
-└───────────────┬────────────────────────┬───────────────┘
-                │                        │
-                ▼                        ▼
-┌───────────────────────────┐ ┌──────────────────────────┐
-│ CLI (`outfeed`)           │ │ MCP Stdio Server         │
-│ - outfeed release [--all] │ │ - outfeed_plan           │
-│ - outfeed install [--all] │ │ - outfeed_apply          │
-│ - outfeed clone / sync    │ │                          │
-│ - outfeed clean / prune   │ │                          │
-└───────────────────────────┘ └──────────────────────────┘
+| Capability | Ad-Hoc Manual Releases | With `outfeed` |
+|:---|:---|:---|
+| **SemVer Calculation** | Guessing version bumps or forgetting breaking changes | **Deterministic Conventional Commit analysis** with AST drift floor verification |
+| **Manifest Updates** | Regex find-replace that corrupts TOML comments and keys | **Lossless `toml_edit` AST manipulation** preserving all comments and formatting |
+| **Changelog Generation** | Missing release notes or raw git log commit dumps | **Neurosymbolic changelog synthesis** authoring human-grade release notes |
+| **Registry Publishing** | Failed crates.io publish due to dependency race conditions | **Topological leaf-first DAG publishing** with index propagation verification |
+| **Ecosystem Sync** | Diverged git branches and mismatched suite versions | **Atomic `suite.lock` synchronization** aligning all 10 member repositories |
+| **Agent Integration** | Fragile bash scripts wrapping git commands | **First-class Model Context Protocol (MCP) server** (`outfeed mcp`) |
+
+---
+
+## 2. Release & Delivery Pipeline
+
+```mermaid
+flowchart TD
+    Git[Git History & Conventional Commits] --> Check[1. Preflight Invariants Gate]
+    Check --> Plan[2. Calculate SemVer & AST Drift]
+    Plan --> Changelog[3. Synthesize Changelog]
+    Changelog --> Review{Interactive Confirmation\nor --yes}
+    
+    Review --> Manifest[4. Lossless toml_edit Bump]
+    Manifest --> Tier4[5. Tier 4 Verification Gate]
+    Tier4 --> Tag[6. Git Commit & Annotated Tag]
+    Tag --> Install[7. Compile & Install to PATH]
+    Install --> Push[8. Push Git Branches & Tags]
+    Push --> Publish[9. Topological crates.io Publish]
+    Publish --> SuiteLock[10. Update suite.lock Snapshot]
 ```
 
 ---
 
-## 2. Core Capabilities
+## 3. CLI Command Reference
 
-* **Check -> Plan -> Execute 3-Phase Pipeline:** Preflights repository invariants, presents a transparent SemVer bump plan with changelog preview, and requires confirmation before modifying disk or cutting tags.
-* **Deterministic SemVer Calculation:** Analyzes Conventional Commits (`feat:`, `fix:`, `BREAKING CHANGE:`) between the latest Git tag and `HEAD`.
-* **AST Drift & Contract Inspection:** Validates public symbol signatures via `miter` to guarantee breaking API changes receive mandatory major/minor base bumps.
-* **Neurosymbolic Changelog Synthesis:** Ingests commits, diffs, and Storypole task plans, leveraging `sawhorse` to author architectural, human-grade release notes.
-* **Lossless Manifest Synchronization:** Uses `toml_edit` to bump workspace `Cargo.toml`, member crate dependencies, and web `package.json` without destroying comments or formatting.
-* **Packaging & Delivery Suite:** Built-in `outfeed install` for rapid compilation into `~/.cargo/bin`, plus `outfeed clone` and `outfeed sync` for multi-repository bootstrap against `suite.lock`.
+The `outfeed` binary provides comprehensive release planning, manifest bumping, delivery, and workspace maintenance commands:
+
+| Command | Key Flags / Options | Description |
+|:---|:---|:---|
+| `outfeed plan` | `--bump`, `--target-version`, `--no-llm`, `--json` | Evaluates commits, calculates SemVer bump, and previews changelog |
+| `outfeed apply` | `--plan-id`, `--yes`, `--no-tag`, `--no-commit` | Bumps manifests, updates changelog, cuts Git tag, and completes release |
+| `outfeed status` | `--all`, `--json` | Checks release status and unreleased commits across one or all repositories |
+| `outfeed install` | `--all`, `--target`, `--force` | Compiles and installs CLI binaries into global `PATH` (`~/.cargo/bin`) |
+| `outfeed push` | `--all`, `--remote`, `--dry-run` | Pushes branch updates and annotated release tags to Git remote |
+| `outfeed publish` | `--all`, `--dry-run`, `--token` | Publishes member crates to crates.io in topological leaf-first order |
+| `outfeed release` | `--all`, `--yes`, `--no-llm` | Executes full orchestrated release pipeline (plan $\to$ apply $\to$ install $\to$ push $\to$ publish) |
+| `outfeed clone` | `--all`, `--protocol`, `--locked`, `--install` | Clones suite member repositories with optional `suite.lock` alignment |
+| `outfeed sync` | `--all`, `--locked`, `--pull`, `--push` | Audits and synchronizes local repositories with upstream remotes or `suite.lock` |
+| `outfeed clean` | `--all`, `--dry-run` | Cleans target compilation artifacts while preserving release binaries |
+| `outfeed prune` | `--all`, `--dry-run` | Prunes stale test binaries and old build artifacts to reclaim disk space |
+| `outfeed mcp` | *(none)* | Launches stdio JSON-RPC 2.0 Model Context Protocol server |
 
 ---
 
-## 3. Workspace Crate Layout
+## 4. Model Context Protocol (MCP) Reference
 
-* **`outfeed`**: Facade crate re-exporting `outfeed-core`.
-* **`crates/outfeed-core`**: Core release engine, 3-phase pipeline, SemVer calculator, AST drift inspector, `toml_edit` sync, and changelog synthesizer.
-* **`crates/outfeed-cli`**: Clap binary entrypoint (`outfeed`) featuring indicatif progress spinners and concurrency controls.
-* **`crates/outfeed-mcp`**: JSON-RPC 2.0 Model Context Protocol stdio server.
+When running as an MCP server (`outfeed mcp`), `outfeed` exposes structured tools for autonomous agents:
+
+| Tool Name | Parameters | Description |
+|:---|:---|:---|
+| `outfeed_plan` | `repo_dir`, `target_version` | Compute next SemVer increment, inspect AST drift, and draft changelog preview |
+| `outfeed_apply` | `plan_id`, `create_commit`, `create_tag` | Execute manifest updates, commit release changes, and create annotated Git tag |
 
 ---
 
-## 4. Installation & CLI Quickstart
+## 5. Crate & Package Topology
+
+| Crate | Path | Responsibility |
+|:---|:---|:---|
+| [`outfeed`](./src/lib.rs) | `.` | Root facade re-exporting `outfeed_core` domain APIs |
+| [`outfeed-core`](./crates/outfeed-core) | `crates/outfeed-core` | Release engine, SemVer calculator, AST drift inspector, `toml_edit` sync |
+| [`outfeed-cli`](./crates/outfeed-cli) | `crates/outfeed-cli` | Clap CLI binary, interactive terminal UI with `indicatif` progress spinners |
+| [`outfeed-mcp`](./crates/outfeed-mcp) | `crates/outfeed-mcp` | Stdio Model Context Protocol (MCP) JSON-RPC 2.0 server |
+
+---
+
+## 6. Quickstart
 
 ```bash
-# Install globally via cargo
+# 1. Install outfeed CLI globally
 cargo install --path crates/outfeed-cli
 
-# 1. Plan and execute release for current repository
-outfeed release
+# 2. Plan a release for the current repository
+outfeed plan
 
-# 2. Orchestrate suite-wide release across all 10 repositories
-outfeed release --all --yes
+# 3. Apply the planned release (bump manifest, author changelog, cut tag)
+outfeed apply --yes
 
-# 3. Deterministic release without LLM changelog synthesis
-outfeed release --no-llm
-
-# 4. Install all suite binaries to ~/.cargo/bin
+# 4. Install updated binaries into ~/.cargo/bin
 outfeed install --all
 
-# 5. Clone all suite member repositories
-outfeed clone --all --protocol ssh
+# 5. Push release branch and tags to remote
+outfeed push --all
 
-# 6. Audit and synchronize local checkouts with suite.lock
+# 6. Audit suite alignment against suite.lock
 outfeed sync --all --locked
 ```
 
 ---
 
-## 5. Model Context Protocol (MCP) Reference
-
-| Tool | Parameters | Description |
-|---|---|---|
-| `outfeed_plan` | `repo_dir?, target_version?` | Compute next SemVer increment, inspect AST drift, and draft changelog preview. |
-| `outfeed_apply` | `plan_id, create_commit?, create_tag?` | Execute manifest updates, commit release changes, and create annotated Git tag. |
-
----
-
-## 6. Repository Documentation
+## 7. Repository Documentation
 
 `outfeed` adheres strictly to the canonical **9-Document Architecture**:
-* **[`CONTRIBUTING.md`](./CONTRIBUTING.md):** Local toolchain prerequisites, release testing, and test execution.
-* **[`ARCHITECTURE.md`](./ARCHITECTURE.md):** 3-phase release pipeline, AST comparison logic, and manifest editor.
-* **[`SPEC.md`](./SPEC.md):** SemVer calculation invariants, release receipt schemas, and error contracts.
-* **[`AGENTS.md`](./AGENTS.md):** Autonomous systems directives, <=250 LOC limits, and zero-unwrap rules.
-* **[`CHANGELOG.md`](./CHANGELOG.md):** Chronological historical release entries and unreleased changes.
-
----
-
-## 7. Verification & Development Directives
-
-* **File Size Ceiling:** All `.rs` source files must strictly remain under 250 LOC.
-* **Tiered Verification Matrix:**
-  * Tier 1: `cargo check -p outfeed-core` (<2s).
-  * Tier 2: `cargo fmt --check -p outfeed-core && cargo clippy -p outfeed-core && cargo test -p outfeed-core`.
-  * Tier 3: `chalkline docs check -d .` before task verification.
+* **[`README.md`](./README.md):** Project overview, outfeed table metaphor, CLI reference, and delivery pipeline.
+* **[`SPEC.md`](./SPEC.md):** Formal wire contracts, boundary types, release invariants, and state machines.
+* **[`ARCHITECTURE.md`](./ARCHITECTURE.md):** Subsystem decomposition, topological DAG packager, and changelog synthesizer.
+* **[`DESIGN.md`](./DESIGN.md):** Concrete Architectural Decision Records (ADRs).
+* **[`PRODUCT.md`](./PRODUCT.md):** Personas, user journeys, JTBD, and release automation strategy.
+* **[`CONTRIBUTING.md`](./CONTRIBUTING.md):** Rust 2024 toolchain requirements and tiered verification gates.
+* **[`ROADMAP.md`](./ROADMAP.md):** Active milestones and upcoming release orchestration capabilities.
+* **[`CHANGELOG.md`](./CHANGELOG.md):** Historical version releases and pending changes.
+* **[`AGENTS.md`](./AGENTS.md):** Non-negotiable engineering laws and autonomous execution directives.
 
 ---
 
 ## 8. License
 
-Licensed under the [Apache License, Version 2.0](LICENSE).
-Part of the [`gaugeblock`](https://gaugeblock.dev) suite.
+Licensed under the Apache License, Version 2.0 ([`LICENSE`](./LICENSE)).
