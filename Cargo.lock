@@ -380,6 +380,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "gaugeblock-contracts"
+version = "0.1.0-beta.1"
+dependencies = [
+ "serde",
+ "serde_json",
+ "uuid",
+]
+
+[[package]]
 name = "getrandom"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -848,6 +857,7 @@ name = "outfeed-core"
 version = "0.1.0-beta.7"
 dependencies = [
  "chrono",
+ "gaugeblock-contracts",
  "reqwest",
  "sawhorse-core",
  "semver",
@@ -2166,6 +2176,10 @@ version = "0.1.0-beta.4"
 [[patch.unused]]
 name = "dado-mcp"
 version = "0.1.0-beta.4"
+
+[[patch.unused]]
+name = "gaugeblock-common"
+version = "0.1.0-beta.1"
 
 [[patch.unused]]
 name = "joiner"

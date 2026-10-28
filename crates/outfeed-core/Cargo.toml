@@ -11,6 +11,8 @@ description = "Core release engine, conventional commit parser, SemVer calculato
 workspace = true
 
 [dependencies]
+# Shared wire contracts; resolved locally through the meta-harness [patch.crates-io] mapping.
+gaugeblock-contracts = "0.1.0-beta.1"
 storypole-core = "0.1.0-beta.2"
 sawhorse-core = "0.1.0-beta.2"
 

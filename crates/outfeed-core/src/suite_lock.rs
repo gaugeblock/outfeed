@@ -11,39 +11,8 @@ use crate::git::{get_head_commit_sha, get_latest_tag};
 use crate::install::SUITE_TOOLS;
 use crate::manifest::get_repo_version;
 
-/// Top-level metadata for `suite.lock`.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct SuiteMetadata {
-    /// Meta-harness ecosystem release version.
-    pub version: String,
-    /// Timestamp of lockfile generation in UTC ISO 8601.
-    pub created_at: String,
-    /// Canonical organization or meta-harness name.
-    pub meta_harness: String,
-}
-
-/// Pinned state for a member repository in `suite.lock`.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct SuiteToolEntry {
-    /// Member repository name.
-    pub name: String,
-    /// Current package version declared in repository's root Cargo.toml.
-    pub version: String,
-    /// Exact git commit SHA currently checked out.
-    pub commit: String,
-    /// Most recent release tag, if present.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tag: Option<String>,
-}
-
-/// Canonical schema for `suite.lock`.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct SuiteLock {
-    /// Ecosystem release metadata.
-    pub suite: SuiteMetadata,
-    /// Pinned member tool snapshots.
-    pub tools: Vec<SuiteToolEntry>,
-}
+// `suite.lock` types live in the shared contracts crate; re-exported here for path stability.
+pub use gaugeblock_contracts::{SuiteLock, SuiteMetadata, SuiteToolEntry};
 
 /// Execution options for suite release orchestration.
 #[derive(Debug, Clone, Default)]
