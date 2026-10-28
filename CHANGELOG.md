@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- `outfeed-core`: `rate_limit::parse_cooldown` now reads the RFC 2822 deadline that crates.io embeds in a 429 message body (`Please try again after Wed, 28 Oct 2026 15:30:25 GMT`) instead of falling back to 30 s, and it no longer mistakes a day-of-month for a second count; explicit `Retry-After` values still win (GB-140).
+
 ### Added
 - `outfeed-core`: crates.io rate-limit resilience — `rate_limit` parses `429`/`Retry-After` (integer seconds or RFC 2822 dates), reports a 30-second countdown and retries a publication up to three times; `index_poll` queries the crates.io sparse index (shard-aware) to wait for propagation instead of sleeping blindly (GB-125).
 

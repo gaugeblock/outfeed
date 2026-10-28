@@ -175,3 +175,36 @@ fn test_wait_for_index_version_times_out_without_network() {
         "propagation is not observable and must not block"
     );
 }
+
+#[test]
+fn test_parse_cooldown_reads_crates_io_prose_deadline() {
+    // Verbatim shape observed while reserving namespaces in GB-127: the deadline appears only in
+    // the message body, with no `Retry-After` header.
+    let observed = "error: failed to publish gaugeblock-mcp v0.1.0-alpha.1 to registry at \
+        https://crates.io\n\nCaused by:\n  the remote server responded with an error (status 429 Too \
+        Many Requests): You have published too many new crates in a short period of time. Please try \
+        again after Wed, 28 Oct 2026 15:30:25 GMT and see \
+        https://crates.io/docs/rate-limits for more details.";
+
+    let now = chrono::DateTime::parse_from_rfc2822("Wed, 28 Oct 2026 15:28:25 GMT")
+        .unwrap()
+        .with_timezone(&chrono::Utc);
+
+    let cooldown = parse_cooldown(observed, now);
+    assert_eq!(
+        cooldown,
+        Duration::from_secs(120),
+        "the prose deadline must override the 30s default"
+    );
+    assert!(cooldown > DEFAULT_COOLDOWN);
+}
+
+#[test]
+fn test_parse_cooldown_prefers_explicit_seconds_over_prose() {
+    let now = chrono::DateTime::parse_from_rfc2822("Wed, 28 Oct 2026 15:28:25 GMT")
+        .unwrap()
+        .with_timezone(&chrono::Utc);
+    let text =
+        "HTTP 429 Retry-After: 7 (server said try again after Wed, 28 Oct 2026 15:30:25 GMT)";
+    assert_eq!(parse_cooldown(text, now), Duration::from_secs(7));
+}

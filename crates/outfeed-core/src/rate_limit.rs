@@ -52,16 +52,30 @@ pub fn parse_retry_after(value: &str, now: DateTime<chrono::Utc>) -> Option<Dura
 pub fn parse_cooldown(output: &str, now: DateTime<chrono::Utc>) -> Duration {
     let lowered = output.to_ascii_lowercase();
 
+    // 1. Explicit `Retry-After` token/header: take the first whitespace-delimited value, then fall
+    //    back to a full date that may itself contain spaces.
     if let Some(idx) = lowered.find("retry-after") {
-        let rest = &output[idx + "retry-after".len()..];
-        let value = rest.trim_start_matches([':', ' ', '\t']);
-        let candidate: String = value
+        let rest = output[idx + "retry-after".len()..].trim_start_matches([':', ' ', '\t']);
+        let token: String = rest
             .chars()
-            .take_while(|c| *c != '\n' && *c != '\r')
+            .take_while(|c| !c.is_whitespace() && *c != '\r' && *c != '\n')
             .collect();
-        if let Some(cooldown) = parse_retry_after(&candidate, now) {
+        if let Some(cooldown) = parse_retry_after(&token, now) {
             return cooldown;
         }
+        if let Some(cooldown) = parse_date_in_text(rest, now) {
+            return cooldown;
+        }
+    }
+
+    // 2. Prose deadlines. crates.io reports new-crate limits only in the body, e.g.
+    //    "Please try again after Wed, 28 Oct 2026 15:30:25 GMT and see …/rate-limits". The date must
+    //    be parsed *before* any bare integer, because a day-of-month reads as a small number of
+    //    seconds otherwise.
+    if let Some(idx) = lowered.find("try again after")
+        && let Some(cooldown) = parse_date_in_text(&output[idx..], now)
+    {
+        return cooldown;
     }
 
     for marker in ["retry after", "try again in"] {
@@ -70,10 +84,33 @@ pub fn parse_cooldown(output: &str, now: DateTime<chrono::Utc>) -> Duration {
             if let Some(seconds) = first_integer(rest) {
                 return Duration::from_secs(seconds);
             }
+            if let Some(cooldown) = parse_date_in_text(rest, now) {
+                return cooldown;
+            }
         }
     }
 
+    // 3. Last resort: any RFC 2822 timestamp anywhere in the output.
+    if let Some(cooldown) = parse_date_in_text(output, now) {
+        return cooldown;
+    }
+
     DEFAULT_COOLDOWN
+}
+
+/// Finds an RFC 2822 timestamp inside free-form text and converts it into a cooldown.
+///
+/// RFC 2822 dates occupy five whitespace-separated tokens (`Wed, 28 Oct 2026 15:30:25 GMT`), so the
+/// scan slides a five-token window across the text and keeps the first parseable date.
+fn parse_date_in_text(text: &str, now: DateTime<chrono::Utc>) -> Option<Duration> {
+    let tokens: Vec<&str> = text.split_whitespace().collect();
+    for window in tokens.windows(5) {
+        let candidate = window.join(" ");
+        if let Some(cooldown) = parse_retry_after(&candidate, now) {
+            return Some(cooldown);
+        }
+    }
+    None
 }
 
 /// Extracts the first run of ASCII digits from `text`.
