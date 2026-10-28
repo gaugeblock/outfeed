@@ -8,7 +8,7 @@ pub mod sync;
 
 pub use clone::CloneArgs;
 pub use delivery::{InstallArgs, McpArgs, PublishArgs, PushArgs};
-pub use hygiene::{CleanArgs, PruneArgs};
+pub use hygiene::{CleanArgs, LockfileArgs, PruneArgs};
 pub use release::{ApplyArgs, PlanArgs, ReleaseArgs, StatusArgs, default_release_jobs};
 pub use sync::SyncArgs;
 
@@ -71,6 +71,9 @@ pub enum Commands {
 
     /// Prune stale test binaries and old build artifacts
     Prune(PruneArgs),
+
+    /// Verify every member repository tracks a fresh Cargo.lock
+    Lockfiles(LockfileArgs),
 
     /// Start the JSON-RPC stdio MCP server for Antigravity & Cline
     Mcp(McpArgs),

@@ -62,6 +62,7 @@ The `outfeed` binary provides comprehensive release planning, manifest bumping, 
 | `outfeed sync` | `--all`, `--locked`, `--pull`, `--push` | Audits and synchronizes local repositories with upstream remotes or `suite.lock` |
 | `outfeed clean` | `--all`, `--dry-run` | Cleans target compilation artifacts while preserving release binaries |
 | `outfeed prune` | `--all`, `--dry-run` | Prunes stale test binaries and old build artifacts to reclaim disk space |
+| `outfeed lockfiles` | `--json` | Verifies every member repository tracks a fresh `Cargo.lock` (reproducible builds) |
 | `outfeed mcp` | *(none)* | Launches stdio JSON-RPC 2.0 Model Context Protocol server |
 
 ---

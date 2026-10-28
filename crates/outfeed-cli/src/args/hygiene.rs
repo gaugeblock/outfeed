@@ -49,3 +49,15 @@ pub struct PruneArgs {
     #[arg(long)]
     pub json: bool,
 }
+
+/// Arguments for `outfeed lockfiles`.
+#[derive(Debug, Args)]
+pub struct LockfileArgs {
+    /// Workspace root containing the member repositories (default: ".")
+    #[arg(default_value = ".")]
+    pub root: String,
+
+    /// Output as JSON
+    #[arg(long)]
+    pub json: bool,
+}

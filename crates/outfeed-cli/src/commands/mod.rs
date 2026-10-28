@@ -4,6 +4,7 @@ pub mod apply;
 pub mod clean;
 pub mod clone;
 pub mod install;
+pub mod lockfiles;
 pub mod plan;
 pub mod publish;
 pub mod push;
