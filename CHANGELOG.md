@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+- `outfeed`: refresh the README version badge to `0.1.0-beta.7` and correct the SPEC symbol table (`ReleasePlan` module path, `RepoStatus` is an enum, drop the removed `DeliveryOpts`); all 36 documented symbols now resolve to matching AST declarations (GB-134).
+
 ### Fixed
 - `outfeed-core`: `clean_workspace_with_progress` emits a single completion event instead of reporting both `reclaimed` and `pruned` for the same pass (GB-133).
 

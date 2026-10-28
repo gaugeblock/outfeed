@@ -118,7 +118,6 @@ The following 35 types define the complete public and boundary interface for `ou
 | **`Commands`** | `enum` | `outfeed_cli::args` | Top-level CLI command router enum |
 | **`CommitInfo`** | `struct` | `outfeed_core::model` | Parsed Git commit metadata (hash, subject, author, date) |
 | **`ConventionalKind`** | `enum` | `outfeed_core::model` | Conventional commit category (`feat`, `fix`, `refactor`, `chore`, etc.) |
-| **`DeliveryOpts`** | `struct` | `outfeed_core::model` | Configuration options for delivery operations |
 | **`DiskUsage`** | `struct` | `outfeed_core::model` | Breakdown of disk usage across target directories |
 | **`GitProtocol`** | `enum` | `outfeed_core::clone` | Git protocol used for cloning suite repositories (`Ssh`, `Https`) |
 | **`HeadroomAction`** | `enum` | `outfeed_core::headroom` | Remediation tier applied by the adaptive disk headroom guard (`Retained`, `Pruned`, `EmergencyClean`) |
@@ -133,8 +132,8 @@ The following 35 types define the complete public and boundary interface for `ou
 | **`PublishArgs`** | `struct` | `outfeed_cli::args` | Arguments for `outfeed publish` registry publication |
 | **`PushArgs`** | `struct` | `outfeed_cli::args` | Arguments for `outfeed push` remote delivery |
 | **`ReleaseArgs`** | `struct` | `outfeed_cli::args` | Arguments for full orchestrated `outfeed release` pipeline |
-| **`ReleasePlan`** | `struct` | `outfeed_core::plans` | Complete computed release plan including target version and changelog |
-| **`RepoStatus`** | `struct` | `outfeed_core::progress` | Summary status of a repository's unreleased commits and tags |
+| **`ReleasePlan`** | `struct` | `outfeed_core::model::plans` | Complete computed release plan including target version and changelog |
+| **`RepoStatus`** | `enum` | `outfeed_core::progress` | Outcome of a repository operation (`Success`, `Skipped`, `Failed`) |
 | **`RepoSyncStatus`** | `struct` | `outfeed_core::sync_model` | Alignment status between local checkout and remote/suite.lock |
 | **`StatusArgs`** | `struct` | `outfeed_cli::args` | Arguments for `outfeed status` inspection |
 | **`SuiteReleasePlan`** | `struct` | `outfeed_core::suite_plan` | Multi-repository orchestrated release plan across the full suite |
