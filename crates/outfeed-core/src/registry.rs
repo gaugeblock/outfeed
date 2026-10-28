@@ -7,8 +7,15 @@ use crate::cmd::run_captured;
 use crate::error::OutfeedError;
 use crate::publish::resolve_publish_order;
 
-/// Queries the latest published version of a crate from crates.io via `cargo search`.
+/// Queries the latest published version of a crate from crates.io.
+///
+/// Prefers a single sparse-index request and falls back to `cargo search` when the index is
+/// unreachable (offline or air-gapped CI), so behaviour degrades instead of failing.
 pub fn get_published_crate_version(crate_name: &str) -> Result<Option<String>, OutfeedError> {
+    if let Ok(Some(version)) = crate::index_poll::latest_published_version(crate_name) {
+        return Ok(Some(version));
+    }
+
     let mut cmd = Command::new("cargo");
     cmd.args(["search", crate_name, "--limit", "1"]);
 

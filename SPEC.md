@@ -17,6 +17,8 @@ Release execution MUST proceed through three strictly sequenced phases:
 ### Invariant 2: Topological Leaf-First Publishing DAG
 When publishing multi-crate workspaces to crates.io (`outfeed publish`), crates MUST be published in strict topological order where dependencies are published and confirmed available in the crates.io sparse index before any dependent crate begins publishing. Publishing failures halt the sequence to prevent broken dependency releases.
 
+Rate limiting is never a failure: a `429` response resolves a cooldown from `Retry-After` (integer seconds or an RFC 2822 HTTP-date, defaulting to 30 s), reports a countdown through the progress reporter, and retries the same crate up to three times. Propagation waits poll `https://index.crates.io/<shard>/<name>` every 500 ms and proceed as soon as the new version appears; the configured delay is the poll timeout budget, not a fixed sleep.
+
 ### Invariant 3: Lossless Manifest Synchronization
 All modifications to `Cargo.toml` and member crate manifests MUST use `toml_edit` AST manipulation. Outfeed is strictly forbidden from using regex find-replace or destructive serialization (`toml::to_string`) that strips developer comments, formatting, or custom whitespace.
 

@@ -12,6 +12,7 @@ pub mod engine;
 pub mod error;
 pub mod git;
 pub mod headroom;
+pub mod index_poll;
 pub mod install;
 pub mod manifest;
 pub mod mcp_sync;
@@ -20,6 +21,7 @@ pub mod progress;
 pub mod publish;
 pub mod publish_order;
 pub mod push;
+pub mod rate_limit;
 pub mod registry;
 pub mod release;
 pub mod semver;
@@ -61,6 +63,10 @@ pub use headroom::{
     HeadroomAction, HeadroomStatus, clean_target_package, enforce_disk_headroom,
     enforce_disk_headroom_with_thresholds, prune_test_binaries,
 };
+pub use index_poll::{
+    index_body_has_version, latest_index_version, latest_published_version, sparse_index_path,
+    wait_for_index_version,
+};
 pub use install::{
     InstallOutcome, SUITE_TOOLS, SuiteTool, get_installed_version, install_all,
     install_all_with_progress, install_tool, install_tool_with_progress,
@@ -79,6 +85,10 @@ pub use publish::{
     resolve_publish_order,
 };
 pub use push::{PushOutcome, push_all, push_all_with_progress, push_repo, push_repo_with_progress};
+pub use rate_limit::{
+    DEFAULT_COOLDOWN, MAX_ATTEMPTS, is_rate_limited, parse_cooldown, parse_retry_after,
+    run_with_rate_limit_retry,
+};
 pub use registry::{
     are_repo_crates_published, get_published_crate_version, is_version_published,
     parse_cargo_search_version,

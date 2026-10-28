@@ -67,19 +67,22 @@ pub fn publish_repo_with_progress(
         return Ok(order.into_iter().map(|m| m.name).collect());
     }
 
-    // 2. Real publication with index delay
+    // 2. Real publication with rate-limit handling and index propagation polling
     let total = order.len();
+    let repo_version = crate::manifest::get_repo_version(repo_dir).ok();
     for (idx, member) in order.into_iter().enumerate() {
         reporter.on_start(&member.name, "publishing to registry");
-        let mut cmd = Command::new("cargo");
-        cmd.arg("publish")
-            .arg("-p")
-            .arg(&member.name)
-            .current_dir(repo_dir);
-        if let Some(ref reg) = opts.registry {
-            cmd.arg("--registry").arg(reg);
-        }
-        let out = run_captured(&mut cmd)?;
+        let out = crate::rate_limit::run_with_rate_limit_retry(&member.name, reporter, || {
+            let mut cmd = Command::new("cargo");
+            cmd.arg("publish")
+                .arg("-p")
+                .arg(&member.name)
+                .current_dir(repo_dir);
+            if let Some(ref reg) = opts.registry {
+                cmd.arg("--registry").arg(reg);
+            }
+            run_captured(&mut cmd)
+        })?;
         if !out.success {
             let text = out.combined_output();
             if text.contains("is already uploaded")
@@ -102,13 +105,26 @@ pub fn publish_repo_with_progress(
         reporter.on_complete(&member.name, &RepoStatus::Success("published".to_string()));
         published.push(member.name.clone());
 
-        // Delay between dependent crates if not the last crate
+        // Wait for the sparse index to advertise the new version instead of sleeping blindly.
         if idx + 1 < total && opts.delay_secs > 0 {
-            reporter.on_update(
-                &member.name,
-                &format!("waiting {}s for index propagation", opts.delay_secs),
-            );
-            sleep(Duration::from_secs(opts.delay_secs));
+            let timeout = Duration::from_secs(opts.delay_secs);
+            match repo_version.as_deref() {
+                Some(version) if !version.is_empty() => {
+                    crate::index_poll::wait_for_index_version(
+                        &member.name,
+                        version,
+                        timeout,
+                        reporter,
+                    )?;
+                }
+                _ => {
+                    reporter.on_update(
+                        &member.name,
+                        &format!("waiting {}s for index propagation", opts.delay_secs),
+                    );
+                    sleep(timeout);
+                }
+            }
         }
     }
 

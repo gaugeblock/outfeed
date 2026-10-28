@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `outfeed-core`: crates.io rate-limit resilience — `rate_limit` parses `429`/`Retry-After` (integer seconds or RFC 2822 dates), reports a 30-second countdown and retries a publication up to three times; `index_poll` queries the crates.io sparse index (shard-aware) to wait for propagation instead of sleeping blindly (GB-125).
+
+### Changed
+- `outfeed-core`: registry lookups prefer one sparse-index request over a `cargo search` process, falling back to the CLI parser when the index is unreachable (GB-125).
+
 ### Fixed
 - `outfeed-core`: `outfeed prune` no longer deletes compiled dependencies, proc-macro libraries or dep-info files; pruning is now limited to extension-less executables and directories via `clean::is_prunable_artifact`, so a prune can never trigger a rebuild wave (GB-135).
 
