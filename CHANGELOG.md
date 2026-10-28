@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.1.0-beta.7] - 2026-05-09
+
+### Maintenance
+- Elevated the 9-document architecture to gold standard for `outfeed` (GB-118).
+
 ### Documentation
 - Elevate all 9 canonical documents to gold standard matching suite specification (`GB-118`).
 - Codify 3-phase release pipeline, topological DAG publishing, and lossless manifest invariants in `SPEC.md`.
