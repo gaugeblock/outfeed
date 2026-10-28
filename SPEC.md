@@ -146,3 +146,5 @@ The following 35 types define the complete public and boundary interface for `ou
 | **`SuiteReleasePlan`** | `struct` | `outfeed_core::suite_plan` | Multi-repository orchestrated release plan across the full suite |
 | **`SyncArgs`** | `struct` | `outfeed_cli::args` | Arguments for `outfeed sync` synchronization command |
 | **`SyncOpts`** | `struct` | `outfeed_core::sync_model` | Configuration options controlling repo synchronization |
+| **`LockfileReport`** | `struct` | `outfeed_core::lockfiles` | Per-repository lockfile hygiene result: every member must track a fresh `Cargo.lock` |
+| **`RepoLockfile`** | `struct` | `outfeed_core::lockfiles` | Tracked/fresh state of one repository’s lockfile, with an `ok`/`untracked`/`stale` status |
