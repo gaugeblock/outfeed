@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `outfeed-core`: `outfeed_core::verify_runner` selects `cargo-nextest` when it is installed (falling back to `cargo test`) and runs doctests separately, so Tier 4 verification stops paying for two full compiles (GB-124).
+
+### Changed
+- `outfeed-core`: `Cargo.lock` is synchronized with `cargo update --workspace --offline` instead of a full redundant `cargo check --workspace` (GB-124).
+- `outfeed-core` / `outfeed-cli`: binary installation is now opt-in — `ReleaseOpts::skip_install` defaults to `true` and `outfeed release` installs only with the new `--install` flag, replacing `--skip-install` (GB-124).
+
 ### Documentation
 - `outfeed`: refresh the README version badge to `0.1.0-beta.7` and correct the SPEC symbol table (`ReleasePlan` module path, `RepoStatus` is an enum, drop the removed `DeliveryOpts`); all 36 documented symbols now resolve to matching AST declarations (GB-134).
 

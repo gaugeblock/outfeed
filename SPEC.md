@@ -41,6 +41,11 @@ Suite execution MUST respect the dependency order of the member repositories whi
 4. **Deterministic reporting.** Worker results are collected in wave and plan order regardless of completion order, so progress output and summaries are reproducible.
 5. **Failure containment.** A worker failure is surfaced as a typed error after sibling workers in the same wave are joined; no repository outside the failed wave is skipped silently.
 
+### Invariant 8: Fast Verification Gate and Opt-In Installation
+1. **Runner selection.** Tier 4 verification uses `cargo nextest run --workspace` when `cargo-nextest` is on `PATH`, followed by `cargo test --doc --workspace` because nextest skips doctests; otherwise it falls back to a single `cargo test --workspace`.
+2. **No redundant compile.** `Cargo.lock` is synchronized with `cargo update --workspace --offline` (falling back to `cargo check --workspace` when the offline index is unavailable), so the harness never compiles the workspace twice before testing.
+3. **Installation is opt-in.** `outfeed release` does not build release binaries unless `--install` is passed; a release ends at manifest updates, verification, tagging, pushing and registry publication.
+
 ---
 
 ## 2. Formal State Machines

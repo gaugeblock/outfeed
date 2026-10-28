@@ -33,6 +33,7 @@ pub mod suite_waves;
 pub mod sync;
 pub mod sync_model;
 pub mod synthesis;
+pub mod verify_runner;
 
 pub use changelog::{format_release_section, plan_changelog_update};
 pub use clean::{
@@ -99,3 +100,4 @@ pub use sync_model::{
     BranchDivergence, RepoSyncStatus, SyncOpts, calculate_divergence, is_working_tree_dirty,
 };
 pub use synthesis::synthesize_release_notes;
+pub use verify_runner::{TestRunner, run_workspace_tests};

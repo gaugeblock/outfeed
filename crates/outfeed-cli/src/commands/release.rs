@@ -18,7 +18,7 @@ pub async fn handle_release(root: &Path, args: ReleaseArgs) -> Result<()> {
     let min_disk_bytes = args.min_disk_gb.map(|gb| (gb * 1_000_000_000.0) as u64);
     let opts = ReleaseOpts {
         dry_run: args.dry_run,
-        skip_install: args.skip_install,
+        skip_install: !args.install,
         skip_push: args.skip_push,
         skip_publish: args.skip_publish,
         no_llm: args.no_llm,

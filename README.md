@@ -57,7 +57,7 @@ The `outfeed` binary provides comprehensive release planning, manifest bumping, 
 | `outfeed install` | `--all`, `--target`, `--force` | Compiles and installs CLI binaries into global `PATH` (`~/.cargo/bin`) |
 | `outfeed push` | `--all`, `--remote`, `--dry-run` | Pushes branch updates and annotated release tags to Git remote |
 | `outfeed publish` | `--all`, `--dry-run`, `--token` | Publishes member crates to crates.io in topological leaf-first order |
-| `outfeed release` | `--all`, `--yes`, `-j/--jobs`, `--no-llm`, `--clean-between-repos` | Executes full orchestrated release pipeline (plan $\to$ apply $\to$ install $\to$ push $\to$ publish) in topological waves with cache retention and adaptive disk headroom guarding |
+| `outfeed release` | `--all`, `--yes`, `-j/--jobs`, `--install`, `--no-llm`, `--clean-between-repos` | Executes full orchestrated release pipeline (plan $\to$ apply $\to$ verify $\to$ push $\to$ publish) in topological waves with nextest verification, cache retention and adaptive disk headroom guarding |
 | `outfeed clone` | `--all`, `--protocol`, `--locked`, `--install` | Clones suite member repositories with optional `suite.lock` alignment |
 | `outfeed sync` | `--all`, `--locked`, `--pull`, `--push` | Audits and synchronizes local repositories with upstream remotes or `suite.lock` |
 | `outfeed clean` | `--all`, `--dry-run` | Cleans target compilation artifacts while preserving release binaries |

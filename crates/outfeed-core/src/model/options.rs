@@ -55,7 +55,11 @@ impl Default for PublishOpts {
 pub struct ReleaseOpts {
     /// Simulate release without modifying disk or pushing.
     pub dry_run: bool,
-    /// Skip installing binary locally.
+    /// Skip installing the freshly released binary into `~/.cargo/bin`.
+    ///
+    /// Releases are packaging operations: installing is opt-in (`outfeed release --install`)
+    /// because a release-mode binary build per repository costs far more than the rest of the
+    /// pipeline combined.
     pub skip_install: bool,
     /// Skip pushing commits and tags to remote.
     pub skip_push: bool,
@@ -88,7 +92,7 @@ impl Default for ReleaseOpts {
     fn default() -> Self {
         Self {
             dry_run: false,
-            skip_install: false,
+            skip_install: true,
             skip_push: false,
             skip_publish: false,
             no_llm: false,

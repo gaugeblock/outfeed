@@ -240,3 +240,21 @@ async fn test_release_all_with_progress_reporting() {
         .expect("release_all");
     assert!(summaries.is_empty());
 }
+
+#[test]
+fn test_release_opts_defaults_are_cache_and_packaging_first() {
+    let opts = outfeed_core::model::ReleaseOpts::default();
+
+    assert!(
+        opts.skip_install,
+        "binary installation is opt-in so releases stay packaging operations"
+    );
+    assert!(
+        !opts.clean_between_repos,
+        "the compilation cache is retained between repositories by default"
+    );
+    assert_eq!(
+        opts.jobs, 1,
+        "library callers stay serial unless they opt in"
+    );
+}

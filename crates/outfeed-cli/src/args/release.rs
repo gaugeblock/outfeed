@@ -105,9 +105,10 @@ pub struct ReleaseArgs {
     #[arg(short = 'j', long = "jobs")]
     pub jobs: Option<usize>,
 
-    /// Skip installing binary locally
+    /// Compile and install the released binary into `~/.cargo/bin` (opt-in; releases otherwise
+    /// stop at manifests, tags and registry publication)
     #[arg(long)]
-    pub skip_install: bool,
+    pub install: bool,
 
     /// Skip pushing to Git remote
     #[arg(long)]

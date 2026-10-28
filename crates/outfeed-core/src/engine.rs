@@ -1,7 +1,6 @@
 //! High-level release orchestrator uniting git, SemVer, manifests, and Storypole.
 
 use crate::changelog::plan_changelog_update;
-use crate::cmd::run_captured;
 use crate::error::OutfeedError;
 use crate::git::{
     assert_clean_working_tree, assert_main_branch, create_release_commit_and_tag,
@@ -17,6 +16,7 @@ use crate::storypole::{
     certify_release_ticket, create_release_ticket, fetch_task_summaries, find_storypole_root,
 };
 use crate::synthesis::synthesize_release_notes;
+use crate::verify_runner::{TestRunner, run_workspace_tests};
 use std::path::Path;
 use std::process::Command;
 
@@ -147,38 +147,19 @@ pub fn apply_release_with_progress(
     reporter.on_update(repo_name, "updating manifests & changelog...");
     apply_manifest_diffs(repo_dir, &plan.manifest_diffs)?;
 
-    // 2. Update Cargo.lock
+    // 2. Synchronize Cargo.lock with the bumped manifests (no compilation)
     reporter.on_update(repo_name, "synchronizing Cargo.lock...");
-    let lock_res = Command::new("cargo")
-        .args(["check", "--workspace"])
-        .current_dir(repo_dir)
-        .output();
-
-    if let Ok(ref out) = lock_res
-        && !out.status.success()
-    {
+    if let Err(err) = sync_cargo_lock(repo_dir) {
         let _ = rollback_manifest_diffs(repo_dir, &plan.manifest_diffs);
-        let stderr = String::from_utf8_lossy(&out.stderr);
-        return Err(OutfeedError::Manifest(
-            "Cargo.lock".to_string(),
-            format!("cargo check failed during version synchronization: {stderr}"),
-        ));
+        return Err(err);
     }
 
     // 3. Optional Tier 4 verification (captured to prevent terminal corruption)
-    if verify_tier4 {
-        reporter.on_update(repo_name, "running verification tests (cargo test)...");
-        let mut test_cmd = Command::new("cargo");
-        test_cmd.args(["test", "--workspace"]).current_dir(repo_dir);
-
-        let test_output = run_captured(&mut test_cmd)?;
-        if !test_output.success {
-            let _ = rollback_manifest_diffs(repo_dir, &plan.manifest_diffs);
-            let combined = test_output.combined_output();
-            return Err(OutfeedError::Git(format!(
-                "Tier 4 verification failed; rolled back all manifest edits:\n{combined}"
-            )));
-        }
+    if verify_tier4
+        && let Err(err) = run_workspace_tests(repo_dir, TestRunner::detect(), repo_name, reporter)
+    {
+        let _ = rollback_manifest_diffs(repo_dir, &plan.manifest_diffs);
+        return Err(err);
     }
 
     // 4. Closed-loop Storypole integration
@@ -203,4 +184,36 @@ pub fn apply_release_with_progress(
     create_release_commit_and_tag(repo_dir, &plan.target_version)?;
 
     Ok(())
+}
+
+/// Synchronizes `Cargo.lock` with the freshly bumped manifests without compiling.
+///
+/// `cargo update --workspace --offline` rewrites the lockfile entries for workspace members only,
+/// which is all a version bump needs. If the offline registry cache is unavailable it falls back to
+/// a `cargo check --workspace` resolve so an offline machine can still cut a release.
+fn sync_cargo_lock(repo_dir: &Path) -> Result<(), OutfeedError> {
+    let mut update = Command::new("cargo");
+    update
+        .args(["update", "--workspace", "--offline"])
+        .current_dir(repo_dir);
+    if let Ok(output) = update.output()
+        && output.status.success()
+    {
+        return Ok(());
+    }
+
+    let mut check = Command::new("cargo");
+    check.args(["check", "--workspace"]).current_dir(repo_dir);
+    let output = check.output().map_err(OutfeedError::Io)?;
+    if output.status.success() {
+        return Ok(());
+    }
+
+    Err(OutfeedError::Manifest(
+        "Cargo.lock".to_string(),
+        format!(
+            "Cargo.lock synchronization failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ),
+    ))
 }
