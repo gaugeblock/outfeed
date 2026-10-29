@@ -24,7 +24,7 @@ use std::path::Path;
 use std::sync::Mutex;
 
 use crate::error::OutfeedError;
-use crate::model::{PublishOpts, ReleaseOpts};
+use crate::model::{PublishOpts, PushOpts, ReleaseOpts};
 use crate::progress::{ProgressReporter, RepoStatus};
 use crate::release::{ReleaseSummary, release_repo};
 use crate::suite_plan::{SuitePlanAction, SuiteReleasePlan, SuiteRepoPlanEntry};
@@ -134,6 +134,30 @@ pub(crate) async fn release_entry(
             installed: false,
             pushed: false,
             published_crates,
+        }));
+    }
+
+    if entry.action == SuitePlanAction::PushPending {
+        if opts.skip_push {
+            reporter.on_complete(
+                &entry.repo_name,
+                &RepoStatus::Skipped("ahead of remote, push skipped".to_string()),
+            );
+            return Ok(None);
+        }
+        let repo_dir = workspace_root.join(&entry.repo_name);
+        reporter.on_start(&entry.repo_name, "pushing commits the remote is missing");
+        let push_opts = PushOpts {
+            dry_run: opts.dry_run,
+            ..Default::default()
+        };
+        let outcome = crate::push::push_repo_with_progress(&repo_dir, &push_opts, reporter)?;
+        return Ok(Some(ReleaseSummary {
+            repo_name: entry.repo_name.clone(),
+            target_version: entry.current_version.clone(),
+            installed: false,
+            pushed: !outcome.dry_run,
+            published_crates: Vec::new(),
         }));
     }
 

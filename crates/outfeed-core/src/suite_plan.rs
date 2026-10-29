@@ -20,6 +20,8 @@ pub enum SuitePlanAction {
     ReleaseMajor,
     /// Tagged version is not yet published to registry.
     PublishPending,
+    /// Version is published, but the branch still carries commits the remote does not have.
+    PushPending,
     /// No commits to release.
     SkipClean,
 }
@@ -32,6 +34,7 @@ impl SuitePlanAction {
             Self::ReleaseMinor => "Release (Minor)",
             Self::ReleaseMajor => "Release (Major)",
             Self::PublishPending => "Publish (Pending)",
+            Self::PushPending => "Push (Ahead)",
             Self::SkipClean => "Skip (Clean)",
         }
     }
@@ -179,6 +182,17 @@ pub async fn plan_suite_releases(
                         current_version: current_version.clone(),
                         target_version: Some(current_version),
                         action: SuitePlanAction::PublishPending,
+                        unreleased_commits: 0,
+                        referenced_tasks: Vec::new(),
+                        plan: None,
+                    });
+                } else if crate::push::is_ahead_of_remote(&repo_dir).unwrap_or(false) {
+                    // Published, but the release commit or tag never reached the remote.
+                    entries.push(SuiteRepoPlanEntry {
+                        repo_name: tool.name.to_string(),
+                        current_version,
+                        target_version: None,
+                        action: SuitePlanAction::PushPending,
                         unreleased_commits: 0,
                         referenced_tasks: Vec::new(),
                         plan: None,

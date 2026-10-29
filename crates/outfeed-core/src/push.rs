@@ -128,6 +128,41 @@ pub fn push_repo_with_progress(
     })
 }
 
+/// Reports whether the current branch carries work the configured remote does not have.
+///
+/// A repository with no remote cannot be pushed, so it reports `false`. A branch that was never
+/// pushed has no upstream to compare against and reports `true` - that is the case a release pass
+/// must not mistake for "clean", because the release commit and its tag exist only on this machine.
+pub fn is_ahead_of_remote(repo_dir: &Path) -> Result<bool, OutfeedError> {
+    if git_stdout(repo_dir, &["remote"])?.trim().is_empty() {
+        return Ok(false);
+    }
+    match git_stdout(repo_dir, &["rev-list", "--count", "@{upstream}..HEAD"]) {
+        Ok(text) => Ok(text.trim().parse::<u64>().unwrap_or(0) > 0),
+        // No upstream: the branch exists here and nowhere else.
+        Err(_) => Ok(true),
+    }
+}
+
+/// Runs a read-only git query and returns its trimmed-free stdout.
+fn git_stdout(repo_dir: &Path, args: &[&str]) -> Result<String, OutfeedError> {
+    let output = Command::new("git")
+        .args(args)
+        .current_dir(repo_dir)
+        .output()
+        .map_err(|error| {
+            OutfeedError::Git(format!("Failed to invoke git {}: {error}", args.join(" ")))
+        })?;
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(OutfeedError::Git(format!(
+            "git {} failed: {stderr}",
+            args.join(" ")
+        )));
+    }
+    Ok(String::from_utf8_lossy(&output.stdout).to_string())
+}
+
 /// Executes git push across all repositories in the suite with a default reporter.
 pub fn push_all(
     workspace_root: &Path,
