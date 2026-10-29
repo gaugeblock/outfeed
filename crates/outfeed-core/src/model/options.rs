@@ -82,6 +82,11 @@ pub struct ReleaseOpts {
     /// instead enforced continuously by the adaptive headroom guard, which prunes
     /// surgically on demand.
     pub clean_between_repos: bool,
+    /// Explicit release version for the targeted repository (e.g. `0.1.0-beta.1`).
+    ///
+    /// Needed when the computed bump would overshoot the intended version - a freshly created
+    /// repository has no tag baseline, so the calculator bumps past its manifest version.
+    pub override_version: Option<String>,
     /// Optional minimum required disk space in bytes for pre-flight check.
     pub min_disk_bytes: Option<u64>,
     /// Skip pre-flight disk space headroom check.
@@ -99,6 +104,7 @@ impl Default for ReleaseOpts {
             no_verify: false,
             jobs: 1,
             clean_between_repos: false,
+            override_version: None,
             min_disk_bytes: None,
             skip_disk_check: false,
         }

@@ -39,7 +39,21 @@ pub async fn release_repo(
     // 1. Plan (dry-run uses deterministic formatting to simulate pipeline without remote overhead)
     let no_llm = opts.no_llm || opts.dry_run;
     guard_disk_headroom(workspace_root, opts)?;
-    let plan = match plan_release(&repo_dir, None, false, no_llm).await {
+    // Idempotency: an override naming a version that already carries a tag is a completed release,
+    // so a second pass is a clean no-op rather than a duplicate tag attempt.
+    if let Some(version) = opts.override_version.as_deref() {
+        let tag = format!("v{}", version.trim_start_matches('v'));
+        if crate::git::get_latest_tag(&repo_dir)?.as_deref() == Some(tag.as_str()) {
+            reporter.on_complete(
+                &actual_name,
+                &RepoStatus::Skipped(format!("already released as {tag}")),
+            );
+            return Ok(None);
+        }
+    }
+
+    let plan = match plan_release(&repo_dir, opts.override_version.as_deref(), false, no_llm).await
+    {
         Ok(p) => p,
         Err(OutfeedError::Git(ref msg)) if msg.contains("No unreleased commits") => {
             reporter.on_complete(

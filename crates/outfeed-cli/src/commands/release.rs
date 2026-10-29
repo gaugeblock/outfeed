@@ -27,6 +27,7 @@ pub async fn handle_release(root: &Path, args: ReleaseArgs) -> Result<()> {
         clean_between_repos: args.clean_between_repos,
         min_disk_bytes,
         skip_disk_check: args.skip_disk_check,
+        override_version: args.override_version.clone(),
     };
 
     let reporter = create_reporter(false, args.json);

@@ -69,6 +69,10 @@ pub struct StatusArgs {
     #[arg(long)]
     pub all: bool,
 
+    /// Explicit version to release the targeted repository as (e.g. 0.1.0-beta.1)
+    #[arg(long)]
+    pub override_version: Option<String>,
+
     /// Output as JSON
     #[arg(long)]
     pub json: bool,
@@ -142,6 +146,10 @@ pub struct ReleaseArgs {
     /// Output as JSON
     #[arg(long)]
     pub json: bool,
+
+    /// Explicit version to release the targeted repository as (e.g. 0.1.0-beta.1)
+    #[arg(long)]
+    pub override_version: Option<String>,
 }
 
 /// Resolves the default release concurrency: one worker per logical CPU, floor of four.
