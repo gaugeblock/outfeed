@@ -10,6 +10,7 @@ pub mod cmd;
 pub mod disk_space;
 pub mod engine;
 pub mod error;
+pub mod gate;
 pub mod git;
 pub mod headroom;
 pub mod index_poll;
@@ -56,6 +57,7 @@ pub use disk_space::{
 };
 pub use engine::{apply_release, apply_release_with_progress, plan_release};
 pub use error::OutfeedError;
+pub use gate::{GateReport, GateStep, GateStepResult, format_gate_report, gate_steps, run_gate};
 pub use git::{
     assert_clean_working_tree, assert_main_branch, create_release_commit_and_tag,
     get_commits_between, get_head_commit_sha, get_latest_tag,

@@ -51,6 +51,7 @@ async fn main() -> Result<()> {
         Commands::Sync(args) => handle_sync(&root_dir, args, cli.quiet)?,
         Commands::Clean(args) => handle_clean(&args, &root_dir, cli.verbose, cli.quiet)?,
         Commands::Prune(args) => handle_prune(&args, &root_dir, cli.verbose, cli.quiet)?,
+        Commands::Gate(args) => commands::gate::handle_gate(&args, &root_dir)?,
         Commands::Lockfiles(args) => commands::lockfiles::handle_lockfiles(&args, &root_dir)?,
         Commands::Mcp(_) => {
             outfeed_mcp::run_stdio_server(&root_dir)

@@ -45,6 +45,10 @@ pub enum OutfeedError {
     #[error("Push error: {0}")]
     Push(String),
 
+    /// A gate step could not be spawned at all.
+    #[error("Gate error: {0}")]
+    Gate(String),
+
     /// Registry publish failure.
     #[error("Publish error: {0}")]
     Publish(String),

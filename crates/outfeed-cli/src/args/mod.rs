@@ -2,12 +2,14 @@
 
 pub mod clone;
 pub mod delivery;
+pub mod gate;
 pub mod hygiene;
 pub mod release;
 pub mod sync;
 
 pub use clone::CloneArgs;
 pub use delivery::{InstallArgs, McpArgs, PublishArgs, PushArgs};
+pub use gate::GateArgs;
 pub use hygiene::{CleanArgs, LockfileArgs, PruneArgs};
 pub use release::{ApplyArgs, PlanArgs, ReleaseArgs, StatusArgs, default_release_jobs};
 pub use sync::SyncArgs;
@@ -73,6 +75,7 @@ pub enum Commands {
     Prune(PruneArgs),
 
     /// Verify every member repository tracks a fresh Cargo.lock
+    Gate(GateArgs),
     Lockfiles(LockfileArgs),
 
     /// Start the JSON-RPC stdio MCP server for Antigravity & Cline

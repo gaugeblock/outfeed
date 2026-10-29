@@ -3,6 +3,7 @@
 pub mod apply;
 pub mod clean;
 pub mod clone;
+pub mod gate;
 pub mod install;
 pub mod lockfiles;
 pub mod plan;
