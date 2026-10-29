@@ -40,7 +40,7 @@ fn test_clone_suite_dry_run_all() {
 
     let summaries =
         clone_suite(temp.path(), &[], &opts, &NoopProgress).expect("clone_suite dry-run failed");
-    assert_eq!(summaries.len(), 10);
+    assert_eq!(summaries.len(), 11, "eleven repositories, including common");
     for s in &summaries {
         assert_eq!(s.status, CloneStatus::Cloned);
     }

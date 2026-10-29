@@ -89,7 +89,16 @@ pub fn handle_install(root: &Path, args: InstallArgs, verbose: u8, quiet: bool) 
     {
         let formatted = output
             .lines()
-            .map(|l| format!("  [{}] {l}", tool.bin_name))
+            .map(|l| {
+                format!(
+                    "  [{}] {l}",
+                    if tool.bin_name.is_empty() {
+                        tool.name
+                    } else {
+                        tool.bin_name
+                    }
+                )
+            })
             .collect::<Vec<_>>()
             .join("\n");
         println!("{formatted}");

@@ -73,13 +73,16 @@ fn test_sync_tool_status_only_mode() {
     std::fs::create_dir(&miter_dir).expect("create dir failed");
     init_dummy_git_repo(&miter_dir);
 
-    let tool = outfeed_core::install::SUITE_TOOLS[0]; // miter
+    let tool = outfeed_core::install::SUITE_TOOLS
+        .iter()
+        .find(|t| t.name == "miter")
+        .expect("miter is a suite member");
     let opts = SyncOpts {
         status_only: true,
         ..Default::default()
     };
 
-    let status = sync_tool(temp.path(), &tool, &opts, &NoopProgress).expect("sync_tool failed");
+    let status = sync_tool(temp.path(), tool, &opts, &NoopProgress).expect("sync_tool failed");
     assert_eq!(status.repo, "miter");
     assert_eq!(status.branch, "main");
     assert!(status.action_taken.is_none());
@@ -95,13 +98,16 @@ fn test_sync_tool_dirty_skipped() {
     // Make dirty
     std::fs::write(miter_dir.join("README.md"), "# Dirty\n").expect("write failed");
 
-    let tool = outfeed_core::install::SUITE_TOOLS[0];
+    let tool = outfeed_core::install::SUITE_TOOLS
+        .iter()
+        .find(|t| t.name == "miter")
+        .expect("miter is a suite member");
     let opts = SyncOpts {
         status_only: false,
         ..Default::default()
     };
 
-    let status = sync_tool(temp.path(), &tool, &opts, &NoopProgress).expect("sync_tool failed");
+    let status = sync_tool(temp.path(), tool, &opts, &NoopProgress).expect("sync_tool failed");
     assert!(status.dirty);
     assert!(
         status

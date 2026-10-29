@@ -26,17 +26,18 @@ fn names(wave: &[&SuiteRepoPlanEntry]) -> Vec<String> {
 }
 
 #[test]
-fn test_wave_table_covers_all_ten_members_once() {
+fn test_wave_table_covers_all_eleven_members_once() {
     let flat: Vec<&str> = SUITE_RELEASE_WAVES
         .iter()
         .flat_map(|wave| wave.iter().copied())
         .collect();
     assert_eq!(
         flat.len(),
-        10,
+        11,
         "every suite member must appear exactly once"
     );
     for expected in [
+        "common",
         "miter",
         "storypole",
         "sawhorse",

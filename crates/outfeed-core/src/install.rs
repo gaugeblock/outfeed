@@ -20,8 +20,17 @@ pub struct SuiteTool {
     pub bin_name: &'static str,
 }
 
-/// The 10 tools comprising the gaugeblock meta-harness.
+/// The 11 repositories comprising the gaugeblock meta-harness.
+///
+/// `common` is listed first because the contracts crate every member depends on must publish before
+/// them; it ships no binary, so its `bin_name` is empty and installation skips it.
 pub const SUITE_TOOLS: &[SuiteTool] = &[
+    SuiteTool {
+        name: "common",
+        rel_path: "common",
+        // Library-only: no binary to install, so `bin_name` is empty.
+        bin_name: "",
+    },
     SuiteTool {
         name: "miter",
         rel_path: "miter",
@@ -107,6 +116,15 @@ pub fn install_tool_with_progress(
     opts: &InstallOpts,
     reporter: &dyn ProgressReporter,
 ) -> Result<InstallOutcome, OutfeedError> {
+    // A library-only repository ships no binary; there is nothing to install.
+    if tool.bin_name.is_empty() {
+        reporter.on_complete(tool.name, &RepoStatus::Skipped("library-only".to_string()));
+        return Ok(InstallOutcome::Skipped {
+            version: get_repo_version(&workspace_root.join(tool.name))
+                .unwrap_or_else(|_| "unknown".to_string()),
+        });
+    }
+
     let crate_path = workspace_root.join(tool.rel_path);
     if !crate_path.exists() {
         return Err(OutfeedError::Install(format!(

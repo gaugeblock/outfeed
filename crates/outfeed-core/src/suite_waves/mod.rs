@@ -31,6 +31,8 @@ use crate::suite_plan::{SuitePlanAction, SuiteReleasePlan, SuiteRepoPlanEntry};
 
 /// Leaf-first dependency waves covering all 10 suite repositories.
 pub const SUITE_RELEASE_WAVES: &[&[&str]] = &[
+    // The contracts crate publishes before any member that depends on it.
+    &["common"],
     &["miter"],
     &["storypole", "sawhorse", "dado", "rabbet"],
     &["chalkline", "batten"],
