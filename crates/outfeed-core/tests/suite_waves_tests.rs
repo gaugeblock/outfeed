@@ -124,6 +124,26 @@ fn test_partition_skips_clean_entries_and_keeps_unknown_repositories() {
 }
 
 #[test]
+fn test_partition_executes_push_pending_entries() {
+    // GB-153: a repository that is clean but ahead of its remote must reach the schedule, otherwise
+    // the release pass reports success while the tag stays on one machine.
+    let plan = plan_of(vec![
+        entry("miter", SuitePlanAction::SkipClean),
+        entry("storypole", SuitePlanAction::PushPending),
+    ]);
+
+    let waves = partition_release_waves(&plan);
+    let shape: Vec<Vec<String>> = waves.iter().map(|wave| names(wave)).collect();
+
+    assert_eq!(
+        shape,
+        vec![vec!["storypole".to_string()]],
+        "a pending push is work, not a skip"
+    );
+    assert_eq!(SuitePlanAction::PushPending.as_str(), "Push (Ahead)");
+}
+
+#[test]
 fn test_partition_empty_and_all_clean_plans_produce_no_waves() {
     assert!(partition_release_waves(&plan_of(Vec::new())).is_empty());
     let all_clean = plan_of(vec![
