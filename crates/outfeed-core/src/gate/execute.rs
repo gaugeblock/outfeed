@@ -35,6 +35,30 @@ pub(super) fn execute(dir: &Path, command: &GateCommand) -> Result<GateStepResul
                 detail,
             })
         }
+        GateCommand::Layers => {
+            // The allowlist marks the suite root. Elsewhere the map would only ever contain one
+            // repository's crates, where every edge is internal or downward, so a green result would
+            // mean nothing - report it as skipped rather than as a pass.
+            let allowlist = dir.join(".gaugeblock/miter/layers-allowlist.toml");
+            if !allowlist.exists() {
+                return Ok(GateStepResult {
+                    name: String::new(),
+                    passed: true,
+                    skipped: true,
+                    detail: format!("not the suite root (no {})", allowlist.display()),
+                });
+            }
+            execute(
+                dir,
+                &GateCommand::Process {
+                    program: "miter".to_string(),
+                    args: ["deps", "--layers", "--check"]
+                        .iter()
+                        .map(|arg| (*arg).to_string())
+                        .collect(),
+                },
+            )
+        }
         GateCommand::Process { program, args } => {
             let output = Command::new(program)
                 .args(args)

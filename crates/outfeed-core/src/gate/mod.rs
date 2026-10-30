@@ -28,6 +28,9 @@ pub enum GateCommand {
     },
     /// Run the native lockfile audit instead of a subprocess.
     Lockfiles,
+    /// Run the suite layer gate, which is only meaningful where the allowlist lives: the layer map
+    /// spans 42 crates across 11 repositories, so a single repository cannot evaluate it (`GB-200`).
+    Layers,
 }
 
 /// One entry in the verification matrix.
@@ -140,6 +143,11 @@ pub fn gate_steps() -> Vec<GateStep> {
             "miter",
             &["contracts"],
         ),
+        GateStep {
+            name: "layers".to_string(),
+            description: "no cross-product crate edge is unexplained".to_string(),
+            command: GateCommand::Layers,
+        },
         GateStep {
             name: "lockfiles".to_string(),
             description: "every lockfile is tracked and fresh".to_string(),

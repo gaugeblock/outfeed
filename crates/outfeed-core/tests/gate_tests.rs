@@ -17,7 +17,15 @@ fn the_matrix_runs_in_release_checklist_order() {
     let names: Vec<String> = gate_steps().into_iter().map(|step| step.name).collect();
     assert_eq!(
         names,
-        vec!["fmt", "clippy", "tests", "contracts", "lockfiles", "docs"],
+        vec![
+            "fmt",
+            "clippy",
+            "tests",
+            "contracts",
+            "layers",
+            "lockfiles",
+            "docs"
+        ],
         "a gate that reorders its steps is a different gate"
     );
 }
@@ -25,12 +33,18 @@ fn the_matrix_runs_in_release_checklist_order() {
 #[test]
 fn skipping_every_step_touches_nothing_and_reports_clean() {
     let dir = temp_dir();
-    let skip: Vec<String> = gate_steps().into_iter().map(|step| step.name).collect();
+    let steps = gate_steps();
+    let expected = steps.len();
+    let skip: Vec<String> = steps.into_iter().map(|step| step.name).collect();
 
     let report = run_gate(dir.path(), &skip, &NoopProgress).expect("gate");
 
     assert!(report.is_clean(), "skips do not fail the gate");
-    assert_eq!(report.skipped(), 6);
+    assert_eq!(
+        report.skipped(),
+        expected,
+        "every step in the matrix is skipped, however many there are"
+    );
     assert_eq!(report.passed(), 0, "a skip is not a pass");
     assert!(report.first_failure().is_none());
 }
@@ -131,4 +145,25 @@ fn the_lockfile_step_is_native_not_a_subprocess() {
         .find(|result| result.name == "lockfiles")
         .expect("lockfiles result");
     assert!(lockfiles.skipped, "no members means nothing to check");
+}
+
+#[test]
+fn the_layer_step_skips_where_the_map_cannot_span_repositories() {
+    // GB-219: the layer map is a suite property. In a repository that has no allowlist there is no
+    // suite, so a green result would be meaningless - the step must report a skip, not a pass.
+    let dir = temp_dir();
+    let layers = gate_steps()
+        .into_iter()
+        .find(|step| step.name == "layers")
+        .expect("layers step");
+    assert_eq!(layers.command, GateCommand::Layers);
+
+    let report = run_gate_steps(dir.path(), vec![layers], &[], &NoopProgress).expect("gate");
+    let result = &report.results[0];
+    assert!(result.skipped, "expected a skip, got: {}", result.detail);
+    assert!(
+        result.detail.contains("not the suite root"),
+        "the skip must say why: {}",
+        result.detail
+    );
 }
