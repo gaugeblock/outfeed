@@ -428,6 +428,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "gaugeblock-git"
+version = "0.1.0-beta.1"
+dependencies = [
+ "thiserror",
+]
+
+[[package]]
 name = "generic-array"
 version = "0.14.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -906,6 +913,7 @@ version = "0.1.0-beta.7"
 dependencies = [
  "chrono",
  "gaugeblock-contracts",
+ "gaugeblock-git",
  "reqwest",
  "sawhorse-core",
  "semver",

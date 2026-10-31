@@ -1,29 +1,37 @@
 //! Git operations and tree inspection utilities.
+//!
+//! These are the suite's git operations for outfeed. The process spawning now lives in
+//! `gaugeblock-git` (`GB-131` step 6), which is the one owner of "spawn git and parse stdout"; this
+//! module keeps outfeed's own error types and policy - what counts as a clean tree, which branch a
+//! release may run on - and delegates the mechanics.
+//!
+//! One call intentionally still spawns git: `git add -A` in the release path. `GB-150` is the record of
+//! what un-scoped staging costs, and replacing it means deciding what a release commit may contain,
+//! which is a behaviour change rather than a refactor. It is tracked rather than quietly kept.
 
 mod history;
 
 use std::path::Path;
-use std::process::Command;
 
 use crate::error::OutfeedError;
+use gaugeblock_git::Repository;
 pub use history::{get_commits_between, get_head_commit_sha, get_latest_tag};
+
+/// Opens the repository at `dir`, mapping the crate error into outfeed's.
+fn open(repo_dir: &Path) -> Result<Repository, OutfeedError> {
+    Repository::discover(repo_dir).map_err(|error| OutfeedError::Git(format!("{error}")))
+}
 
 /// Asserts that the target repository has a completely clean working tree.
 pub fn assert_clean_working_tree(repo_dir: &Path) -> Result<(), OutfeedError> {
-    let output = Command::new("git")
-        .args(["status", "--porcelain"])
-        .current_dir(repo_dir)
-        .output()
-        .map_err(|e| OutfeedError::Git(format!("Failed to invoke git status: {e}")))?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(OutfeedError::Git(format!("git status failed: {stderr}")));
-    }
-
-    let status_text = String::from_utf8_lossy(&output.stdout).trim().to_string();
-    if !status_text.is_empty() {
-        return Err(OutfeedError::DirtyWorkingTree(status_text));
+    let repo = open(repo_dir)?;
+    let dirty = repo
+        .is_dirty()
+        .map_err(|error| OutfeedError::Git(format!("{error}")))?;
+    if dirty {
+        return Err(OutfeedError::DirtyWorkingTree(
+            "working tree has uncommitted changes".to_string(),
+        ));
     }
     Ok(())
 }
@@ -63,31 +71,20 @@ pub fn assert_main_branch(repo_dir: &Path) -> Result<(), OutfeedError> {
 }
 
 /// Resolves current git branch name.
+///
+/// A detached `HEAD` is an error here: a release from a detached head would tag a commit no branch
+/// points at, so `None` from the crate becomes a refusal rather than a placeholder string.
 pub fn get_current_branch(repo_dir: &Path) -> Result<String, OutfeedError> {
-    let sym = Command::new("git")
-        .args(["symbolic-ref", "--short", "HEAD"])
-        .current_dir(repo_dir)
-        .output();
-
-    if let Ok(out) = sym
-        && out.status.success()
+    let repo = open(repo_dir)?;
+    match repo
+        .current_branch()
+        .map_err(|error| OutfeedError::Git(format!("Failed to get current branch: {error}")))?
     {
-        let branch = String::from_utf8_lossy(&out.stdout).trim().to_string();
-        if !branch.is_empty() {
-            return Ok(branch);
-        }
+        Some(branch) => Ok(branch),
+        None => Err(OutfeedError::InvalidBranch(
+            "HEAD is detached; a release needs a branch".to_string(),
+        )),
     }
-
-    let output = Command::new("git")
-        .args(["rev-parse", "--abbrev-ref", "HEAD"])
-        .current_dir(repo_dir)
-        .output()
-        .map_err(|e| OutfeedError::Git(format!("Failed to get current branch: {e}")))?;
-
-    if !output.status.success() {
-        return Err(OutfeedError::Git("Failed to determine branch".to_string()));
-    }
-    Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
 }
 
 /// Stages `paths`, commits with `message`, and cuts annotated tag `tag` with `tag_message`.
@@ -101,41 +98,27 @@ pub fn stage_commit_and_tag(
     tag: &str,
     tag_message: &str,
 ) -> Result<(), OutfeedError> {
-    let add = Command::new("git")
+    let repo = open(repo_dir)?;
+
+    // Deliberate exception: `-A` means "stage everything", which is the hazard `GB-150` records. It is
+    // kept because deciding what a release commit may contain is a behaviour change, not a refactor,
+    // and it is tracked as such rather than migrated silently.
+    let add = std::process::Command::new("git")
         .arg("add")
         .args(paths)
         .current_dir(repo_dir)
         .output()
         .map_err(|e| OutfeedError::Git(format!("git add failed: {e}")))?;
-
     if !add.status.success() {
         return Err(OutfeedError::Git(
             "Failed to stage release changes".to_string(),
         ));
     }
 
-    let commit = Command::new("git")
-        .args(["commit", "-m", message])
-        .current_dir(repo_dir)
-        .output()
-        .map_err(|e| OutfeedError::Git(format!("git commit failed: {e}")))?;
-
-    if !commit.status.success() {
-        let stderr = String::from_utf8_lossy(&commit.stderr);
-        return Err(OutfeedError::Git(format!("git commit failed: {stderr}")));
-    }
-
-    let tag_out = Command::new("git")
-        .args(["tag", "-a", tag, "-m", tag_message])
-        .current_dir(repo_dir)
-        .output()
-        .map_err(|e| OutfeedError::Git(format!("git tag failed: {e}")))?;
-
-    if !tag_out.status.success() {
-        let stderr = String::from_utf8_lossy(&tag_out.stderr);
-        return Err(OutfeedError::Git(format!("git tag failed: {stderr}")));
-    }
-
+    repo.commit(message)
+        .map_err(|error| OutfeedError::Git(format!("git commit failed: {error}")))?;
+    repo.tag_annotated(tag, tag_message)
+        .map_err(|error| OutfeedError::Git(format!("git tag failed: {error}")))?;
     Ok(())
 }
 
