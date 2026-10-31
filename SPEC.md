@@ -150,3 +150,4 @@ The following 35 types define the complete public and boundary interface for `ou
 | **`RepoLockfile`** | `struct` | `outfeed_core::lockfiles` | Tracked/fresh state of one repository’s lockfile, with an `ok`/`untracked`/`stale` status |
 | **`GateArgs`** | `struct` | `outfeed_cli::args` | Arguments for `outfeed gate`: target directory, steps to skip, JSON output |
 | **`GateReport`** | `struct` | `outfeed_core::gate` | Aggregate result of a Tier 3 gate run: one `GateStepResult` per step, with pass/fail/skip counts |
+| **`OutfeedHandler`** | `struct` | `outfeed_mcp::lib` | The MCP server's tool surface, bound to its checkout; the async loop, `content` envelope and failure codes come from `gaugeblock-mcp`. |
