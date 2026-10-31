@@ -1,7 +1,6 @@
 //! Data types and divergence calculations for multi-repo sync.
 
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use serde::{Deserialize, Serialize};
 
@@ -63,16 +62,9 @@ pub struct SyncOpts {
 
 /// Checks whether a repository has uncommitted changes in its working tree.
 pub fn is_working_tree_dirty(repo_dir: &Path) -> Result<bool, OutfeedError> {
-    let output = Command::new("git")
-        .args(["status", "--porcelain"])
-        .current_dir(repo_dir)
-        .output()
-        .map_err(|e| OutfeedError::Git(format!("Failed to run git status: {e}")))?;
-
-    if !output.status.success() {
-        return Err(OutfeedError::Git("git status failed".to_string()));
-    }
-    Ok(!output.stdout.is_empty())
+    gaugeblock_git::Repository::discover(repo_dir)
+        .and_then(|repo| repo.is_dirty())
+        .map_err(|e| OutfeedError::Git(format!("Failed to run git status: {e}")))
 }
 
 /// Calculates divergence between the local branch and its upstream tracking counterpart.
@@ -82,32 +74,14 @@ pub fn calculate_divergence(repo_dir: &Path, branch: &str) -> BranchDivergence {
     }
 
     let upstream = format!("origin/{branch}");
-    let output = Command::new("git")
-        .args([
-            "rev-list",
-            "--left-right",
-            "--count",
-            &format!("{branch}...{upstream}"),
-        ])
-        .current_dir(repo_dir)
-        .output();
-
-    let Ok(out) = output else {
+    let Ok(repo) = gaugeblock_git::Repository::discover(repo_dir) else {
         return BranchDivergence::Untracked;
     };
-
-    if !out.status.success() {
+    // The crate reports (behind, ahead) for `upstream...branch`; sync_model speaks (ahead, behind).
+    let Ok(counts) = repo.ahead_behind(&upstream, branch) else {
         return BranchDivergence::Untracked;
-    }
-
-    let text = String::from_utf8_lossy(&out.stdout);
-    let parts: Vec<&str> = text.split_whitespace().collect();
-    if parts.len() != 2 {
-        return BranchDivergence::Untracked;
-    }
-
-    let ahead: usize = parts[0].parse().unwrap_or(0);
-    let behind: usize = parts[1].parse().unwrap_or(0);
+    };
+    let (ahead, behind) = (counts.ahead, counts.behind);
 
     match (ahead, behind) {
         (0, 0) => BranchDivergence::UpToDate,

@@ -10,38 +10,21 @@ use crate::error::OutfeedError;
 
 /// Resolves the latest annotated or lightweight git tag.
 pub fn get_latest_tag(repo_dir: &Path) -> Result<Option<String>, OutfeedError> {
-    let output = Command::new("git")
-        .args(["describe", "--tags", "--abbrev=0"])
-        .current_dir(repo_dir)
-        .output()
-        .map_err(|e| OutfeedError::Git(format!("Failed to run git describe: {e}")))?;
-
-    if !output.status.success() {
-        // No tag found in repository
-        return Ok(None);
-    }
-    let tag = String::from_utf8_lossy(&output.stdout).trim().to_string();
-    if tag.is_empty() {
-        Ok(None)
-    } else {
-        Ok(Some(tag))
+    let repo = gaugeblock_git::Repository::discover(repo_dir)
+        .map_err(|e| OutfeedError::Git(format!("{e}")))?;
+    // A repository with no tags is the normal state before the first release, so git's refusal is
+    // mapped to `None` rather than surfaced as a fault.
+    match repo.describe_tags() {
+        Ok(tag) => Ok(Some(tag)),
+        Err(_) => Ok(None),
     }
 }
 
 /// Resolves the current HEAD commit full SHA.
 pub fn get_head_commit_sha(repo_dir: &Path) -> Result<String, OutfeedError> {
-    let output = Command::new("git")
-        .args(["rev-parse", "HEAD"])
-        .current_dir(repo_dir)
-        .output()
-        .map_err(|e| OutfeedError::Git(format!("Failed to get HEAD commit: {e}")))?;
-
-    if !output.status.success() {
-        return Err(OutfeedError::Git(
-            "Failed to determine HEAD commit".to_string(),
-        ));
-    }
-    Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+    gaugeblock_git::Repository::discover(repo_dir)
+        .and_then(|repo| repo.head_sha())
+        .map_err(|e| OutfeedError::Git(format!("Failed to resolve HEAD: {e}")))
 }
 
 /// Fetches commit list (SHA, summary, body) between two references.

@@ -1,7 +1,6 @@
 //! Suite cloning and bootstrap orchestrator.
 
 use std::path::Path;
-use std::process::Command;
 
 mod types;
 
@@ -66,22 +65,11 @@ pub fn clone_tool(
         });
     }
 
-    let output = Command::new("git")
-        .args(["clone", &url])
-        .arg(&target_dir)
-        .output()
-        .map_err(|e| {
-            OutfeedError::Git(format!(
-                "Failed to execute git clone for {}: {e}",
-                tool.name
-            ))
-        })?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        reporter.on_complete(tool.name, &RepoStatus::Failed(stderr.to_string()));
+    if let Err(error) = gaugeblock_git::Repository::clone(&url, &target_dir) {
+        let message = error.to_string();
+        reporter.on_complete(tool.name, &RepoStatus::Failed(message.clone()));
         return Err(OutfeedError::Git(format!(
-            "git clone {} failed: {stderr}",
+            "git clone {} failed: {message}",
             tool.name
         )));
     }
@@ -161,15 +149,7 @@ fn read_locked_commit(workspace_root: &Path, repo_name: &str) -> Option<String> 
 }
 
 fn checkout_commit(repo_dir: &Path, commit_sha: &str) -> Result<(), OutfeedError> {
-    let output = Command::new("git")
-        .args(["checkout", commit_sha])
-        .current_dir(repo_dir)
-        .output()
-        .map_err(|e| OutfeedError::Git(format!("Failed to checkout {commit_sha}: {e}")))?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(OutfeedError::Git(format!("git checkout failed: {stderr}")));
-    }
-    Ok(())
+    gaugeblock_git::Repository::discover(repo_dir)
+        .and_then(|repo| repo.checkout(commit_sha))
+        .map_err(|e| OutfeedError::Git(format!("Failed to checkout {commit_sha}: {e}")))
 }

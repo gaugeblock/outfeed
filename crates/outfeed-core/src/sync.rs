@@ -1,7 +1,6 @@
 //! Multi-repository audit and synchronization orchestrator.
 
 use std::path::Path;
-use std::process::Command;
 
 use crate::error::OutfeedError;
 use crate::git::{get_current_branch, get_head_commit_sha};
@@ -103,21 +102,14 @@ pub fn sync_tool(
         return Ok(status);
     }
 
-    let pull_res = Command::new("git")
-        .args(["pull", "--ff-only", "origin", "main"])
-        .current_dir(&repo_dir)
-        .output();
+    let pull_res = gaugeblock_git::Repository::discover(&repo_dir)
+        .and_then(|repo| repo.pull_ff_only("origin", "main"));
 
     match pull_res {
-        Ok(out) if out.status.success() => {
+        Ok(()) => {
             status.head_sha = get_head_commit_sha(&repo_dir)?;
             status.action_taken = Some("fast-forward updated from origin/main".to_string());
             reporter.on_complete(tool.name, &RepoStatus::Success("pulled".to_string()));
-        }
-        Ok(out) => {
-            let stderr = String::from_utf8_lossy(&out.stderr);
-            status.action_taken = Some(format!("pull failed: {stderr}"));
-            reporter.on_complete(tool.name, &RepoStatus::Failed(stderr.to_string()));
         }
         Err(e) => {
             status.action_taken = Some(format!("pull error: {e}"));
@@ -168,15 +160,7 @@ fn read_locked_commit(workspace_root: &Path, repo_name: &str) -> Option<String> 
 }
 
 fn checkout_commit(repo_dir: &Path, commit_sha: &str) -> Result<(), OutfeedError> {
-    let output = Command::new("git")
-        .args(["checkout", commit_sha])
-        .current_dir(repo_dir)
-        .output()
-        .map_err(|e| OutfeedError::Git(format!("Failed to checkout {commit_sha}: {e}")))?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(OutfeedError::Git(format!("git checkout failed: {stderr}")));
-    }
-    Ok(())
+    gaugeblock_git::Repository::discover(repo_dir)
+        .and_then(|repo| repo.checkout(commit_sha))
+        .map_err(|e| OutfeedError::Git(format!("git checkout {commit_sha} failed: {e}")))
 }

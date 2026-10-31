@@ -1,9 +1,7 @@
 //! Git push operations for branches and release tags.
 
 use std::path::Path;
-use std::process::Command;
 
-use crate::cmd::run_captured;
 use crate::error::OutfeedError;
 use crate::git::{assert_clean_working_tree, get_current_branch, get_latest_tag};
 use crate::install::SUITE_TOOLS;
@@ -62,56 +60,25 @@ pub fn push_repo_with_progress(
 
     reporter.on_start(repo_name, &format!("pushing branch '{branch}'"));
 
-    // Push branch
-    let mut branch_cmd = Command::new("git");
-    branch_cmd
-        .arg("-C")
-        .arg(repo_dir)
-        .arg("push")
-        .arg(&opts.remote)
-        .arg(&branch);
+    let repo = gaugeblock_git::Repository::discover(repo_dir)
+        .map_err(|e| OutfeedError::Git(format!("{e}")))?;
 
-    let branch_out = run_captured(&mut branch_cmd)?;
-    if !branch_out.success {
-        let err_text = branch_out.combined_output();
+    // One atomic push when there is a tag: either both refs land or neither does. Pushing them
+    // separately meant a rejected tag left the branch published and the release half-made, which is
+    // the failure mode --atomic exists to remove.
+    let pushed = match tag.as_deref() {
+        Some(tag_name) => repo.push_branch_and_tag(&opts.remote, &branch, tag_name),
+        None => repo.push_branch(&opts.remote, &branch),
+    };
+    if let Err(error) = pushed {
+        let err_text = error.to_string();
         reporter.on_complete(repo_name, &RepoStatus::Failed(err_text.clone()));
         return Err(OutfeedError::Push(format!(
-            "git push {} {} failed: {}",
-            opts.remote, branch, err_text
+            "git push {} {branch} failed: {err_text}",
+            opts.remote
         )));
     }
-
-    let mut combined_out = branch_out.combined_output();
-
-    // Push latest tag if present
-    if let Some(ref t) = tag {
-        reporter.on_update(repo_name, &format!("pushing tag '{t}'"));
-        let mut tag_cmd = Command::new("git");
-        tag_cmd
-            .arg("-C")
-            .arg(repo_dir)
-            .arg("push")
-            .arg(&opts.remote)
-            .arg(t);
-
-        let tag_out = run_captured(&mut tag_cmd)?;
-        if !tag_out.success {
-            let err_text = tag_out.combined_output();
-            reporter.on_complete(repo_name, &RepoStatus::Failed(err_text.clone()));
-            return Err(OutfeedError::Push(format!(
-                "git push {} {} failed: {}",
-                opts.remote, t, err_text
-            )));
-        }
-
-        let tag_text = tag_out.combined_output();
-        if !tag_text.is_empty() {
-            if !combined_out.is_empty() {
-                combined_out.push('\n');
-            }
-            combined_out.push_str(&tag_text);
-        }
-    }
+    let combined_out = String::new();
 
     let tag_desc = tag.as_deref().unwrap_or("none");
     reporter.on_complete(
@@ -134,33 +101,21 @@ pub fn push_repo_with_progress(
 /// pushed has no upstream to compare against and reports `true` - that is the case a release pass
 /// must not mistake for "clean", because the release commit and its tag exist only on this machine.
 pub fn is_ahead_of_remote(repo_dir: &Path) -> Result<bool, OutfeedError> {
-    if git_stdout(repo_dir, &["remote"])?.trim().is_empty() {
+    let repo = gaugeblock_git::Repository::discover(repo_dir)
+        .map_err(|e| OutfeedError::Git(format!("{e}")))?;
+    if repo
+        .remotes()
+        .map_err(|e| OutfeedError::Git(format!("{e}")))?
+        .is_empty()
+    {
         return Ok(false);
     }
-    match git_stdout(repo_dir, &["rev-list", "--count", "@{upstream}..HEAD"]) {
-        Ok(text) => Ok(text.trim().parse::<u64>().unwrap_or(0) > 0),
-        // No upstream: the branch exists here and nowhere else.
+    // No upstream means the branch exists here and nowhere else, which is exactly the case a release
+    // pass must not mistake for clean.
+    match repo.ahead_behind("@{upstream}", "HEAD") {
+        Ok(counts) => Ok(counts.ahead > 0),
         Err(_) => Ok(true),
     }
-}
-
-/// Runs a read-only git query and returns its trimmed-free stdout.
-fn git_stdout(repo_dir: &Path, args: &[&str]) -> Result<String, OutfeedError> {
-    let output = Command::new("git")
-        .args(args)
-        .current_dir(repo_dir)
-        .output()
-        .map_err(|error| {
-            OutfeedError::Git(format!("Failed to invoke git {}: {error}", args.join(" ")))
-        })?;
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(OutfeedError::Git(format!(
-            "git {} failed: {stderr}",
-            args.join(" ")
-        )));
-    }
-    Ok(String::from_utf8_lossy(&output.stdout).to_string())
 }
 
 /// Executes git push across all repositories in the suite with a default reporter.

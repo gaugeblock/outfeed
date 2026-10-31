@@ -106,11 +106,8 @@ pub fn check_lockfiles(workspace_root: &Path) -> Result<LockfileReport, OutfeedE
 
 /// Whether git tracks `Cargo.lock` in `repo_dir`.
 fn is_lockfile_tracked(repo_dir: &Path) -> bool {
-    Command::new("git")
-        .args(["ls-files", "--error-unmatch", "Cargo.lock"])
-        .current_dir(repo_dir)
-        .output()
-        .map(|out| out.status.success())
+    gaugeblock_git::Repository::discover(repo_dir)
+        .and_then(|repo| gaugeblock_git::is_tracked(&repo, Path::new("Cargo.lock")))
         .unwrap_or(false)
 }
 

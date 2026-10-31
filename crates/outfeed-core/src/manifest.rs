@@ -159,10 +159,11 @@ pub fn rollback_manifest_diffs(
     }
     // Revert Cargo.lock if tracked to prevent dirty working tree on verification failure
     if repo_dir.join("Cargo.lock").exists() {
-        let _ = std::process::Command::new("git")
-            .args(["checkout", "HEAD", "--", "Cargo.lock"])
-            .current_dir(repo_dir)
-            .output();
+        // Best effort on purpose: this runs on a failure path, and a restore that fails must not
+        // replace the failure the caller is already handling.
+        if let Ok(repo) = gaugeblock_git::Repository::discover(repo_dir) {
+            let _ = repo.restore_path(std::path::Path::new("Cargo.lock"));
+        }
     }
     Ok(())
 }
