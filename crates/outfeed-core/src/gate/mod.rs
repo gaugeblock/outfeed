@@ -137,11 +137,13 @@ pub fn gate_steps() -> Vec<GateStep> {
             "cargo",
             &["nextest", "run", "--workspace"],
         ),
+        // `--check` is what makes this a gate: without the flag `miter contracts` describes drift and
+        // succeeds, which is why this step could never fail (GB-223).
         step(
             "contracts",
             "polyglot wire contracts agree",
             "miter",
-            &["contracts"],
+            &["contracts", "--check"],
         ),
         GateStep {
             name: "layers".to_string(),
