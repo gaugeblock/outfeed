@@ -23,6 +23,9 @@ chrono = { version = "0.4", default-features = false, features = ["clock"] }
 reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+# Trace ids for the gate's children (GB-243). v4 because a gate run started by hand has no ambient
+# trace to inherit, and those are exactly the runs worth timing.
+uuid = { version = "1", features = ["v4"] }
 semver = "1.0"
 thiserror = "2.0"
 tokio = { version = "1.43", features = ["sync", "rt", "macros", "time"] }

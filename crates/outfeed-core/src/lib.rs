@@ -38,6 +38,7 @@ pub mod suite_waves;
 pub mod sync;
 pub mod sync_model;
 pub mod synthesis;
+pub mod trace;
 pub mod verify_runner;
 
 pub use crate::release::{

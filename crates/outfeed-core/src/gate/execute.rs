@@ -60,13 +60,17 @@ pub(super) fn execute(dir: &Path, command: &GateCommand) -> Result<GateStepResul
             )
         }
         GateCommand::Process { program, args } => {
-            let output = Command::new(program)
-                .args(args)
-                .current_dir(dir)
-                .output()
-                .map_err(|error| {
-                    OutfeedError::Gate(format!("{program} could not be spawned: {error}"))
-                })?;
+            // GB-243: hand the run's trace to the child so its spans join ours. One trace per gate
+            // process, so every step of a run renders inside a single waterfall instead of as unrelated
+            // roots. No parent span id: a gate step is a root of its own sub-tree.
+            let mut command = Command::new(program);
+            command.args(args).current_dir(dir).env(
+                crate::trace::TRACE_ENV,
+                crate::trace::trace_id().to_string(),
+            );
+            let output = command.output().map_err(|error| {
+                OutfeedError::Gate(format!("{program} could not be spawned: {error}"))
+            })?;
 
             let stdout = String::from_utf8_lossy(&output.stdout);
             let stderr = String::from_utf8_lossy(&output.stderr);
