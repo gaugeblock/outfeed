@@ -26,6 +26,7 @@ pub mod push;
 pub mod rate_limit;
 pub mod registry;
 pub mod release;
+pub mod reserve;
 pub mod semver;
 pub mod storypole;
 pub mod suite_check;
@@ -96,6 +97,10 @@ pub use rate_limit::{
 pub use registry::{
     are_repo_crates_published, get_published_crate_version, is_version_published,
     parse_cargo_search_version,
+};
+pub use reserve::{
+    NameState, NameStatus, PLACEHOLDER_VERSION, PublishOutcome, PublishSummary, ReserveCheckReport,
+    ScaffoldOpts, ScaffoldOutcome, check_names, publish_placeholders, scaffold_placeholders,
 };
 pub use semver::{apply_bump, calculate_bump, parse_commit};
 pub use storypole::{

@@ -2299,6 +2299,10 @@ name = "joiner-mcp"
 version = "0.1.0-beta.4"
 
 [[patch.unused]]
+name = "miter-analysis"
+version = "0.1.0-beta.4"
+
+[[patch.unused]]
 name = "miter-ast"
 version = "0.1.0-beta.4"
 
@@ -2315,7 +2319,15 @@ name = "miter-harness"
 version = "0.1.0-beta.4"
 
 [[patch.unused]]
+name = "miter-inventory"
+version = "0.1.0-beta.4"
+
+[[patch.unused]]
 name = "miter-mcp"
+version = "0.1.0-beta.4"
+
+[[patch.unused]]
+name = "miter-polyglot"
 version = "0.1.0-beta.4"
 
 [[patch.unused]]

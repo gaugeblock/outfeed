@@ -5,6 +5,7 @@ pub mod delivery;
 pub mod gate;
 pub mod hygiene;
 pub mod release;
+pub mod reserve;
 pub mod sync;
 
 pub use clone::CloneArgs;
@@ -12,6 +13,7 @@ pub use delivery::{InstallArgs, McpArgs, PublishArgs, PushArgs};
 pub use gate::GateArgs;
 pub use hygiene::{CleanArgs, LockfileArgs, PruneArgs};
 pub use release::{ApplyArgs, PlanArgs, ReleaseArgs, StatusArgs, default_release_jobs};
+pub use reserve::ReserveArgs;
 pub use sync::SyncArgs;
 
 use clap::{Parser, Subcommand};
@@ -77,6 +79,9 @@ pub enum Commands {
     /// Verify every member repository tracks a fresh Cargo.lock
     Gate(GateArgs),
     Lockfiles(LockfileArgs),
+
+    /// Check, scaffold and publish crates.io namespace reservations
+    Reserve(ReserveArgs),
 
     /// Start the JSON-RPC stdio MCP server for Antigravity & Cline
     Mcp(McpArgs),

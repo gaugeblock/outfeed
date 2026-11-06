@@ -81,6 +81,37 @@ pub fn latest_published_version(crate_name: &str) -> Result<Option<String>, Outf
         .and_then(latest_index_version))
 }
 
+/// Outcome of a single sparse-index lookup.
+///
+/// `latest_published_version` deliberately collapses every failure into `None`, which is right for a
+/// caller that only wants to know whether to publish. Name reservation cannot afford that: reporting
+/// a name as free because the registry was unreachable would be a claim the tool cannot support, so
+/// this distinguishes "the registry said there is no such crate" from "the registry did not answer".
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum IndexLookup {
+    /// The index answered. `Some(version)` when a version is published, `None` when the crate exists
+    /// in the index but carries no parseable version.
+    Present(Option<String>),
+    /// The registry answered 404: no crate of this name has ever been published.
+    Missing,
+    /// The index could not be reached, so nothing can be concluded about the name.
+    Unreachable,
+}
+
+/// Performs one sparse-index lookup, preserving the reason a name did not resolve.
+pub fn lookup_index(crate_name: &str) -> IndexLookup {
+    let url = format!("{SPARSE_INDEX_BASE}/{}", sparse_index_path(crate_name));
+    match reqwest::blocking::get(&url) {
+        Ok(response) if response.status().is_success() => match response.text() {
+            Ok(body) => IndexLookup::Present(latest_index_version(&body)),
+            Err(_) => IndexLookup::Unreachable,
+        },
+        Ok(response) if response.status() == reqwest::StatusCode::NOT_FOUND => IndexLookup::Missing,
+        Ok(_) => IndexLookup::Unreachable,
+        Err(_) => IndexLookup::Unreachable,
+    }
+}
+
 /// Polls the sparse index until `version` appears or `timeout` elapses.
 ///
 /// Returns `true` when propagation was observed. A timeout is not an error: crates.io propagation is

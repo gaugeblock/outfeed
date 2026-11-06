@@ -10,6 +10,7 @@ pub mod plan;
 pub mod publish;
 pub mod push;
 pub mod release;
+pub mod reserve;
 pub mod status;
 pub mod suite_release;
 pub mod sync;

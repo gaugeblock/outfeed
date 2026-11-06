@@ -53,6 +53,10 @@ pub enum OutfeedError {
     #[error("Publish error: {0}")]
     Publish(String),
 
+    /// Namespace reservation failure.
+    #[error("Reserve error: {0}")]
+    Reserve(String),
+
     /// Cache hygiene or clean failure.
     #[error("Clean error: {0}")]
     Clean(String),

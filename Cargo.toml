@@ -4,6 +4,12 @@ members = [
     ".",
     "crates/*",
 ]
+# `outfeed reserve scaffold` writes standalone placeholder crates here to hold their names on
+# crates.io. They must not be enrolled as members of this workspace (OF-5), and the directory is
+# gitignored: a placeholder is machine state, not source.
+exclude = [
+    "reserve-staging",
+]
 
 [workspace.package]
 version = "0.1.0-beta.7"
