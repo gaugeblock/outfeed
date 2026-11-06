@@ -66,13 +66,22 @@ pub fn install_tool_with_progress(
     let repo_dir = workspace_root.join(tool.name);
     let target_version = get_repo_version(&repo_dir).unwrap_or_else(|_| "unknown".to_string());
 
+    // A `--debug` install exists to pick up source edits during development, and those never change the
+    // version - so the version gate is exactly the wrong test for them. Compare mtimes instead, and when
+    // the version matches but the binary is current, say *why* it was skipped: "up-to-date" reads as
+    // "your build is current" and cost a debugging detour the first time it lied (`GB-264`).
+    let source_is_newer = opts.debug && binary_is_stale(&crate_path, tool.bin_name);
+
     if !opts.force
+        && !source_is_newer
         && let Some(installed) = get_installed_version(tool.bin_name)
         && installed == target_version
     {
         reporter.on_complete(
             tool.bin_name,
-            &RepoStatus::Skipped(format!("v{installed} (up-to-date)")),
+            &RepoStatus::Skipped(format!(
+                "v{installed} (up-to-date by version; pass --force to rebuild from source)"
+            )),
         );
         return Ok(InstallOutcome::Skipped { version: installed });
     }
@@ -122,6 +131,58 @@ pub fn install_tool_with_progress(
         version: verified_ver,
         output: output.combined_output(),
     })
+}
+
+/// True when the installed binary is older than the crate's sources (`GB-264`).
+///
+/// Only consulted for `--debug` installs. Returns `true` when anything is unknown - no binary on PATH, no
+/// readable mtime - because rebuilding unnecessarily costs a minute while skipping a stale binary costs a
+/// confusing debugging session, which is the asymmetry that produced this function.
+fn binary_is_stale(crate_path: &std::path::Path, bin_name: &str) -> bool {
+    let Some(home) = std::env::var_os("HOME") else {
+        return true;
+    };
+    let binary = std::path::PathBuf::from(home)
+        .join(".cargo")
+        .join("bin")
+        .join(bin_name);
+    let Ok(binary_mtime) = std::fs::metadata(&binary).and_then(|meta| meta.modified()) else {
+        return true;
+    };
+
+    newest_mtime(&crate_path.join("src"))
+        .map(|source| source > binary_mtime)
+        .unwrap_or(true)
+}
+
+/// Newest modification time anywhere under `dir`, including the manifest beside it.
+fn newest_mtime(dir: &std::path::Path) -> Option<std::time::SystemTime> {
+    let mut newest: Option<std::time::SystemTime> = None;
+    let mut consider = |candidate: std::time::SystemTime| {
+        newest = Some(newest.map_or(candidate, |current| current.max(candidate)));
+    };
+
+    if let Some(manifest) = dir.parent().map(|parent| parent.join("Cargo.toml"))
+        && let Ok(meta) = std::fs::metadata(manifest)
+        && let Ok(mtime) = meta.modified()
+    {
+        consider(mtime);
+    }
+
+    let entries = std::fs::read_dir(dir).ok()?;
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            if let Some(inner) = newest_mtime(&path) {
+                consider(inner);
+            }
+        } else if let Ok(meta) = entry.metadata()
+            && let Ok(mtime) = meta.modified()
+        {
+            consider(mtime);
+        }
+    }
+    newest
 }
 
 /// Executes installation across all tools in the suite with default progress reporter.
