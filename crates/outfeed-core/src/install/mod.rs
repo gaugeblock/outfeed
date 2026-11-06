@@ -70,7 +70,7 @@ pub fn install_tool_with_progress(
     // version - so the version gate is exactly the wrong test for them. Compare mtimes instead, and when
     // the version matches but the binary is current, say *why* it was skipped: "up-to-date" reads as
     // "your build is current" and cost a debugging detour the first time it lied (`GB-264`).
-    let source_is_newer = opts.debug && binary_is_stale(&crate_path, tool.bin_name);
+    let source_is_newer = opts.debug && binary_is_stale(&repo_dir, tool.bin_name);
 
     if !opts.force
         && !source_is_newer
@@ -133,12 +133,17 @@ pub fn install_tool_with_progress(
     })
 }
 
-/// True when the installed binary is older than the crate's sources (`GB-264`).
+/// True when the installed binary is older than the repository's sources (`GB-264`, `GB-266`).
+///
+/// Scans the whole repository, not just the leaf crate. A leaf-only check cannot see a change in a
+/// dependency crate, which is precisely how a "fixed" install once shipped the pre-fix binary: the edit
+/// was in `benchwork-core` while the binary is built from `benchwork-cli`. Generated directories are
+/// skipped, because `target/` alone is newer than every binary and would force a rebuild every time.
 ///
 /// Only consulted for `--debug` installs. Returns `true` when anything is unknown - no binary on PATH, no
 /// readable mtime - because rebuilding unnecessarily costs a minute while skipping a stale binary costs a
-/// confusing debugging session, which is the asymmetry that produced this function.
-fn binary_is_stale(crate_path: &std::path::Path, bin_name: &str) -> bool {
+/// confusing debugging session.
+fn binary_is_stale(repo_dir: &std::path::Path, bin_name: &str) -> bool {
     let Some(home) = std::env::var_os("HOME") else {
         return true;
     };
@@ -150,29 +155,35 @@ fn binary_is_stale(crate_path: &std::path::Path, bin_name: &str) -> bool {
         return true;
     };
 
-    newest_mtime(&crate_path.join("src"))
+    newest_mtime(repo_dir)
         .map(|source| source > binary_mtime)
         .unwrap_or(true)
 }
 
-/// Newest modification time anywhere under `dir`, including the manifest beside it.
+/// Newest modification time anywhere under `dir`, skipping generated directories.
 fn newest_mtime(dir: &std::path::Path) -> Option<std::time::SystemTime> {
+    const SKIP: [&str; 7] = [
+        "target",
+        ".git",
+        "node_modules",
+        "dist",
+        ".gaugeblock",
+        ".storypole",
+        "worktrees",
+    ];
+
     let mut newest: Option<std::time::SystemTime> = None;
     let mut consider = |candidate: std::time::SystemTime| {
         newest = Some(newest.map_or(candidate, |current| current.max(candidate)));
     };
 
-    if let Some(manifest) = dir.parent().map(|parent| parent.join("Cargo.toml"))
-        && let Ok(meta) = std::fs::metadata(manifest)
-        && let Ok(mtime) = meta.modified()
-    {
-        consider(mtime);
-    }
-
-    let entries = std::fs::read_dir(dir).ok()?;
-    for entry in entries.flatten() {
+    for entry in std::fs::read_dir(dir).ok()?.flatten() {
         let path = entry.path();
         if path.is_dir() {
+            let name = entry.file_name().to_string_lossy().to_string();
+            if SKIP.contains(&name.as_str()) {
+                continue;
+            }
             if let Some(inner) = newest_mtime(&path) {
                 consider(inner);
             }
