@@ -63,6 +63,9 @@ The `outfeed` binary provides comprehensive release planning, manifest bumping, 
 | `outfeed clean` | `--all`, `--dry-run` | Cleans target compilation artifacts while preserving release binaries |
 | `outfeed prune` | `--all`, `--dry-run` | Prunes stale test binaries and old build artifacts to reclaim disk space |
 | `outfeed lockfiles` | `--json` | Verifies every member repository tracks a fresh `Cargo.lock` (reproducible builds) |
+| `outfeed reserve check` | `--json` | Lists free/taken/unknown per crate name from the sparse index; exits non-zero when any name is taken or unknown |
+| `outfeed reserve scaffold` | `--staging`, `--repository`, `--repo-override`, `--json` | Writes standalone placeholder crates at `0.1.0-alpha.1` into a gitignored staging directory |
+| `outfeed reserve publish` | `--staging`, `--registry`, `--confirm`, `--json` | Publishes the placeholders to claim their names; refuses without `--confirm` |
 | `outfeed mcp` | *(none)* | Launches stdio JSON-RPC 2.0 Model Context Protocol server |
 
 ---

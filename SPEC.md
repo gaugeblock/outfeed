@@ -106,7 +106,7 @@ stateDiagram-v2
 
 ## 3. Formal Type Contracts
 
-The following 35 types define the complete public and boundary interface for `outfeed`:
+The following 37 types define the complete public and boundary interface for `outfeed`:
 
 | Type Name | Kind | Crate / Module | Description |
 |:---|:---|:---|:---|
@@ -148,6 +148,8 @@ The following 35 types define the complete public and boundary interface for `ou
 | **`SyncOpts`** | `struct` | `outfeed_core::sync_model` | Configuration options controlling repo synchronization |
 | **`LockfileReport`** | `struct` | `outfeed_core::lockfiles` | Per-repository lockfile hygiene result: every member must track a fresh `Cargo.lock` |
 | **`RepoLockfile`** | `struct` | `outfeed_core::lockfiles` | Tracked/fresh state of one repository’s lockfile, with an `ok`/`untracked`/`stale` status |
+| **`NameStatus`** | `struct` | `outfeed_core::reserve` | Registry state of one candidate crate name: `Free`, `Taken` with its published version, or `Unknown` when the registry did not answer |
+| **`ReserveCheckReport`** | `struct` | `outfeed_core::reserve` | Result of `outfeed reserve check`: one `NameStatus` per requested name, with `free()`/`taken()`/`unknown()` partitions and `all_free()`. Unknown is never counted as free |
 | **`GateArgs`** | `struct` | `outfeed_cli::args` | Arguments for `outfeed gate`: target directory, steps to skip, JSON output |
 | **`GateReport`** | `struct` | `outfeed_core::gate` | Aggregate result of a Tier 3 gate run: one `GateStepResult` per step, with pass/fail/skip counts |
 | **`OutfeedHandler`** | `struct` | `outfeed_mcp::lib` | The MCP server's tool surface, bound to its checkout; the async loop, `content` envelope and failure codes come from `gaugeblock-mcp`. |
