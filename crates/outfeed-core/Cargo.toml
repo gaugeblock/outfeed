@@ -12,6 +12,9 @@ workspace = true
 
 [dependencies]
 gaugeblock-git = "0.1.0-beta.1"
+# Trace variable name and parse, so the gate and `sawhorse` cannot drift on what
+# `GAUGEBLOCK_TRACE_ID` means (GB-243 AC3).
+gaugeblock-workspace = "0.1.0-beta.1"
 # Shared wire contracts; resolved locally through the meta-harness [patch.crates-io] mapping.
 gaugeblock-contracts = "0.1.0-beta.1"
 storypole-core = "0.1.0-beta.2"

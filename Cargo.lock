@@ -453,6 +453,7 @@ dependencies = [
  "serde_json",
  "thiserror",
  "toml",
+ "uuid",
 ]
 
 [[package]]
@@ -935,6 +936,7 @@ dependencies = [
  "chrono",
  "gaugeblock-contracts",
  "gaugeblock-git",
+ "gaugeblock-workspace",
  "reqwest",
  "sawhorse-core",
  "semver",

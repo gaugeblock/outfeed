@@ -13,19 +13,18 @@ use std::sync::OnceLock;
 use uuid::Uuid;
 
 /// Trace id shared with child processes.
-pub const TRACE_ENV: &str = "GAUGEBLOCK_TRACE_ID";
+pub use gaugeblock_workspace::TRACE_ENV;
 
 static TRACE: OnceLock<Uuid> = OnceLock::new();
 
 /// Returns this process's trace id, minting it on first use.
+///
+/// The variable name and the parse come from `gaugeblock_workspace`, so this crate and `sawhorse` cannot
+/// drift on what the variable means. The reuse is local policy: a gate run is one unit of work, so one
+/// id for the whole process rather than one per step.
 #[must_use]
 pub fn trace_id() -> Uuid {
-    *TRACE.get_or_init(|| {
-        std::env::var(TRACE_ENV)
-            .ok()
-            .and_then(|raw| Uuid::parse_str(raw.trim()).ok())
-            .unwrap_or_else(Uuid::new_v4)
-    })
+    *TRACE.get_or_init(|| gaugeblock_workspace::ambient_trace_id().unwrap_or_else(Uuid::new_v4))
 }
 
 #[cfg(test)]
