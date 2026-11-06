@@ -19,3 +19,7 @@ Thumbs.db
 *.log
 *.rs.bk
 
+
+# Namespace reservation placeholders written by `outfeed reserve scaffold` (OF-5). A placeholder is
+# machine state, not source: it exists only to hold a name on crates.io until the real crate ships.
+reserve-staging/

@@ -116,7 +116,10 @@ fn handle_scaffold(args: &ReserveScaffoldArgs, root_dir: &Path, quiet: bool) -> 
     }
 
     // Cargo would enrol the placeholders as members of this workspace without both guards.
-    if let Some(hint) = parent_exclude_hint(&opts.staging_dir, &root_dir.join("Cargo.toml")) {
+    // The hint compares against the parent manifest, which spells the staging directory relative, so
+    // it is given the relative form the operator typed rather than the joined absolute path.
+    if let Some(hint) = parent_exclude_hint(Path::new(&args.staging), &root_dir.join("Cargo.toml"))
+    {
         println!("[outfeed] warning: {hint}");
     }
     Ok(())
