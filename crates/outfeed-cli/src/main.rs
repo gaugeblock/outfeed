@@ -22,7 +22,16 @@ use std::path::PathBuf;
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
-    let root_dir = cli.dir.unwrap_or_else(|| PathBuf::from("."));
+    // Resolve the suite root by walking up, not by trusting the current directory (`GB-271`): running
+    // `outfeed install` from inside a member repository used to resolve every crate path relative to that
+    // repository and fail, leaving the previous binary silently in place.
+    let root_dir = match cli.dir {
+        Some(dir) => dir,
+        None => std::env::current_dir()
+            .ok()
+            .and_then(|cwd| outfeed_core::install::discover_suite_root(&cwd))
+            .unwrap_or_else(|| PathBuf::from(".")),
+    };
 
     let log_level = if cli.quiet {
         tracing::Level::ERROR

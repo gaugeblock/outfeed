@@ -218,6 +218,25 @@ pub fn install_all_with_progress(
     Ok(results)
 }
 
+/// Finds the suite root by walking up from `start` until every suite repository is present (`GB-271`).
+///
+/// `outfeed install` resolved crate paths against the current directory, so running it from inside a member
+/// repository produced `./benchwork/crates/benchwork-cli` and failed with "Crate path does not exist" -
+/// while the previously installed binary stayed in place, which is the same silent-staleness class as
+/// `GB-264`. The root is the outermost directory that contains all of `SUITE_TOOLS`.
+#[must_use]
+pub fn discover_suite_root(start: &Path) -> Option<std::path::PathBuf> {
+    for candidate in start.ancestors() {
+        if SUITE_TOOLS
+            .iter()
+            .all(|tool| candidate.join(tool.name).join("Cargo.toml").is_file())
+        {
+            return Some(candidate.to_path_buf());
+        }
+    }
+    None
+}
+
 /// Queries the installed version of a binary from PATH.
 pub fn get_installed_version(bin_name: &str) -> Option<String> {
     let output = Command::new(bin_name).arg("--version").output().ok()?;
