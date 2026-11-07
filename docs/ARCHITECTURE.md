@@ -100,7 +100,7 @@ sequenceDiagram
 
 | Crate | Path | Responsibility |
 |:---|:---|:---|
-| [`outfeed`](./src/lib.rs) | `.` | Root facade re-exporting `outfeed_core` domain APIs |
-| [`outfeed-core`](./crates/outfeed-core) | `crates/outfeed-core` | Core release engine, SemVer calculator, AST drift inspector, `toml_edit` sync |
-| [`outfeed-cli`](./crates/outfeed-cli) | `crates/outfeed-cli` | Clap CLI binary, interactive terminal UI with `indicatif` progress spinners |
-| [`outfeed-mcp`](./crates/outfeed-mcp) | `crates/outfeed-mcp` | Stdio Model Context Protocol (MCP) JSON-RPC 2.0 server |
+| [`outfeed`](../src/lib.rs) | `.` | Root facade re-exporting `outfeed_core` domain APIs |
+| [`outfeed-core`](../crates/outfeed-core) | `crates/outfeed-core` | Core release engine, SemVer calculator, AST drift inspector, `toml_edit` sync |
+| [`outfeed-cli`](../crates/outfeed-cli) | `crates/outfeed-cli` | Clap CLI binary, interactive terminal UI with `indicatif` progress spinners |
+| [`outfeed-mcp`](../crates/outfeed-mcp) | `crates/outfeed-mcp` | Stdio Model Context Protocol (MCP) JSON-RPC 2.0 server |

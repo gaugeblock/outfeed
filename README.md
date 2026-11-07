@@ -3,7 +3,7 @@
 [![Version](https://img.shields.io/badge/version-0.1.0--beta.7-blue.svg)](https://gaugeblock.dev)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![gaugeblock](https://img.shields.io/badge/suite-gaugeblock-orange.svg)](https://github.com/gaugeblock)
-[![Documentation](https://img.shields.io/badge/docs-9--doc%20topology-green.svg)](ARCHITECTURE.md)
+[![Documentation](https://img.shields.io/badge/docs-9--doc%20topology-green.svg)](docs/ARCHITECTURE.md)
 
 Part of the **[`gaugeblock`](https://gaugeblock.dev)** neurosymbolic code synthesis ecosystem.
 
@@ -120,12 +120,12 @@ outfeed sync --all --locked
 
 `outfeed` adheres strictly to the canonical **9-Document Architecture**:
 * **[`README.md`](./README.md):** Project overview, outfeed table metaphor, CLI reference, and delivery pipeline.
-* **[`SPEC.md`](./SPEC.md):** Formal wire contracts, boundary types, release invariants, and state machines.
-* **[`ARCHITECTURE.md`](./ARCHITECTURE.md):** Subsystem decomposition, topological DAG packager, and changelog synthesizer.
-* **[`DESIGN.md`](./DESIGN.md):** Concrete Architectural Decision Records (ADRs).
-* **[`PRODUCT.md`](./PRODUCT.md):** Personas, user journeys, JTBD, and release automation strategy.
-* **[`CONTRIBUTING.md`](./CONTRIBUTING.md):** Rust 2024 toolchain requirements and tiered verification gates.
-* **[`ROADMAP.md`](./ROADMAP.md):** Active milestones and upcoming release orchestration capabilities.
+* **[`SPEC.md`](docs/SPEC.md):** Formal wire contracts, boundary types, release invariants, and state machines.
+* **[`ARCHITECTURE.md`](docs/ARCHITECTURE.md):** Subsystem decomposition, topological DAG packager, and changelog synthesizer.
+* **[`DESIGN.md`](docs/DESIGN.md):** Concrete Architectural Decision Records (ADRs).
+* **[`PRODUCT.md`](docs/PRODUCT.md):** Personas, user journeys, JTBD, and release automation strategy.
+* **[`CONTRIBUTING.md`](docs/CONTRIBUTING.md):** Rust 2024 toolchain requirements and tiered verification gates.
+* **[`ROADMAP.md`](docs/ROADMAP.md):** Active milestones and upcoming release orchestration capabilities.
 * **[`CHANGELOG.md`](./CHANGELOG.md):** Historical version releases and pending changes.
 * **[`AGENTS.md`](./AGENTS.md):** Non-negotiable engineering laws and autonomous execution directives.
 
