@@ -23,11 +23,11 @@
 use std::path::Path;
 use std::sync::Mutex;
 
-use crate::error::OutfeedError;
-use crate::model::ReleaseOpts;
-use crate::progress::ProgressReporter;
-use crate::release::ReleaseSummary;
-use crate::suite_plan::{SuitePlanAction, SuiteReleasePlan, SuiteRepoPlanEntry};
+use crate::orchestrator::release::ReleaseSummary;
+use crate::orchestrator::suite_plan::{SuitePlanAction, SuiteReleasePlan, SuiteRepoPlanEntry};
+use outfeed_core::error::OutfeedError;
+use outfeed_core::model::ReleaseOpts;
+use outfeed_core::progress::ProgressReporter;
 
 /// Leaf-first dependency waves covering all 10 suite repositories.
 pub const SUITE_RELEASE_WAVES: &[&[&str]] = &[
@@ -95,7 +95,7 @@ fn guard_disk_headroom(
     let _permit = headroom.lock().map_err(|_| {
         OutfeedError::Clean("disk headroom lock poisoned by a failed guard pass".to_string())
     })?;
-    let status = crate::headroom::enforce_disk_headroom(workspace_root)?;
+    let status = outfeed_core::headroom::enforce_disk_headroom(workspace_root)?;
     reporter.on_update(repo_name, &status.summary());
     Ok(())
 }

@@ -938,11 +938,9 @@ dependencies = [
  "gaugeblock-git",
  "gaugeblock-workspace",
  "reqwest",
- "sawhorse-core",
  "semver",
  "serde",
  "serde_json",
- "storypole-core",
  "tempfile",
  "thiserror",
  "tokio",
@@ -958,7 +956,10 @@ version = "0.1.0-beta.7"
 dependencies = [
  "gaugeblock-mcp",
  "outfeed-core",
+ "sawhorse-core",
  "serde_json",
+ "storypole-core",
+ "tempfile",
  "tokio",
  "tracing",
 ]

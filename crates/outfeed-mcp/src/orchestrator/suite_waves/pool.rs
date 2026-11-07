@@ -1,11 +1,11 @@
 //! Bounded worker pool that executes one release wave at a time.
 
 use super::{EntryOutcome, HeadroomLock, release_entry};
-use crate::error::OutfeedError;
-use crate::model::ReleaseOpts;
-use crate::progress::ProgressReporter;
-use crate::release::ReleaseSummary;
-use crate::suite_plan::SuiteRepoPlanEntry;
+use crate::orchestrator::release::ReleaseSummary;
+use crate::orchestrator::suite_plan::SuiteRepoPlanEntry;
+use outfeed_core::error::OutfeedError;
+use outfeed_core::model::ReleaseOpts;
+use outfeed_core::progress::ProgressReporter;
 use std::path::Path;
 
 /// Runs one wave, running at most `ReleaseOpts::jobs` entries concurrently.

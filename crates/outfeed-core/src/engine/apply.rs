@@ -11,7 +11,6 @@ use crate::git::{assert_clean_working_tree, assert_main_branch, create_release_c
 use crate::manifest::{apply_manifest_diffs, rollback_manifest_diffs};
 use crate::model::ReleasePlan;
 use crate::progress::{NoopProgress, ProgressReporter};
-use crate::storypole::{certify_release_ticket, create_release_ticket, find_storypole_root};
 use crate::verify_runner::{TestRunner, run_workspace_tests};
 
 /// Executes a release plan with transactional safety and verification gating.
@@ -19,9 +18,8 @@ pub fn apply_release(
     repo_dir: &Path,
     plan: &ReleasePlan,
     verify_tier4: bool,
-    skip_storypole: bool,
 ) -> Result<(), OutfeedError> {
-    apply_release_with_progress(repo_dir, plan, verify_tier4, skip_storypole, &NoopProgress)
+    apply_release_with_progress(repo_dir, plan, verify_tier4, &NoopProgress)
 }
 
 /// Executes a release plan with granular progress events and verification gating.
@@ -29,7 +27,6 @@ pub fn apply_release_with_progress(
     repo_dir: &Path,
     plan: &ReleasePlan,
     verify_tier4: bool,
-    skip_storypole: bool,
     reporter: &dyn ProgressReporter,
 ) -> Result<(), OutfeedError> {
     assert_clean_working_tree(repo_dir)?;
@@ -56,21 +53,7 @@ pub fn apply_release_with_progress(
         return Err(err);
     }
 
-    // 4. Closed-loop Storypole integration
-    if !skip_storypole && let Some(sp_root) = find_storypole_root(repo_dir) {
-        reporter.on_update(repo_name, "certifying release in Storypole...");
-        if let Ok(ticket_key) = create_release_ticket(
-            &sp_root,
-            &plan.repo_name,
-            &plan.target_version,
-            &plan.bump_rationale,
-            &plan.referenced_tickets,
-        ) {
-            let _ = certify_release_ticket(&sp_root, &ticket_key, &plan.target_version);
-        }
-    }
-
-    // 5. Git commit & tag
+    // 4. Git commit & tag
     reporter.on_update(
         repo_name,
         &format!("committing and tagging v{}...", plan.target_version),

@@ -4,10 +4,9 @@ use std::path::{Path, PathBuf};
 
 mod pipeline;
 
-use crate::engine::plan_release;
-use crate::error::OutfeedError;
-use crate::model::{ReleaseOpts, ReleasePlan};
-use crate::progress::{ProgressReporter, RepoStatus};
+use outfeed_core::error::OutfeedError;
+use outfeed_core::model::{ReleaseOpts, ReleasePlan};
+use outfeed_core::progress::{ProgressReporter, RepoStatus};
 use pipeline::finish_planned_release;
 
 /// Summary of orchestrated release execution.
@@ -43,7 +42,7 @@ pub async fn release_repo(
     // so a second pass is a clean no-op rather than a duplicate tag attempt.
     if let Some(version) = opts.override_version.as_deref() {
         let tag = format!("v{}", version.trim_start_matches('v'));
-        if crate::git::get_latest_tag(&repo_dir)?.as_deref() == Some(tag.as_str()) {
+        if outfeed_core::git::get_latest_tag(&repo_dir)?.as_deref() == Some(tag.as_str()) {
             reporter.on_complete(
                 &actual_name,
                 &RepoStatus::Skipped(format!("already released as {tag}")),
@@ -52,8 +51,7 @@ pub async fn release_repo(
         }
     }
 
-    let plan = match plan_release(&repo_dir, opts.override_version.as_deref(), false, no_llm).await
-    {
+    let plan = match plan_repository(&repo_dir, opts.override_version.as_deref(), no_llm).await {
         Ok(p) => p,
         Err(OutfeedError::Git(ref msg)) if msg.contains("No unreleased commits") => {
             reporter.on_complete(
@@ -123,8 +121,8 @@ fn guard_disk_headroom(workspace_root: &Path, opts: &ReleaseOpts) -> Result<(), 
     }
     let required = opts
         .min_disk_bytes
-        .unwrap_or(crate::disk_space::DEFAULT_MIN_SINGLE_REPO_DISK_BYTES);
-    crate::disk_space::check_disk_space_headroom(workspace_root, required)?;
+        .unwrap_or(outfeed_core::disk_space::DEFAULT_MIN_SINGLE_REPO_DISK_BYTES);
+    outfeed_core::disk_space::check_disk_space_headroom(workspace_root, required)?;
     Ok(())
 }
 
@@ -153,4 +151,16 @@ pub async fn release_repo_with_plan(
     .map(Some)
 }
 
-pub use crate::suite_exec::{execute_suite_plan, release_all};
+pub use crate::orchestrator::suite_exec::{execute_suite_plan, release_all};
+
+/// Plans one repository, gathering the suite inputs this layer is allowed to touch.
+pub async fn plan_repository(
+    repo_dir: &std::path::Path,
+    override_version: Option<&str>,
+    no_llm: bool,
+) -> Result<outfeed_core::model::ReleasePlan, outfeed_core::OutfeedError> {
+    let basis = outfeed_core::engine::plan_basis(repo_dir, override_version)?;
+    let (_summaries, notes) =
+        crate::orchestrator::storypole::gather(repo_dir, &basis, no_llm).await;
+    outfeed_core::engine::finish_plan(repo_dir, basis, notes.as_deref())
+}

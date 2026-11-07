@@ -25,25 +25,16 @@ pub mod publish_order;
 pub mod push;
 pub mod rate_limit;
 pub mod registry;
-pub mod release;
 pub mod reserve;
 pub mod semver;
-pub mod storypole;
 pub mod suite_check;
-pub mod suite_exec;
 pub mod suite_lock;
-pub mod suite_plan;
 pub mod suite_release;
-pub mod suite_waves;
 pub mod sync;
 pub mod sync_model;
-pub mod synthesis;
 pub mod trace;
 pub mod verify_runner;
 
-pub use crate::release::{
-    ReleaseSummary, execute_suite_plan, release_all, release_repo, release_repo_with_plan,
-};
 pub use changelog::{format_release_section, plan_changelog_update};
 pub use clean::{
     calculate_disk_usage, clean_workspace, clean_workspace_with_progress, dir_size, format_bytes,
@@ -104,9 +95,6 @@ pub use reserve::{
     ScaffoldOpts, ScaffoldOutcome, check_names, publish_placeholders, scaffold_placeholders,
 };
 pub use semver::{apply_bump, calculate_bump, parse_commit};
-pub use storypole::{
-    certify_release_ticket, create_release_ticket, fetch_task_summaries, find_storypole_root,
-};
 pub use suite_check::{
     PreflightOpts, RepoPreflightCheck, check_suite_preflight, check_suite_preflight_with_opts,
 };
@@ -114,12 +102,8 @@ pub use suite_lock::{
     SuiteLock, SuiteMetadata, SuiteReleaseOpts, SuiteReleaseSummary, SuiteToolEntry,
     generate_suite_lock, write_suite_lock,
 };
-pub use suite_plan::{SuitePlanAction, SuiteReleasePlan, SuiteRepoPlanEntry, plan_suite_releases};
 pub use suite_release::{determine_suite_version, release_suite, update_root_changelog};
-pub use suite_waves::{SUITE_RELEASE_WAVES, partition_release_waves};
 pub use sync::{audit_repo_sync, sync_suite, sync_tool};
 pub use sync_model::{
     BranchDivergence, RepoSyncStatus, SyncOpts, calculate_divergence, is_working_tree_dirty,
 };
-pub use synthesis::synthesize_release_notes;
-pub use verify_runner::{TestRunner, run_workspace_tests};

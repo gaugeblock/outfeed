@@ -1,6 +1,6 @@
 //! MCP Tool invocation dispatcher for `outfeed`.
 
-use outfeed_core::engine::{apply_release, plan_release};
+use outfeed_core::engine::apply_release;
 use outfeed_core::install::{SUITE_TOOLS, install_all, install_tool};
 use outfeed_core::model::{InstallOpts, PublishOpts, PushOpts};
 use outfeed_core::publish::publish_repo;
@@ -34,7 +34,7 @@ pub async fn dispatch_tool(name: &str, args: &Value, root_dir: &Path) -> Result<
 
     match name {
         "outfeed_plan" => {
-            let plan = plan_release(&repo_dir, override_ver, false, no_llm)
+            let plan = plan_with_suite_inputs(&repo_dir, override_ver, no_llm)
                 .await
                 .map_err(|e| e.to_string())?;
             serde_json::to_value(&plan).map_err(|e| e.to_string())
@@ -45,11 +45,11 @@ pub async fn dispatch_tool(name: &str, args: &Value, root_dir: &Path) -> Result<
                 .and_then(|v| v.as_bool())
                 .unwrap_or(true);
 
-            let plan = plan_release(&repo_dir, override_ver, false, no_llm)
+            let plan = plan_with_suite_inputs(&repo_dir, override_ver, no_llm)
                 .await
                 .map_err(|e| e.to_string())?;
 
-            apply_release(&repo_dir, &plan, verify_tier4, false).map_err(|e| e.to_string())?;
+            apply_release(&repo_dir, &plan, verify_tier4).map_err(|e| e.to_string())?;
 
             Ok(json!({
                 "success": true,
@@ -156,4 +156,16 @@ pub async fn dispatch_tool(name: &str, args: &Value, root_dir: &Path) -> Result<
         }
         _ => Err(format!("Unknown outfeed MCP tool: {name}")),
     }
+}
+
+/// Plans a release gathering the suite inputs this integrator is allowed to touch (`GB-285`, `GB-286`).
+async fn plan_with_suite_inputs(
+    repo_dir: &std::path::Path,
+    override_version: Option<&str>,
+    no_llm: bool,
+) -> Result<outfeed_core::model::ReleasePlan, outfeed_core::OutfeedError> {
+    let basis = outfeed_core::engine::plan_basis(repo_dir, override_version)?;
+    let (_summaries, notes) =
+        crate::orchestrator::storypole::gather(repo_dir, &basis, no_llm).await;
+    outfeed_core::engine::finish_plan(repo_dir, basis, notes.as_deref())
 }

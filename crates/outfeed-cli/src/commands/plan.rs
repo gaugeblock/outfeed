@@ -1,7 +1,7 @@
 //! Command handler for `outfeed plan`.
 
 use anyhow::{Context, Result};
-use outfeed_core::plan_release;
+
 use std::path::Path;
 
 use super::resolve_repo_dir;
@@ -9,11 +9,12 @@ use crate::args::PlanArgs;
 
 pub async fn handle_plan(root: &Path, args: PlanArgs) -> Result<()> {
     let repo_dir = resolve_repo_dir(root, &args.repo);
-    let plan = plan_release(
+    // `skip_storypole` is now expressed by passing no inputs: the orchestrator simply does not gather.
+    let no_llm = args.no_llm || args.skip_storypole;
+    let plan = outfeed_mcp::orchestrator::release::plan_repository(
         &repo_dir,
         args.override_version.as_deref(),
-        args.skip_storypole,
-        args.no_llm,
+        no_llm,
     )
     .await
     .context("Failed to plan release")?;

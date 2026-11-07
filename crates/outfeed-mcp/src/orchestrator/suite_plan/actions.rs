@@ -3,7 +3,7 @@
 //! Split out of `suite_plan::mod` (GB-139) so the action taxonomy and the rendered table stand
 //! apart from the evaluation that produces them.
 
-use crate::model::ReleasePlan;
+use outfeed_core::model::ReleasePlan;
 
 /// Action category for planned suite member repository.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

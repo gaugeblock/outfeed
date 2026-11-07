@@ -6,11 +6,10 @@ mod actions;
 
 pub use actions::{SuitePlanAction, SuiteReleasePlan, SuiteRepoPlanEntry};
 
-use crate::engine::plan_release;
-use crate::error::OutfeedError;
-use crate::git::get_latest_tag;
-use crate::install::SUITE_TOOLS;
-use crate::manifest::get_repo_version;
+use outfeed_core::error::OutfeedError;
+use outfeed_core::git::get_latest_tag;
+use outfeed_core::install::SUITE_TOOLS;
+use outfeed_core::manifest::get_repo_version;
 
 /// Evaluates all suite member repositories and compiles the SuiteReleasePlan.
 /// Uses fast deterministic commit evaluation for the upfront summary table.
@@ -33,7 +32,7 @@ pub async fn plan_suite_releases(
         });
 
         // Fast deterministic SemVer evaluation for upfront plan presentation
-        match plan_release(&repo_dir, None, false, no_llm).await {
+        match plan_for_suite(&repo_dir, no_llm).await {
             Ok(p) if !p.commits.is_empty() => {
                 let mut tasks = Vec::new();
                 for c in &p.commits {
@@ -63,7 +62,7 @@ pub async fn plan_suite_releases(
             _ => {
                 let bare_version = current_version.trim_start_matches('v');
                 let is_published =
-                    crate::registry::are_repo_crates_published(&repo_dir, bare_version)
+                    outfeed_core::registry::are_repo_crates_published(&repo_dir, bare_version)
                         .unwrap_or(true);
 
                 if !is_published {
@@ -76,7 +75,7 @@ pub async fn plan_suite_releases(
                         referenced_tasks: Vec::new(),
                         plan: None,
                     });
-                } else if crate::push::is_ahead_of_remote(&repo_dir).unwrap_or(false) {
+                } else if outfeed_core::push::is_ahead_of_remote(&repo_dir).unwrap_or(false) {
                     // Published, but the release commit or tag never reached the remote.
                     entries.push(SuiteRepoPlanEntry {
                         repo_name: tool.name.to_string(),
@@ -103,4 +102,15 @@ pub async fn plan_suite_releases(
     }
 
     Ok(SuiteReleasePlan { entries })
+}
+
+/// Plans one repository for the suite view, gathering the inputs this layer may touch.
+async fn plan_for_suite(
+    repo_dir: &std::path::Path,
+    no_llm: bool,
+) -> Result<outfeed_core::model::ReleasePlan, outfeed_core::OutfeedError> {
+    let basis = outfeed_core::engine::plan_basis(repo_dir, None)?;
+    let (_summaries, notes) =
+        crate::orchestrator::storypole::gather(repo_dir, &basis, no_llm).await;
+    outfeed_core::engine::finish_plan(repo_dir, basis, notes.as_deref())
 }

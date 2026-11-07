@@ -6,13 +6,13 @@
 use std::path::Path;
 
 use super::ReleaseSummary;
-use crate::engine::apply_release_with_progress;
-use crate::error::OutfeedError;
-use crate::install::{SUITE_TOOLS, install_tool};
-use crate::model::{InstallOpts, PublishOpts, PushOpts, ReleaseOpts, ReleasePlan};
-use crate::progress::{ProgressReporter, RepoStatus};
-use crate::publish::publish_repo;
-use crate::push::push_repo;
+use outfeed_core::engine::apply_release_with_progress;
+use outfeed_core::error::OutfeedError;
+use outfeed_core::install::{SUITE_TOOLS, install_tool};
+use outfeed_core::model::{InstallOpts, PublishOpts, PushOpts, ReleaseOpts, ReleasePlan};
+use outfeed_core::progress::{ProgressReporter, RepoStatus};
+use outfeed_core::publish::publish_repo;
+use outfeed_core::push::push_repo;
 
 /// Executes Phases 3-5 for a computed plan: apply, install, push, and publish.
 pub(super) fn finish_planned_release(
@@ -46,10 +46,20 @@ pub(super) fn finish_planned_release(
         });
     }
 
-    if let Err(err) = apply_release_with_progress(repo_dir, plan, !opts.no_verify, false, reporter)
-    {
+    if let Err(err) = apply_release_with_progress(repo_dir, plan, !opts.no_verify, reporter) {
         reporter.on_complete(actual_name, &RepoStatus::Failed(err.to_string()));
         return Err(err);
+    }
+
+    // The release ticket used to be created inside `apply_release`, fire-and-forget, from the core.
+    // Recording it is orchestration, so it happens here and the outcome is reportable (`GB-286`).
+    if !opts.dry_run {
+        match crate::orchestrator::storypole::record_release(repo_dir, plan) {
+            Some(ticket) => {
+                reporter.on_update(actual_name, &format!("recorded release as {ticket}"))
+            }
+            None => reporter.on_update(actual_name, "no backlog found; release not recorded"),
+        }
     }
 
     // 3. Install locally

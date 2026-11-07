@@ -1,9 +1,11 @@
-#![allow(clippy::unwrap_used, clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::unwrap_used)]
 
 //! Integration tests for topological release wave partitioning.
 
-use outfeed_core::suite_plan::{SuitePlanAction, SuiteReleasePlan, SuiteRepoPlanEntry};
-use outfeed_core::{SUITE_RELEASE_WAVES, partition_release_waves};
+use outfeed_mcp::orchestrator::suite_plan::{
+    SuitePlanAction, SuiteReleasePlan, SuiteRepoPlanEntry,
+};
+use outfeed_mcp::orchestrator::suite_waves::{SUITE_RELEASE_WAVES, partition_release_waves};
 
 fn entry(repo_name: &str, action: SuitePlanAction) -> SuiteRepoPlanEntry {
     SuiteRepoPlanEntry {

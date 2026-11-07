@@ -1,6 +1,7 @@
 //! Storypole integration: ledger query, chore ticket creation, and release certification.
 
-use crate::error::OutfeedError;
+use crate::orchestrator::synthesis::synthesize_release_notes;
+use outfeed_core::error::OutfeedError;
 use std::path::{Path, PathBuf};
 use storypole_core::index::query::{get_task_by_id, resolve_task_id};
 use storypole_core::model::decision::VerificationReceipt;
@@ -120,4 +121,50 @@ pub fn certify_release_ticket(
     verify_task(&mut store, id, Some(receipt), false, false)
         .map_err(|e| OutfeedError::Storypole(e.to_string()))?;
     Ok(())
+}
+
+/// Summaries for the tickets a release references, plus the changelog notes for it.
+///
+/// This is the whole reason orchestration lives above the core: reading the backlog and calling an
+/// inference backend are both allowed here and forbidden in `outfeed-core` (`GB-285`, `GB-286`).
+pub async fn gather(
+    repo_dir: &Path,
+    basis: &outfeed_core::engine::PlanBasis,
+    no_llm: bool,
+) -> (Vec<(String, String, String)>, Option<String>) {
+    let summaries = find_storypole_root(repo_dir)
+        .map(|root| fetch_task_summaries(&root, &basis.referenced_tickets).unwrap_or_default())
+        .unwrap_or_default();
+    if no_llm {
+        return (summaries, None);
+    }
+    let notes = synthesize_release_notes(
+        &basis.repo_name,
+        &basis.target_version,
+        &basis.commits,
+        &summaries,
+        false,
+    )
+    .await
+    .ok();
+    (summaries, notes)
+}
+
+/// Creates and certifies the release ticket, returning its key.
+///
+/// Moved out of `apply_release`, which used to do this fire-and-forget from inside the core. Recording a
+/// release in another product's ledger is orchestration, and doing it here means the outcome is reportable
+/// instead of being swallowed by `if let Ok(..)`.
+pub fn record_release(repo_dir: &Path, plan: &outfeed_core::model::ReleasePlan) -> Option<String> {
+    let root = find_storypole_root(repo_dir)?;
+    let key = create_release_ticket(
+        &root,
+        &plan.repo_name,
+        &plan.target_version,
+        &plan.bump_rationale,
+        &plan.referenced_tickets,
+    )
+    .ok()?;
+    let _ = certify_release_ticket(&root, &key, &plan.target_version);
+    Some(key)
 }

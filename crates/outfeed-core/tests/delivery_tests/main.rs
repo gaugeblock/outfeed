@@ -5,4 +5,3 @@
 //! Split out of a single 260-line file that tripped the hard 250-line ceiling (GB-193).
 
 mod git_and_publish;
-mod release_all;

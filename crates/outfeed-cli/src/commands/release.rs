@@ -4,7 +4,10 @@ use std::io::{self, Write};
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use outfeed_core::{ReleaseOpts, execute_suite_plan, plan_suite_releases, release_repo};
+use outfeed_core::ReleaseOpts;
+use outfeed_mcp::orchestrator::release::release_repo;
+use outfeed_mcp::orchestrator::suite_exec::execute_suite_plan;
+use outfeed_mcp::orchestrator::suite_plan::plan_suite_releases;
 
 use super::suite_release::handle_suite_release;
 use crate::args::{ReleaseArgs, default_release_jobs};

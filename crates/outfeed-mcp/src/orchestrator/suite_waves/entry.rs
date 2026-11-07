@@ -6,11 +6,11 @@
 use std::path::Path;
 
 use super::{HeadroomLock, guard_disk_headroom};
-use crate::error::OutfeedError;
-use crate::model::{PublishOpts, PushOpts, ReleaseOpts};
-use crate::progress::{ProgressReporter, RepoStatus};
-use crate::release::{ReleaseSummary, release_repo};
-use crate::suite_plan::{SuitePlanAction, SuiteRepoPlanEntry};
+use crate::orchestrator::release::{ReleaseSummary, release_repo};
+use crate::orchestrator::suite_plan::{SuitePlanAction, SuiteRepoPlanEntry};
+use outfeed_core::error::OutfeedError;
+use outfeed_core::model::{PublishOpts, PushOpts, ReleaseOpts};
+use outfeed_core::progress::{ProgressReporter, RepoStatus};
 
 /// Releases a single plan entry, including the pending-publish shortcut and guard passes.
 pub(crate) async fn release_entry(
@@ -35,7 +35,7 @@ pub(crate) async fn release_entry(
             ..Default::default()
         };
         let published_crates =
-            crate::publish::publish_repo_with_progress(&repo_dir, &publish_opts, reporter)?;
+            outfeed_core::publish::publish_repo_with_progress(&repo_dir, &publish_opts, reporter)?;
         reporter.on_complete(
             &entry.repo_name,
             &RepoStatus::Success(format!("published {target_version}")),
@@ -63,7 +63,7 @@ pub(crate) async fn release_entry(
             dry_run: opts.dry_run,
             ..Default::default()
         };
-        let outcome = crate::push::push_repo_with_progress(&repo_dir, &push_opts, reporter)?;
+        let outcome = outfeed_core::push::push_repo_with_progress(&repo_dir, &push_opts, reporter)?;
         return Ok(Some(ReleaseSummary {
             repo_name: entry.repo_name.clone(),
             target_version: entry.current_version.clone(),
@@ -82,10 +82,10 @@ pub(crate) async fn release_entry(
 
     if opts.clean_between_repos
         && !opts.dry_run
-        && let Ok(reclaimed) = crate::disk_space::clean_repo_target_cache(workspace_root)
+        && let Ok(reclaimed) = outfeed_core::disk_space::clean_repo_target_cache(workspace_root)
         && reclaimed > 0
     {
-        let formatted = crate::clean::format_bytes(reclaimed);
+        let formatted = outfeed_core::clean::format_bytes(reclaimed);
         reporter.on_update(
             &entry.repo_name,
             &format!("reclaimed {formatted} compilation cache"),
@@ -107,7 +107,7 @@ async fn release_from_plan(
 ) -> Result<Option<ReleaseSummary>, OutfeedError> {
     match entry.plan.as_ref() {
         Some(plan) => {
-            crate::release::release_repo_with_plan(
+            crate::orchestrator::release::release_repo_with_plan(
                 workspace_root,
                 &entry.repo_name,
                 plan,

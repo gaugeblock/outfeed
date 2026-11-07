@@ -1,8 +1,8 @@
 //! Neurosymbolic changelog synthesis powered by `sawhorse-core`.
 
-use crate::changelog::format_release_section;
-use crate::error::OutfeedError;
-use crate::model::CommitInfo;
+use outfeed_core::changelog::format_release_section;
+use outfeed_core::error::OutfeedError;
+use outfeed_core::model::CommitInfo;
 use sawhorse_core::config::SawhorseConfig;
 use sawhorse_core::router::RoleRouter;
 use sawhorse_core::types::{InferenceRequest, ModelRole};

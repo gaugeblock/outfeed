@@ -3,12 +3,14 @@
 use std::path::Path;
 use std::sync::Mutex;
 
-use crate::error::OutfeedError;
-use crate::model::ReleaseOpts;
-use crate::progress::ProgressReporter;
-use crate::release::ReleaseSummary;
-use crate::suite_plan::SuiteReleasePlan;
-use crate::suite_waves::{EntryOutcome, partition_release_waves, release_entry, run_wave};
+use crate::orchestrator::release::ReleaseSummary;
+use crate::orchestrator::suite_plan::SuiteReleasePlan;
+use crate::orchestrator::suite_waves::{
+    EntryOutcome, partition_release_waves, release_entry, run_wave,
+};
+use outfeed_core::error::OutfeedError;
+use outfeed_core::model::ReleaseOpts;
+use outfeed_core::progress::ProgressReporter;
 
 /// Executes the release lifecycle across all suite repositories using the 3-phase pipeline.
 pub async fn release_all(
@@ -17,10 +19,11 @@ pub async fn release_all(
     reporter: &dyn ProgressReporter,
 ) -> Result<Vec<ReleaseSummary>, OutfeedError> {
     // Phase 1: Pre-flight validation
-    crate::suite_check::check_suite_preflight(workspace_root)?;
+    outfeed_core::suite_check::check_suite_preflight(workspace_root)?;
 
     // Phase 2: Upfront Suite Release Plan
-    let plan = crate::suite_plan::plan_suite_releases(workspace_root, opts.no_llm).await?;
+    let plan =
+        crate::orchestrator::suite_plan::plan_suite_releases(workspace_root, opts.no_llm).await?;
 
     // Phase 3: Execute Suite Plan
     execute_suite_plan(workspace_root, &plan, opts, reporter).await
