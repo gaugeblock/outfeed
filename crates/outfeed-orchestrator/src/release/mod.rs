@@ -151,7 +151,7 @@ pub async fn release_repo_with_plan(
     .map(Some)
 }
 
-pub use crate::orchestrator::suite_exec::{execute_suite_plan, release_all};
+pub use crate::suite_exec::{execute_suite_plan, release_all};
 
 /// Plans one repository, gathering the suite inputs this layer is allowed to touch.
 pub async fn plan_repository(
@@ -160,7 +160,6 @@ pub async fn plan_repository(
     no_llm: bool,
 ) -> Result<outfeed_core::model::ReleasePlan, outfeed_core::OutfeedError> {
     let basis = outfeed_core::engine::plan_basis(repo_dir, override_version)?;
-    let (_summaries, notes) =
-        crate::orchestrator::storypole::gather(repo_dir, &basis, no_llm).await;
+    let (_summaries, notes) = crate::backlog::gather(repo_dir, &basis, no_llm).await;
     outfeed_core::engine::finish_plan(repo_dir, basis, notes.as_deref())
 }

@@ -1,0 +1,26 @@
+[package]
+name = "outfeed-orchestrator"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Suite release orchestration for outfeed: composition above the core"
+
+[lints]
+workspace = true
+
+[dependencies]
+# The layer that composes the rest of the suite. `outfeed-core` plans and applies a single repository;
+# this crate walks a workspace, reads a backlog and calls an inference backend, which is exactly what the
+# core is forbidden to do (GB-285, GB-286, GB-204).
+outfeed-core = { path = "../outfeed-core", version = "0.1.0-beta.7" }
+storypole-core = "0.1.0-beta.2"
+sawhorse-core = "0.1.0-beta.2"
+serde_json = "1.0"
+tokio = { version = "1.43", features = ["rt", "macros", "time", "sync", "io-util"] }
+tracing = "0.1"
+
+[dev-dependencies]
+tempfile = "3"
+tokio = { version = "1.43", features = ["rt-multi-thread", "macros"] }

@@ -42,7 +42,7 @@ async fn test_release_all_on_empty_or_clean_workspace() {
     };
 
     // When no member repos exist in root, release_all skips safely and returns empty vec
-    let summaries = outfeed_mcp::orchestrator::suite_exec::release_all(
+    let summaries = outfeed_orchestrator::suite_exec::release_all(
         root,
         &opts,
         &outfeed_core::progress::NoopProgress,
@@ -105,7 +105,7 @@ async fn test_release_all_with_progress_reporting() {
         ..Default::default()
     };
 
-    let summaries = outfeed_mcp::orchestrator::suite_exec::release_all(root, &opts, &reporter)
+    let summaries = outfeed_orchestrator::suite_exec::release_all(root, &opts, &reporter)
         .await
         .expect("release_all");
     assert!(summaries.is_empty());

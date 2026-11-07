@@ -2,10 +2,8 @@
 
 //! Integration tests for topological release wave partitioning.
 
-use outfeed_mcp::orchestrator::suite_plan::{
-    SuitePlanAction, SuiteReleasePlan, SuiteRepoPlanEntry,
-};
-use outfeed_mcp::orchestrator::suite_waves::{SUITE_RELEASE_WAVES, partition_release_waves};
+use outfeed_orchestrator::suite_plan::{SuitePlanAction, SuiteReleasePlan, SuiteRepoPlanEntry};
+use outfeed_orchestrator::suite_waves::{SUITE_RELEASE_WAVES, partition_release_waves};
 
 fn entry(repo_name: &str, action: SuitePlanAction) -> SuiteRepoPlanEntry {
     SuiteRepoPlanEntry {

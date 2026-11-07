@@ -23,8 +23,8 @@
 use std::path::Path;
 use std::sync::Mutex;
 
-use crate::orchestrator::release::ReleaseSummary;
-use crate::orchestrator::suite_plan::{SuitePlanAction, SuiteReleasePlan, SuiteRepoPlanEntry};
+use crate::release::ReleaseSummary;
+use crate::suite_plan::{SuitePlanAction, SuiteReleasePlan, SuiteRepoPlanEntry};
 use outfeed_core::error::OutfeedError;
 use outfeed_core::model::ReleaseOpts;
 use outfeed_core::progress::ProgressReporter;

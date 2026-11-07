@@ -27,7 +27,7 @@ pub async fn handle_apply(root: &Path, args: ApplyArgs) -> Result<()> {
         .await;
     }
 
-    let plan = outfeed_mcp::orchestrator::release::plan_repository(
+    let plan = outfeed_orchestrator::release::plan_repository(
         &repo_dir,
         args.override_version.as_deref(),
         args.no_llm,

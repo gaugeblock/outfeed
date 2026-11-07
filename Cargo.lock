@@ -923,6 +923,7 @@ dependencies = [
  "indicatif",
  "outfeed-core",
  "outfeed-mcp",
+ "outfeed-orchestrator",
  "serde_json",
  "tokio",
  "tracing",
@@ -955,6 +956,17 @@ name = "outfeed-mcp"
 version = "0.1.0-beta.7"
 dependencies = [
  "gaugeblock-mcp",
+ "outfeed-core",
+ "outfeed-orchestrator",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "outfeed-orchestrator"
+version = "0.1.0-beta.7"
+dependencies = [
  "outfeed-core",
  "sawhorse-core",
  "serde_json",

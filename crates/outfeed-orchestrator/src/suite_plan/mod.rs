@@ -110,7 +110,6 @@ async fn plan_for_suite(
     no_llm: bool,
 ) -> Result<outfeed_core::model::ReleasePlan, outfeed_core::OutfeedError> {
     let basis = outfeed_core::engine::plan_basis(repo_dir, None)?;
-    let (_summaries, notes) =
-        crate::orchestrator::storypole::gather(repo_dir, &basis, no_llm).await;
+    let (_summaries, notes) = crate::backlog::gather(repo_dir, &basis, no_llm).await;
     outfeed_core::engine::finish_plan(repo_dir, basis, notes.as_deref())
 }

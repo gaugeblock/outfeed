@@ -104,3 +104,4 @@ sequenceDiagram
 | [`outfeed-core`](../crates/outfeed-core) | `crates/outfeed-core` | Core release engine, SemVer calculator, AST drift inspector, `toml_edit` sync |
 | [`outfeed-cli`](../crates/outfeed-cli) | `crates/outfeed-cli` | Clap CLI binary, interactive terminal UI with `indicatif` progress spinners |
 | [`outfeed-mcp`](../crates/outfeed-mcp) | `crates/outfeed-mcp` | Stdio Model Context Protocol (MCP) JSON-RPC 2.0 server |
+| [`outfeed-orchestrator`](../crates/outfeed-orchestrator) | `crates/outfeed-orchestrator` | Suite release composition root: release, suite planning, waves, backlog reads and changelog synthesis, above the core |

@@ -6,8 +6,8 @@
 use std::path::Path;
 
 use super::{HeadroomLock, guard_disk_headroom};
-use crate::orchestrator::release::{ReleaseSummary, release_repo};
-use crate::orchestrator::suite_plan::{SuitePlanAction, SuiteRepoPlanEntry};
+use crate::release::{ReleaseSummary, release_repo};
+use crate::suite_plan::{SuitePlanAction, SuiteRepoPlanEntry};
 use outfeed_core::error::OutfeedError;
 use outfeed_core::model::{PublishOpts, PushOpts, ReleaseOpts};
 use outfeed_core::progress::{ProgressReporter, RepoStatus};
@@ -107,7 +107,7 @@ async fn release_from_plan(
 ) -> Result<Option<ReleaseSummary>, OutfeedError> {
     match entry.plan.as_ref() {
         Some(plan) => {
-            crate::orchestrator::release::release_repo_with_plan(
+            crate::release::release_repo_with_plan(
                 workspace_root,
                 &entry.repo_name,
                 plan,

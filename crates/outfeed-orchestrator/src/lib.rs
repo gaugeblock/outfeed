@@ -6,8 +6,8 @@
 //! that walks a workspace, reads a backlog and calls an inference backend lives here, in an integrator
 //! crate that is allowed to depend on all of them.
 
+pub mod backlog;
 pub mod release;
-pub mod storypole;
 pub mod suite_exec;
 pub mod suite_plan;
 pub mod suite_waves;

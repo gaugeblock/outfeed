@@ -1,6 +1,6 @@
 //! Storypole integration: ledger query, chore ticket creation, and release certification.
 
-use crate::orchestrator::synthesis::synthesize_release_notes;
+use crate::synthesis::synthesize_release_notes;
 use outfeed_core::error::OutfeedError;
 use std::path::{Path, PathBuf};
 use storypole_core::index::query::{get_task_by_id, resolve_task_id};

@@ -54,7 +54,7 @@ pub(super) fn finish_planned_release(
     // The release ticket used to be created inside `apply_release`, fire-and-forget, from the core.
     // Recording it is orchestration, so it happens here and the outcome is reportable (`GB-286`).
     if !opts.dry_run {
-        match crate::orchestrator::storypole::record_release(repo_dir, plan) {
+        match crate::backlog::record_release(repo_dir, plan) {
             Some(ticket) => {
                 reporter.on_update(actual_name, &format!("recorded release as {ticket}"))
             }

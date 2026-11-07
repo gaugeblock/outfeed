@@ -165,7 +165,6 @@ async fn plan_with_suite_inputs(
     no_llm: bool,
 ) -> Result<outfeed_core::model::ReleasePlan, outfeed_core::OutfeedError> {
     let basis = outfeed_core::engine::plan_basis(repo_dir, override_version)?;
-    let (_summaries, notes) =
-        crate::orchestrator::storypole::gather(repo_dir, &basis, no_llm).await;
+    let (_summaries, notes) = outfeed_orchestrator::backlog::gather(repo_dir, &basis, no_llm).await;
     outfeed_core::engine::finish_plan(repo_dir, basis, notes.as_deref())
 }

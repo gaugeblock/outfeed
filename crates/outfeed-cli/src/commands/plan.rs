@@ -11,7 +11,7 @@ pub async fn handle_plan(root: &Path, args: PlanArgs) -> Result<()> {
     let repo_dir = resolve_repo_dir(root, &args.repo);
     // `skip_storypole` is now expressed by passing no inputs: the orchestrator simply does not gather.
     let no_llm = args.no_llm || args.skip_storypole;
-    let plan = outfeed_mcp::orchestrator::release::plan_repository(
+    let plan = outfeed_orchestrator::release::plan_repository(
         &repo_dir,
         args.override_version.as_deref(),
         no_llm,
