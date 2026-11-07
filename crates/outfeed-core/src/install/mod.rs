@@ -30,6 +30,9 @@ pub enum InstallOutcome {
     },
 }
 
+mod staleness;
+use staleness::binary_is_stale;
+
 /// Installs a single tool by name using default progress reporter.
 pub fn install_tool(
     workspace_root: &Path,
@@ -143,59 +146,6 @@ pub fn install_tool_with_progress(
 /// Only consulted for `--debug` installs. Returns `true` when anything is unknown - no binary on PATH, no
 /// readable mtime - because rebuilding unnecessarily costs a minute while skipping a stale binary costs a
 /// confusing debugging session.
-fn binary_is_stale(repo_dir: &std::path::Path, bin_name: &str) -> bool {
-    let Some(home) = std::env::var_os("HOME") else {
-        return true;
-    };
-    let binary = std::path::PathBuf::from(home)
-        .join(".cargo")
-        .join("bin")
-        .join(bin_name);
-    let Ok(binary_mtime) = std::fs::metadata(&binary).and_then(|meta| meta.modified()) else {
-        return true;
-    };
-
-    newest_mtime(repo_dir)
-        .map(|source| source > binary_mtime)
-        .unwrap_or(true)
-}
-
-/// Newest modification time anywhere under `dir`, skipping generated directories.
-fn newest_mtime(dir: &std::path::Path) -> Option<std::time::SystemTime> {
-    const SKIP: [&str; 7] = [
-        "target",
-        ".git",
-        "node_modules",
-        "dist",
-        ".gaugeblock",
-        ".storypole",
-        "worktrees",
-    ];
-
-    let mut newest: Option<std::time::SystemTime> = None;
-    let mut consider = |candidate: std::time::SystemTime| {
-        newest = Some(newest.map_or(candidate, |current| current.max(candidate)));
-    };
-
-    for entry in std::fs::read_dir(dir).ok()?.flatten() {
-        let path = entry.path();
-        if path.is_dir() {
-            let name = entry.file_name().to_string_lossy().to_string();
-            if SKIP.contains(&name.as_str()) {
-                continue;
-            }
-            if let Some(inner) = newest_mtime(&path) {
-                consider(inner);
-            }
-        } else if let Ok(meta) = entry.metadata()
-            && let Ok(mtime) = meta.modified()
-        {
-            consider(mtime);
-        }
-    }
-    newest
-}
-
 /// Executes installation across all tools in the suite with default progress reporter.
 pub fn install_all(
     workspace_root: &Path,
