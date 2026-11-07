@@ -10,17 +10,28 @@ use storypole_core::ops::mutations::{CreateTaskParams, add_task};
 use storypole_core::ops::verification::verify_task;
 use storypole_core::store::StorypoleStore;
 
-/// Searches upwards from start_dir for the directory containing `.gaugeblock` or `.storypole`.
+/// The repository whose ledger this release should write to.
+///
+/// Resolved by `gaugeblock-workspace`, not by walking upwards (`GB-304`). The walk looked equivalent and
+/// was not: it returns the *nearest* directory holding a `.gaugeblock`, so in a linked worktree it found
+/// the worktree's own copy and wrote a second ledger - the precise duplication `GB-189` removed by
+/// deriving the directory from the git common dir instead. Two mechanisms answering "where is the suite"
+/// is one mechanism too many, and this is the one that was wrong.
+///
+/// The `.storypole` fallback stays for a repository that has not migrated. It is checked at the path the
+/// caller named rather than by walking, because a legacy directory in a parent is someone else's
+/// repository, not this one.
 pub fn find_storypole_root(start_dir: &Path) -> Option<PathBuf> {
-    let mut curr = start_dir.to_path_buf();
-    loop {
-        if curr.join(".gaugeblock").join("storypole").is_dir() || curr.join(".storypole").is_dir() {
-            return Some(curr);
-        }
-        if !curr.pop() {
-            return None;
+    if let Ok(paths) = gaugeblock_workspace::GaugeblockPaths::discover(start_dir) {
+        let suite_root = paths.root().parent().unwrap_or(paths.root());
+        if paths.ledger().exists() || paths.root().is_dir() {
+            return Some(suite_root.to_path_buf());
         }
     }
+    if start_dir.join(".storypole").is_dir() {
+        return Some(start_dir.to_path_buf());
+    }
+    None
 }
 
 /// Fetches summaries for a list of ticket keys (e.g. "GB-41").

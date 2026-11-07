@@ -14,6 +14,7 @@ workspace = true
 # The layer that composes the rest of the suite. `outfeed-core` plans and applies a single repository;
 # this crate walks a workspace, reads a backlog and calls an inference backend, which is exactly what the
 # core is forbidden to do (GB-285, GB-286, GB-204).
+gaugeblock-workspace = "0.1.0-beta.1"
 outfeed-core = { path = "../outfeed-core", version = "0.1.0-beta.7" }
 storypole-core = "0.1.0-beta.2"
 sawhorse-core = "0.1.0-beta.2"

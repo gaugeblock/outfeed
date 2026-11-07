@@ -967,6 +967,7 @@ dependencies = [
 name = "outfeed-orchestrator"
 version = "0.1.0-beta.7"
 dependencies = [
+ "gaugeblock-workspace",
  "outfeed-core",
  "sawhorse-core",
  "serde_json",
