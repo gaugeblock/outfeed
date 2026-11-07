@@ -4,7 +4,6 @@
 //! release plan sit in separate files.
 
 use std::path::Path;
-use std::process::Command;
 
 use crate::error::OutfeedError;
 
@@ -38,18 +37,13 @@ pub fn get_commits_between(
         None => to_ref.to_string(),
     };
 
-    let output = Command::new("git")
-        .args(["log", "--format=%H%x1f%s%x1f%b%x1e", &range])
-        .current_dir(repo_dir)
-        .output()
-        .map_err(|e| OutfeedError::Git(format!("Failed to get git log: {e}")))?;
+    // Through `gaugeblock-git`, which is the one crate allowed to spawn git (`SPEC.md`, and the
+    // foundation audit in `GB-305`): this crate already depended on it and re-implemented the call
+    // beside it anyway. Behaviour is unchanged except that a commit message which is not valid UTF-8 is
+    // now a reported error rather than being silently mangled by a lossy conversion.
+    let raw = gaugeblock_git::run_git(repo_dir, &["log", "--format=%H%x1f%s%x1f%b%x1e", &range])
+        .map_err(|error| OutfeedError::Git(format!("git log failed: {error}")))?;
 
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(OutfeedError::Git(format!("git log failed: {stderr}")));
-    }
-
-    let raw = String::from_utf8_lossy(&output.stdout);
     let mut commits = Vec::new();
 
     for record in raw.split('\x1e') {

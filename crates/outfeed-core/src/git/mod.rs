@@ -103,17 +103,12 @@ pub fn stage_commit_and_tag(
     // Deliberate exception: `-A` means "stage everything", which is the hazard `GB-150` records. It is
     // kept because deciding what a release commit may contain is a behaviour change, not a refactor,
     // and it is tracked as such rather than migrated silently.
-    let add = std::process::Command::new("git")
-        .arg("add")
-        .args(paths)
-        .current_dir(repo_dir)
-        .output()
+    // Through `gaugeblock-git` for the same reason as the log call: only that crate spawns git, and
+    // this one had the dependency without using it for the command (`GB-305`).
+    let mut add_args = vec!["add"];
+    add_args.extend_from_slice(paths);
+    gaugeblock_git::run_git(repo_dir, &add_args)
         .map_err(|e| OutfeedError::Git(format!("git add failed: {e}")))?;
-    if !add.status.success() {
-        return Err(OutfeedError::Git(
-            "Failed to stage release changes".to_string(),
-        ));
-    }
 
     repo.commit(message)
         .map_err(|error| OutfeedError::Git(format!("git commit failed: {error}")))?;
