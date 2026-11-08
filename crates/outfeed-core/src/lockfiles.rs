@@ -125,10 +125,15 @@ pub fn check_lockfiles(workspace_root: &Path) -> Result<LockfileReport, OutfeedE
 pub fn check_lockfiles_resolved(
     workspace_root: &Path,
 ) -> Result<(PathBuf, LockfileReport), OutfeedError> {
-    match check_lockfiles(workspace_root) {
-        Ok(report) => Ok((workspace_root.to_path_buf(), report)),
+    // Absolutise first. `Path::ancestors` on a relative path stops at `.`, so membership from a CLI
+    // invocation in the repository it was run from found no suite above it and the fallback silently did
+    // nothing - the fix for an empty pass produced a pass-shaped error instead.
+    let root =
+        std::fs::canonicalize(workspace_root).unwrap_or_else(|_| workspace_root.to_path_buf());
+    match check_lockfiles(&root) {
+        Ok(report) => Ok((root, report)),
         Err(OutfeedError::NoRepositories { .. }) => {
-            match gaugeblock_workspace::Membership::containing(workspace_root) {
+            match gaugeblock_workspace::Membership::containing(&root) {
                 Some(membership) => {
                     let suite = membership.suite_root.clone();
                     // Not silent: a check that quietly widened its scope is a check whose report means
@@ -141,7 +146,7 @@ pub fn check_lockfiles_resolved(
                     check_lockfiles(&suite).map(|report| (suite, report))
                 }
                 None => Err(OutfeedError::NoRepositories {
-                    root: workspace_root.display().to_string(),
+                    root: root.display().to_string(),
                 }),
             }
         }

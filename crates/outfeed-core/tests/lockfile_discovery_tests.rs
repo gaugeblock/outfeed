@@ -55,7 +55,11 @@ fn running_inside_a_member_checks_the_suite_and_says_which() {
     let member = tmp.path().join("alpha");
     let (checked, report) = check_lockfiles_resolved(&member).expect("the suite is checked");
 
-    assert_eq!(checked, tmp.path(), "the suite root is what was checked");
+    assert_eq!(
+        checked,
+        std::fs::canonicalize(tmp.path()).expect("canonical suite root"),
+        "the suite root is what was checked"
+    );
     assert_eq!(
         report.repositories.len(),
         2,
