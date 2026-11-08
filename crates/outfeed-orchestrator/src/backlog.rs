@@ -127,6 +127,8 @@ pub fn certify_release_ticket(
         base_commit_sha: None,
         head_commit_sha: None,
         commit_shas: Vec::new(),
+            repo: None,
+            chain_key: None,
     };
 
     verify_task(&mut store, id, Some(receipt), false, false)
