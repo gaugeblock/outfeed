@@ -124,7 +124,7 @@ outfeed sync --all --locked
 * **[`ARCHITECTURE.md`](docs/ARCHITECTURE.md):** Subsystem decomposition, topological DAG packager, and changelog synthesizer.
 * **[`DESIGN.md`](docs/DESIGN.md):** Concrete Architectural Decision Records (ADRs).
 * **[`PRODUCT.md`](docs/PRODUCT.md):** Personas, user journeys, JTBD, and release automation strategy.
-* **[`CONTRIBUTING.md`](docs/CONTRIBUTING.md):** Rust 2024 toolchain requirements and tiered verification gates.
+* **[`CONTRIBUTING.md`](CONTRIBUTING.md):** Rust 2024 toolchain requirements and tiered verification gates.
 * **[`ROADMAP.md`](docs/ROADMAP.md):** Active milestones and upcoming release orchestration capabilities.
 * **[`CHANGELOG.md`](./CHANGELOG.md):** Historical version releases and pending changes.
 * **[`AGENTS.md`](./AGENTS.md):** Non-negotiable engineering laws and autonomous execution directives.
