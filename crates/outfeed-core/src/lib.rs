@@ -67,7 +67,9 @@ pub use install::{
     InstallOutcome, SUITE_TOOLS, SuiteTool, get_installed_version, install_all,
     install_all_with_progress, install_tool, install_tool_with_progress,
 };
-pub use lockfiles::{LockfileReport, RepoLockfile, check_lockfiles, format_lockfile_report};
+pub use lockfiles::{
+    LockfileReport, RepoLockfile, check_lockfiles, check_lockfiles_resolved, format_lockfile_report,
+};
 pub use manifest::{
     apply_manifest_diffs, get_repo_version, plan_manifest_updates, rollback_manifest_diffs,
 };

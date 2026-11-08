@@ -88,6 +88,12 @@ pub fn check_lockfiles(workspace_root: &Path) -> Result<LockfileReport, OutfeedE
     }
     candidates.sort();
 
+    if candidates.is_empty() {
+        return Err(OutfeedError::NoRepositories {
+            root: workspace_root.display().to_string(),
+        });
+    }
+
     for repo_dir in candidates {
         let repo = repo_dir
             .file_name()
@@ -102,6 +108,45 @@ pub fn check_lockfiles(workspace_root: &Path) -> Result<LockfileReport, OutfeedE
     }
 
     Ok(LockfileReport { repositories })
+}
+
+/// Discovers repositories under `workspace_root` and checks each one's lockfile, resolving the suite when
+/// the given directory is a member repository (`GB-327`).
+///
+/// A member repository is not a suite: its children are `crates/`, `docs/` and friends, so discovery
+/// finds nothing and `lockfiles` used to print "All 0 repositories track a fresh Cargo.lock" and exit 0.
+/// Running it from `common/` checked nothing at all.
+///
+/// Returns the directory actually checked, so a caller can say which one it was.
+///
+/// # Errors
+///
+/// [`OutfeedError::NoRepositories`] when neither the directory nor any suite above it has repositories.
+pub fn check_lockfiles_resolved(
+    workspace_root: &Path,
+) -> Result<(PathBuf, LockfileReport), OutfeedError> {
+    match check_lockfiles(workspace_root) {
+        Ok(report) => Ok((workspace_root.to_path_buf(), report)),
+        Err(OutfeedError::NoRepositories { .. }) => {
+            match gaugeblock_workspace::Membership::containing(workspace_root) {
+                Some(membership) => {
+                    let suite = membership.suite_root.clone();
+                    // Not silent: a check that quietly widened its scope is a check whose report means
+                    // something other than the caller thinks.
+                    tracing::info!(
+                        member = %membership.member.name,
+                        suite = %suite.display(),
+                        "no repositories here; checking the suite this repository belongs to"
+                    );
+                    check_lockfiles(&suite).map(|report| (suite, report))
+                }
+                None => Err(OutfeedError::NoRepositories {
+                    root: workspace_root.display().to_string(),
+                }),
+            }
+        }
+        Err(other) => Err(other),
+    }
 }
 
 /// Whether git tracks `Cargo.lock` in `repo_dir`.

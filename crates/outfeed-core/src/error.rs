@@ -9,6 +9,21 @@ pub enum OutfeedError {
     #[error("Git operation failed: {0}")]
     Git(String),
 
+    /// Nothing was found to check (`GB-327`).
+    ///
+    /// A check that reports success on an empty set is indistinguishable from a check that passed, and
+    /// `outfeed lockfiles` run inside a member repository found zero repositories, printed
+    /// "All 0 repositories track a fresh Cargo.lock" and exited 0. Discovery finding nothing is a
+    /// failure to look, not a pass.
+    #[error(
+        "found no repositories to check under {root}: a directory counts when it holds Cargo.toml and a \
+         .git entry. Run from a suite root, or pass --path"
+    )]
+    NoRepositories {
+        /// The directory discovery searched.
+        root: String,
+    },
+
     /// Working tree is dirty.
     #[error("Working tree is dirty: {0}")]
     DirtyWorkingTree(String),

@@ -99,9 +99,14 @@ fn test_reports_tracked_and_untracked_repositories() {
 }
 
 #[test]
-fn test_empty_workspace_is_ok() {
+fn test_empty_workspace_is_a_failure_not_a_pass() {
+    // This asserted the opposite until GB-327, and the assertion was the defect stated as a rule: an
+    // empty workspace reported "All 0 repositories track a fresh Cargo.lock" and exited 0.
     let root = tempdir().expect("tempdir");
-    let report = outfeed_core::check_lockfiles(root.path()).expect("check");
-    assert!(report.repositories.is_empty());
-    assert!(report.is_ok());
+    let error =
+        outfeed_core::check_lockfiles(root.path()).expect_err("nothing checked is not a pass");
+    assert!(matches!(
+        error,
+        outfeed_core::OutfeedError::NoRepositories { .. }
+    ));
 }

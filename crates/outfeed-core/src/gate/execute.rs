@@ -10,15 +10,22 @@ use crate::error::OutfeedError;
 pub(super) fn execute(dir: &Path, command: &GateCommand) -> Result<GateStepResult, OutfeedError> {
     match command {
         GateCommand::Lockfiles => {
-            let report = crate::lockfiles::check_lockfiles(dir)?;
-            if report.repositories.is_empty() {
-                return Ok(GateStepResult {
-                    name: String::new(),
-                    passed: true,
-                    skipped: true,
-                    detail: format!("no member repositories under {}", dir.display()),
-                });
-            }
+            // Two callers, two meanings. The gate runs at whatever directory it is handed, and "no
+            // member repositories here" is a statement about scope, so it skips. The CLI errors on the
+            // same condition, because there the caller asked for a check and would otherwise be told
+            // everything passed while nothing was examined (`GB-327`).
+            let report = match crate::lockfiles::check_lockfiles(dir) {
+                Ok(report) => report,
+                Err(OutfeedError::NoRepositories { .. }) => {
+                    return Ok(GateStepResult {
+                        name: String::new(),
+                        passed: true,
+                        skipped: true,
+                        detail: format!("no member repositories under {}", dir.display()),
+                    });
+                }
+                Err(other) => return Err(other),
+            };
             let passed = report.is_ok();
             let detail = if passed {
                 format!(
