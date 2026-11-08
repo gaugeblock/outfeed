@@ -7,6 +7,7 @@
 //!
 //! A test with one repository in scope cannot distinguish the two implementations. This one creates two.
 
+//! multi-repo: two repositories in scope, which is the only way to see cross-repository behaviour.
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use outfeed_orchestrator::backlog::find_storypole_root;
