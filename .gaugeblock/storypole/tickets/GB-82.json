@@ -1,0 +1,351 @@
+{
+  "ticket": {
+    "id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
+    "ticket_key": "GB-82",
+    "slug": "implement-check-plan-execute-3-phase-suite-release-pipeline-in-outfeed-core-477bb0",
+    "title": "Implement Check -> Plan -> Execute 3-phase suite release pipeline in outfeed-core",
+    "description": "Refactor suite release into an explicit 3-phase pipeline (Check -> Plan -> Execute) with parallel pre-flight validation, parallel commit/semver planning, compact summary table rendering, zero-release auto-exit, and confirmation gate.",
+    "kind": "feature",
+    "status": "verified",
+    "priority": 1,
+    "scope": {
+      "repo": "outfeed",
+      "crate_name": "outfeed-core",
+      "module_path": null,
+      "target_files": [],
+      "target_symbols": [],
+      "labels": []
+    },
+    "edges": [
+      {
+        "kind": "related_to",
+        "target_id": "45af2098-2117-4252-8465-065e4651b9c2",
+        "target_ticket_key": "GB-81",
+        "target_repo": "sawhorse"
+      }
+    ],
+    "decisions": [
+      {
+        "decision_id": "39ce7e1e-d6d0-4b0c-8f32-725c55e9e7ee",
+        "parent_decision_id": null,
+        "status": "resolved",
+        "category": "general",
+        "question": "What concurrency model should outfeed release --all use across the pipeline phases?",
+        "proposed_options": [
+          "Parallel Check & Plan, Sequential Topological Execute (default --jobs 1, optional --jobs N)",
+          "Strictly Sequential for all phases",
+          "Fully parallel execution across all phases"
+        ],
+        "chosen_option": "Parallel Check & Plan, Sequential Topological Execute (default --jobs 1, optional --jobs N)",
+        "rationale": "Fast parallel checks and semver planning without risking thermal throttling or compiler resource exhaustion during cargo test and install on laptops",
+        "resolved_by": "user",
+        "updated_at_epoch_ms": 1793063719537
+      },
+      {
+        "decision_id": "669a4eae-e810-42af-873a-2d1188bd7279",
+        "parent_decision_id": null,
+        "status": "resolved",
+        "category": "general",
+        "question": "In the pre-flight Check phase, how should outfeed release --all handle repositories that are dirty or on a feature branch?",
+        "proposed_options": [
+          "Strict Fail-Fast: Abort the entire suite release upfront if any repo is dirty or not on main",
+          "Selective Skip: Warn and skip dirty repos, releasing clean repos",
+          "Allow override with --force"
+        ],
+        "chosen_option": "Strict Fail-Fast: Abort the entire suite release upfront if any repo is dirty or not on main",
+        "rationale": "Preserves atomic workspace integrity, prevents broken intermediate release states, and guarantees adherence to Directive 6 and 10",
+        "resolved_by": "user",
+        "updated_at_epoch_ms": 1793063727252
+      },
+      {
+        "decision_id": "93d81672-dc3f-46a8-bb1e-19bedf7dccfc",
+        "parent_decision_id": null,
+        "status": "resolved",
+        "category": "general",
+        "question": "How should outfeed release --all handle the boundary between the upfront Plan phase and the Execute phase?",
+        "proposed_options": [
+          "Show full Suite Release Plan table, then prompt Proceed with release? [y/N] (bypassed with --yes/-y or in --json/--dry-run)",
+          "Print Suite Release Plan table as summary and immediately execute without pause",
+          "Require two separate commands: outfeed plan --all then outfeed release --all"
+        ],
+        "chosen_option": "Show full Suite Release Plan table, then prompt Proceed with release? [y/N] (bypassed with --yes/-y or in --json/--dry-run)",
+        "rationale": "Gives the operator complete visibility into planned semver changes across all 10 repositories before committing to irreversible git tags and releases",
+        "resolved_by": "user",
+        "updated_at_epoch_ms": 1793063736511
+      }
+    ],
+    "acceptance_criteria": [],
+    "plan": {
+      "summary": "Implement Check -> Plan -> Execute 3-phase suite release pipeline with parallel preflight check, parallel semver plan, summary table, and confirmation gate",
+      "design_markdown": "# GB-82: Implement Check -> Plan -> Execute 3-Phase Suite Release Pipeline in outfeed-core\n\n## Problem\n1. **Blind Sequential Execution:**\n   `outfeed release --all` sequentially iterates through repos without an upfront plan, giving the operator zero visibility into which repos will be bumped, their target versions, or which are clean.\n2. **Late Failures on Dirty Repos:**\n   If repository 8 has uncommitted changes or is on a feature branch, the release pipeline executes for minutes on repositories 1–7 before crashing on repository 8, leaving the workspace in a half-released, dirty state.\n3. **No Upfront Confirmation Gate:**\n   Operators have no opportunity to inspect proposed versions or abort before irreversible tag creations, installations, and pushes occur.\n\n## Solution\n1. **Phase 1: Pre-flight Check (`check_suite_preflight`):**\n   - Concurrently audit all 10 repositories (`main` branch check, clean working tree, remote tracking sync).\n   - Strict Fail-Fast: Abort upfront with a diagnostic status table if any repository fails.\n2. **Phase 2: Suite Release Plan (`plan_suite_releases`):**\n   - Concurrently analyze git commits and Storypole tasks across all member repos using `futures::future::join_all`.\n   - Calculate semver bumps and render the upfront **Compact Summary Table**:\n     `REPOSITORY | CURRENT | TARGET | ACTION | COMMITS | TASKS`.\n   - Auto-Exit Clean: If 0 repos need releases, print status and exit code 0.\n3. **Phase 3: Topological Execution (`execute_suite_releases`):**\n   - Execute releases strictly in topological dependency order.\n   - Enforce concurrency control (`jobs = 1` by default for CPU/RAM safety on laptops).\n   - Use captured verification and granular step progress.\n\n## Step Breakdown\n- Step 1: Implement `check_suite_preflight` in `outfeed-core::suite_check` (Gate: `cargo check -p outfeed-core`)\n- Step 2: Implement `plan_suite_releases` and `format_suite_plan_table` in `outfeed-core::suite_plan` (Gate: `cargo check -p outfeed-core`)\n- Step 3: Implement `execute_suite_releases` and refactor `release_all` in `outfeed-core::release` (Gate: `cargo test -p outfeed-core`)\n- Step 4: Tier 2 verification in `outfeed-core` (Gate: `cargo nextest run -p outfeed-core`)\n",
+      "steps": [],
+      "plan_file_path": ".gaugeblock/storypole/plans/GB-82.md",
+      "updated_at_epoch_ms": 1793063762960
+    },
+    "active_claim": null,
+    "latest_handoff": null,
+    "verification_receipt": {
+      "verifier": "agent-antigravity",
+      "command": "n/a",
+      "exit_code": 0,
+      "diagnostic_count": null,
+      "summary": "Implemented 3-phase Check -> Plan -> Execute pipeline with parallel preflight check, parallel semver planning, and compact summary table",
+      "verified_at_epoch_ms": 1793064593836,
+      "git_branch": "feat/gb-82-suite-release-3phase-pipeline",
+      "base_commit_sha": "6fd1aecbfe8e8e3dd1c6339c9a82da35c90ca839",
+      "head_commit_sha": "6fd1aecbfe8e8e3dd1c6339c9a82da35c90ca839",
+      "commit_shas": [
+        "6fd1aecbfe8e8e3dd1c6339c9a82da35c90ca839"
+      ],
+      "repo": null,
+      "chain_key": null
+    },
+    "created_at_epoch_ms": 1793063685800,
+    "updated_at_epoch_ms": 1794037972406,
+    "archived_at_epoch_ms": 1794037972406
+  },
+  "events": [
+    {
+      "event": "task_created",
+      "task": {
+        "id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
+        "ticket_key": "GB-82",
+        "slug": "implement-check-plan-execute-3-phase-suite-release-pipeline-in-outfeed-core-477bb0",
+        "title": "Implement Check -> Plan -> Execute 3-phase suite release pipeline in outfeed-core",
+        "description": "Refactor suite release into an explicit 3-phase pipeline (Check -> Plan -> Execute) with parallel pre-flight validation, parallel commit/semver planning, compact summary table rendering, zero-release auto-exit, and confirmation gate.",
+        "kind": "feature",
+        "status": "ready",
+        "priority": 1,
+        "scope": {
+          "repo": "outfeed",
+          "crate_name": "outfeed-core",
+          "module_path": null,
+          "target_files": [],
+          "target_symbols": [],
+          "labels": []
+        },
+        "edges": [],
+        "decisions": [],
+        "acceptance_criteria": [],
+        "plan": null,
+        "active_claim": null,
+        "latest_handoff": null,
+        "verification_receipt": null,
+        "created_at_epoch_ms": 1793063685800,
+        "updated_at_epoch_ms": 1793063685800
+      }
+    },
+    {
+      "event": "edge_added",
+      "task_id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
+      "edge": {
+        "kind": "related_to",
+        "target_id": "45af2098-2117-4252-8465-065e4651b9c2",
+        "target_ticket_key": "GB-81",
+        "target_repo": "sawhorse"
+      },
+      "timestamp_ms": 1793063695310
+    },
+    {
+      "event": "decision_raised",
+      "task_id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
+      "decision": {
+        "decision_id": "39ce7e1e-d6d0-4b0c-8f32-725c55e9e7ee",
+        "parent_decision_id": null,
+        "status": "pending",
+        "category": "general",
+        "question": "What concurrency model should outfeed release --all use across the pipeline phases?",
+        "proposed_options": [
+          "Parallel Check & Plan, Sequential Topological Execute (default --jobs 1, optional --jobs N)",
+          "Strictly Sequential for all phases",
+          "Fully parallel execution across all phases"
+        ],
+        "chosen_option": null,
+        "rationale": null,
+        "resolved_by": null,
+        "updated_at_epoch_ms": 1793063716011
+      },
+      "timestamp_ms": 1793063716011
+    },
+    {
+      "event": "status_changed",
+      "task_id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
+      "from": "ready",
+      "to": "blocked",
+      "reason": "Pending architectural decision required",
+      "timestamp_ms": 1793063716011
+    },
+    {
+      "event": "decision_resolved",
+      "task_id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
+      "decision_id": "39ce7e1e-d6d0-4b0c-8f32-725c55e9e7ee",
+      "chosen_option": "Parallel Check & Plan, Sequential Topological Execute (default --jobs 1, optional --jobs N)",
+      "rationale": "Fast parallel checks and semver planning without risking thermal throttling or compiler resource exhaustion during cargo test and install on laptops",
+      "resolved_by": "user",
+      "spawned_followup": null,
+      "appended_criterion": null,
+      "timestamp_ms": 1793063719537
+    },
+    {
+      "event": "status_changed",
+      "task_id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
+      "from": "blocked",
+      "to": "ready",
+      "reason": "All pending decisions and dependencies satisfied",
+      "timestamp_ms": 1793063719537
+    },
+    {
+      "event": "decision_raised",
+      "task_id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
+      "decision": {
+        "decision_id": "669a4eae-e810-42af-873a-2d1188bd7279",
+        "parent_decision_id": null,
+        "status": "pending",
+        "category": "general",
+        "question": "In the pre-flight Check phase, how should outfeed release --all handle repositories that are dirty or on a feature branch?",
+        "proposed_options": [
+          "Strict Fail-Fast: Abort the entire suite release upfront if any repo is dirty or not on main",
+          "Selective Skip: Warn and skip dirty repos, releasing clean repos",
+          "Allow override with --force"
+        ],
+        "chosen_option": null,
+        "rationale": null,
+        "resolved_by": null,
+        "updated_at_epoch_ms": 1793063723997
+      },
+      "timestamp_ms": 1793063723997
+    },
+    {
+      "event": "status_changed",
+      "task_id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
+      "from": "ready",
+      "to": "blocked",
+      "reason": "Pending architectural decision required",
+      "timestamp_ms": 1793063723997
+    },
+    {
+      "event": "decision_resolved",
+      "task_id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
+      "decision_id": "669a4eae-e810-42af-873a-2d1188bd7279",
+      "chosen_option": "Strict Fail-Fast: Abort the entire suite release upfront if any repo is dirty or not on main",
+      "rationale": "Preserves atomic workspace integrity, prevents broken intermediate release states, and guarantees adherence to Directive 6 and 10",
+      "resolved_by": "user",
+      "spawned_followup": null,
+      "appended_criterion": null,
+      "timestamp_ms": 1793063727252
+    },
+    {
+      "event": "status_changed",
+      "task_id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
+      "from": "blocked",
+      "to": "ready",
+      "reason": "All pending decisions and dependencies satisfied",
+      "timestamp_ms": 1793063727252
+    },
+    {
+      "event": "decision_raised",
+      "task_id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
+      "decision": {
+        "decision_id": "93d81672-dc3f-46a8-bb1e-19bedf7dccfc",
+        "parent_decision_id": null,
+        "status": "pending",
+        "category": "general",
+        "question": "How should outfeed release --all handle the boundary between the upfront Plan phase and the Execute phase?",
+        "proposed_options": [
+          "Show full Suite Release Plan table, then prompt Proceed with release? [y/N] (bypassed with --yes/-y or in --json/--dry-run)",
+          "Print Suite Release Plan table as summary and immediately execute without pause",
+          "Require two separate commands: outfeed plan --all then outfeed release --all"
+        ],
+        "chosen_option": null,
+        "rationale": null,
+        "resolved_by": null,
+        "updated_at_epoch_ms": 1793063732796
+      },
+      "timestamp_ms": 1793063732796
+    },
+    {
+      "event": "status_changed",
+      "task_id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
+      "from": "ready",
+      "to": "blocked",
+      "reason": "Pending architectural decision required",
+      "timestamp_ms": 1793063732796
+    },
+    {
+      "event": "decision_resolved",
+      "task_id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
+      "decision_id": "93d81672-dc3f-46a8-bb1e-19bedf7dccfc",
+      "chosen_option": "Show full Suite Release Plan table, then prompt Proceed with release? [y/N] (bypassed with --yes/-y or in --json/--dry-run)",
+      "rationale": "Gives the operator complete visibility into planned semver changes across all 10 repositories before committing to irreversible git tags and releases",
+      "resolved_by": "user",
+      "spawned_followup": null,
+      "appended_criterion": null,
+      "timestamp_ms": 1793063736511
+    },
+    {
+      "event": "status_changed",
+      "task_id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
+      "from": "blocked",
+      "to": "ready",
+      "reason": "All pending decisions and dependencies satisfied",
+      "timestamp_ms": 1793063736511
+    },
+    {
+      "event": "plan_updated",
+      "task_id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
+      "plan": {
+        "summary": "Implement Check -> Plan -> Execute 3-phase suite release pipeline with parallel preflight check, parallel semver plan, summary table, and confirmation gate",
+        "design_markdown": "# GB-82: Implement Check -> Plan -> Execute 3-Phase Suite Release Pipeline in outfeed-core\n\n## Problem\n1. **Blind Sequential Execution:**\n   `outfeed release --all` sequentially iterates through repos without an upfront plan, giving the operator zero visibility into which repos will be bumped, their target versions, or which are clean.\n2. **Late Failures on Dirty Repos:**\n   If repository 8 has uncommitted changes or is on a feature branch, the release pipeline executes for minutes on repositories 1–7 before crashing on repository 8, leaving the workspace in a half-released, dirty state.\n3. **No Upfront Confirmation Gate:**\n   Operators have no opportunity to inspect proposed versions or abort before irreversible tag creations, installations, and pushes occur.\n\n## Solution\n1. **Phase 1: Pre-flight Check (`check_suite_preflight`):**\n   - Concurrently audit all 10 repositories (`main` branch check, clean working tree, remote tracking sync).\n   - Strict Fail-Fast: Abort upfront with a diagnostic status table if any repository fails.\n2. **Phase 2: Suite Release Plan (`plan_suite_releases`):**\n   - Concurrently analyze git commits and Storypole tasks across all member repos using `futures::future::join_all`.\n   - Calculate semver bumps and render the upfront **Compact Summary Table**:\n     `REPOSITORY | CURRENT | TARGET | ACTION | COMMITS | TASKS`.\n   - Auto-Exit Clean: If 0 repos need releases, print status and exit code 0.\n3. **Phase 3: Topological Execution (`execute_suite_releases`):**\n   - Execute releases strictly in topological dependency order.\n   - Enforce concurrency control (`jobs = 1` by default for CPU/RAM safety on laptops).\n   - Use captured verification and granular step progress.\n\n## Step Breakdown\n- Step 1: Implement `check_suite_preflight` in `outfeed-core::suite_check` (Gate: `cargo check -p outfeed-core`)\n- Step 2: Implement `plan_suite_releases` and `format_suite_plan_table` in `outfeed-core::suite_plan` (Gate: `cargo check -p outfeed-core`)\n- Step 3: Implement `execute_suite_releases` and refactor `release_all` in `outfeed-core::release` (Gate: `cargo test -p outfeed-core`)\n- Step 4: Tier 2 verification in `outfeed-core` (Gate: `cargo nextest run -p outfeed-core`)\n",
+        "steps": [],
+        "plan_file_path": ".gaugeblock/storypole/plans/GB-82.md",
+        "updated_at_epoch_ms": 1793063762960
+      },
+      "timestamp_ms": 1793063762960
+    },
+    {
+      "event": "task_claimed",
+      "task_id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
+      "claim": {
+        "agent_id": "agent-antigravity",
+        "claimed_at_epoch_ms": 1793064137163,
+        "lease_expires_at_epoch_ms": 1793067737163,
+        "git_branch": "feat/gb-82-suite-release-3phase-pipeline",
+        "base_commit_sha": "6fd1aecbfe8e8e3dd1c6339c9a82da35c90ca839"
+      }
+    },
+    {
+      "event": "status_changed",
+      "task_id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
+      "from": "ready",
+      "to": "in_progress",
+      "reason": "Claimed by agent-antigravity",
+      "timestamp_ms": 1793064137163
+    },
+    {
+      "event": "task_verified",
+      "task_id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
+      "receipt": {
+        "verifier": "agent-antigravity",
+        "command": "n/a",
+        "exit_code": 0,
+        "diagnostic_count": null,
+        "summary": "Implemented 3-phase Check -> Plan -> Execute pipeline with parallel preflight check, parallel semver planning, and compact summary table",
+        "verified_at_epoch_ms": 1793064593836,
+        "git_branch": "feat/gb-82-suite-release-3phase-pipeline",
+        "base_commit_sha": "6fd1aecbfe8e8e3dd1c6339c9a82da35c90ca839",
+        "head_commit_sha": "6fd1aecbfe8e8e3dd1c6339c9a82da35c90ca839",
+        "commit_shas": [
+          "6fd1aecbfe8e8e3dd1c6339c9a82da35c90ca839"
+        ],
+        "repo": null,
+        "chain_key": null
+      }
+    },
+    {
+      "event": "task_archived",
+      "task_id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
+      "status": "verified",
+      "timestamp_ms": 1794037972406
+    }
+  ]
+}

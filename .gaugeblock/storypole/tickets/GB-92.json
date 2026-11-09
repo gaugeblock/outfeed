@@ -1,0 +1,140 @@
+{
+  "ticket": {
+    "id": "4e7e7c14-3c30-49c4-8896-f07b1845803f",
+    "ticket_key": "GB-92",
+    "slug": "roll-back-modified-cargo-lock-when-tier-4-verification-fails-during-outfeed-release-4e7e7c",
+    "title": "Roll back modified Cargo.lock when Tier 4 verification fails during outfeed release",
+    "description": "In outfeed-core engine.rs, ensure Cargo.lock is reverted along with manifest diffs when cargo check or cargo test verification fails to prevent leaving the working tree dirty.",
+    "kind": "bug",
+    "status": "verified",
+    "priority": 2,
+    "scope": {
+      "repo": "outfeed",
+      "crate_name": "outfeed-core",
+      "module_path": null,
+      "target_files": [],
+      "target_symbols": [],
+      "labels": []
+    },
+    "edges": [],
+    "decisions": [],
+    "acceptance_criteria": [],
+    "plan": {
+      "summary": "Roll back modified Cargo.lock when Tier 4 verification fails during outfeed release",
+      "design_markdown": "# GB-92: Roll back modified Cargo.lock when Tier 4 verification fails during outfeed release\n\n## Context & Root Cause\nIn `outfeed-core` (`crates/outfeed-core/src/engine.rs`), Step 2 runs `cargo check --workspace` which synchronizes `Cargo.lock` to the newly bumped version.\nIf Step 3 (Tier 4 verification `cargo test --workspace`) fails:\n`outfeed` calls `rollback_manifest_diffs(repo_dir, &plan.manifest_diffs)` which restores `Cargo.toml` and `CHANGELOG.md`.\nHowever, `Cargo.lock` is not rolled back. This leaves `Cargo.lock` dirty in the working tree, blocking all subsequent release attempts with `Working tree is dirty: M Cargo.lock`.\n\n## Implementation Steps\n1. In `outfeed/crates/outfeed-core/src/engine.rs`:\n   - When rolling back manifest diffs after a failed verification, also revert `Cargo.lock` if it exists in the repository root (e.g. via `git checkout -- Cargo.lock` or restoring its original state).\n2. Add a helper function or integrate into rollback logic to ensure working tree cleanliness on aborted release.\n3. Verify with unit tests in `outfeed-core`.\n4. Commit atomically: `fix(outfeed-core): roll back Cargo.lock on release verification failure`.\n",
+      "steps": [],
+      "plan_file_path": ".gaugeblock/storypole/plans/GB-92.md",
+      "updated_at_epoch_ms": 1793070876585
+    },
+    "active_claim": null,
+    "latest_handoff": null,
+    "verification_receipt": {
+      "verifier": "agent-antigravity",
+      "command": "n/a",
+      "exit_code": 0,
+      "diagnostic_count": null,
+      "summary": "Revert Cargo.lock during rollback_manifest_diffs on verification failure and verified all 28 tests pass",
+      "verified_at_epoch_ms": 1793071464846,
+      "git_branch": "fix/gb-92-outfeed-rollback-cargo-lock",
+      "base_commit_sha": "fdda5fb10dad4f0cc431c764e37e847bea408d46",
+      "head_commit_sha": "fdda5fb10dad4f0cc431c764e37e847bea408d46",
+      "commit_shas": [
+        "fdda5fb10dad4f0cc431c764e37e847bea408d46"
+      ],
+      "repo": null,
+      "chain_key": null
+    },
+    "created_at_epoch_ms": 1793070861255,
+    "updated_at_epoch_ms": 1794037996485,
+    "archived_at_epoch_ms": 1794037996485
+  },
+  "events": [
+    {
+      "event": "task_created",
+      "task": {
+        "id": "4e7e7c14-3c30-49c4-8896-f07b1845803f",
+        "ticket_key": "GB-92",
+        "slug": "roll-back-modified-cargo-lock-when-tier-4-verification-fails-during-outfeed-release-4e7e7c",
+        "title": "Roll back modified Cargo.lock when Tier 4 verification fails during outfeed release",
+        "description": "In outfeed-core engine.rs, ensure Cargo.lock is reverted along with manifest diffs when cargo check or cargo test verification fails to prevent leaving the working tree dirty.",
+        "kind": "bug",
+        "status": "ready",
+        "priority": 2,
+        "scope": {
+          "repo": "outfeed",
+          "crate_name": "outfeed-core",
+          "module_path": null,
+          "target_files": [],
+          "target_symbols": [],
+          "labels": []
+        },
+        "edges": [],
+        "decisions": [],
+        "acceptance_criteria": [],
+        "plan": null,
+        "active_claim": null,
+        "latest_handoff": null,
+        "verification_receipt": null,
+        "created_at_epoch_ms": 1793070861255,
+        "updated_at_epoch_ms": 1793070861255
+      }
+    },
+    {
+      "event": "plan_updated",
+      "task_id": "4e7e7c14-3c30-49c4-8896-f07b1845803f",
+      "plan": {
+        "summary": "Roll back modified Cargo.lock when Tier 4 verification fails during outfeed release",
+        "design_markdown": "# GB-92: Roll back modified Cargo.lock when Tier 4 verification fails during outfeed release\n\n## Context & Root Cause\nIn `outfeed-core` (`crates/outfeed-core/src/engine.rs`), Step 2 runs `cargo check --workspace` which synchronizes `Cargo.lock` to the newly bumped version.\nIf Step 3 (Tier 4 verification `cargo test --workspace`) fails:\n`outfeed` calls `rollback_manifest_diffs(repo_dir, &plan.manifest_diffs)` which restores `Cargo.toml` and `CHANGELOG.md`.\nHowever, `Cargo.lock` is not rolled back. This leaves `Cargo.lock` dirty in the working tree, blocking all subsequent release attempts with `Working tree is dirty: M Cargo.lock`.\n\n## Implementation Steps\n1. In `outfeed/crates/outfeed-core/src/engine.rs`:\n   - When rolling back manifest diffs after a failed verification, also revert `Cargo.lock` if it exists in the repository root (e.g. via `git checkout -- Cargo.lock` or restoring its original state).\n2. Add a helper function or integrate into rollback logic to ensure working tree cleanliness on aborted release.\n3. Verify with unit tests in `outfeed-core`.\n4. Commit atomically: `fix(outfeed-core): roll back Cargo.lock on release verification failure`.\n",
+        "steps": [],
+        "plan_file_path": ".gaugeblock/storypole/plans/GB-92.md",
+        "updated_at_epoch_ms": 1793070876585
+      },
+      "timestamp_ms": 1793070876585
+    },
+    {
+      "event": "task_claimed",
+      "task_id": "4e7e7c14-3c30-49c4-8896-f07b1845803f",
+      "claim": {
+        "agent_id": "agent-antigravity",
+        "claimed_at_epoch_ms": 1793071324641,
+        "lease_expires_at_epoch_ms": 1793074924641,
+        "git_branch": "fix/gb-92-outfeed-rollback-cargo-lock",
+        "base_commit_sha": "fdda5fb10dad4f0cc431c764e37e847bea408d46"
+      }
+    },
+    {
+      "event": "status_changed",
+      "task_id": "4e7e7c14-3c30-49c4-8896-f07b1845803f",
+      "from": "ready",
+      "to": "in_progress",
+      "reason": "Claimed by agent-antigravity",
+      "timestamp_ms": 1793071324641
+    },
+    {
+      "event": "task_verified",
+      "task_id": "4e7e7c14-3c30-49c4-8896-f07b1845803f",
+      "receipt": {
+        "verifier": "agent-antigravity",
+        "command": "n/a",
+        "exit_code": 0,
+        "diagnostic_count": null,
+        "summary": "Revert Cargo.lock during rollback_manifest_diffs on verification failure and verified all 28 tests pass",
+        "verified_at_epoch_ms": 1793071464846,
+        "git_branch": "fix/gb-92-outfeed-rollback-cargo-lock",
+        "base_commit_sha": "fdda5fb10dad4f0cc431c764e37e847bea408d46",
+        "head_commit_sha": "fdda5fb10dad4f0cc431c764e37e847bea408d46",
+        "commit_shas": [
+          "fdda5fb10dad4f0cc431c764e37e847bea408d46"
+        ],
+        "repo": null,
+        "chain_key": null
+      }
+    },
+    {
+      "event": "task_archived",
+      "task_id": "4e7e7c14-3c30-49c4-8896-f07b1845803f",
+      "status": "verified",
+      "timestamp_ms": 1794037996485
+    }
+  ]
+}

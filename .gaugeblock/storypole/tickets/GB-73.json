@@ -1,0 +1,320 @@
+{
+  "ticket": {
+    "id": "00919866-8201-40a8-9e32-c48f515ca386",
+    "ticket_key": "GB-73",
+    "slug": "orchestrate-meta-harness-suite-release-and-suite-lock-generation-in-outfeed-009198",
+    "title": "Orchestrate meta-harness suite release and suite.lock generation in outfeed",
+    "description": "Implement 'outfeed release suite' to orchestrate pre-flight suite checks, generate suite.lock, stamp root CHANGELOG.md, create suite-v<version> git tag, push to gaugeblock/gaugeblock, and publish GitHub Release.",
+    "kind": "feature",
+    "status": "verified",
+    "priority": 2,
+    "scope": {
+      "repo": "outfeed",
+      "crate_name": "outfeed-core",
+      "module_path": null,
+      "target_files": [],
+      "target_symbols": [],
+      "labels": [
+        "outfeed,release,suite,orchestration"
+      ]
+    },
+    "edges": [
+      {
+        "kind": "related_to",
+        "target_id": "d928e3f5-5943-43be-897a-76c44de13c0e",
+        "target_ticket_key": "GB-74",
+        "target_repo": "outfeed"
+      }
+    ],
+    "decisions": [
+      {
+        "decision_id": "9550c596-f6a8-4484-a8b9-38f68b0de6c1",
+        "parent_decision_id": null,
+        "status": "resolved",
+        "category": "architecture",
+        "question": "What should be the repository name under the GitHub organization (github.com/gaugeblock) for the meta-harness?",
+        "proposed_options": [
+          "gaugeblock/gaugeblock",
+          "gaugeblock/neurosymbolic-suite",
+          "gaugeblock/meta"
+        ],
+        "chosen_option": "gaugeblock/gaugeblock",
+        "rationale": "Serves as the flagship organization entrypoint and profile repository on github.com/gaugeblock.",
+        "resolved_by": "user",
+        "updated_at_epoch_ms": 1793042639194
+      },
+      {
+        "decision_id": "b6a9e2fc-5cd6-4d12-b72c-69a4cf87e387",
+        "parent_decision_id": null,
+        "status": "resolved",
+        "category": "architecture",
+        "question": "Should the meta-harness repository run GitHub Actions CI workflows?",
+        "proposed_options": [
+          "lean_no_heavy_ci",
+          "full_workspace_ci_matrix"
+        ],
+        "chosen_option": "lean_no_heavy_ci",
+        "rationale": "Redundant build/test matrices across 10 repositories are unnecessary because each member repository runs its own exhaustive CI pipeline.",
+        "resolved_by": "user",
+        "updated_at_epoch_ms": 1793042679849
+      }
+    ],
+    "acceptance_criteria": [
+      "outfeed release suite command parsed via CLI",
+      "suite.lock generated with exact commit SHAs and tags across all 10 tools",
+      "annotated git tag suite-v<version> created and pushed to origin"
+    ],
+    "plan": {
+      "summary": "GB-73: Orchestrate meta-harness suite release and suite.lock generation in outfeed",
+      "design_markdown": "# GB-73: Orchestrate meta-harness suite release and suite.lock generation in outfeed\n\n> **Status:** Ready  \n> **Target Scope:** `outfeed-core`, `outfeed-cli`  \n> **Key Invariants:**  \n> 1. Hard 250 LOC rule on all `.rs` files.  \n> 2. Zero-panic error handling with strongly typed errors via `thiserror`.  \n> 3. Enforces clean porcelain tree checks before release tagging.  \n> 4. Deterministic snapshot reproducibility via `suite.lock`.  \n\n---\n\n## 1. Overview & Objectives\n\nWhile `outfeed release --all` (GB-72) iterates across the 10 member repositories to plan, apply, install, push, and publish individual crates, the meta-harness itself (`gaugeblock/gaugeblock`) requires an overarching release coordinator:\n\n`outfeed release suite` (or `outfeed release --suite`):\n1. Runs pre-flight verification across the workspace.\n2. Gathers the latest verified tags, versions, and commit SHAs across all 10 member repositories.\n3. Generates the canonical `suite.lock` manifest.\n4. Verifies/updates root `CHANGELOG.md` with suite milestone highlights.\n5. Commits `suite.lock` and `CHANGELOG.md` to `main`.\n6. Creates the annotated git tag `suite-v<version>` (e.g., `suite-v0.1.0-beta.2`).\n7. Pushes the release commit and tag to `origin` (`gaugeblock/gaugeblock`).\n8. Generates a GitHub Release with changelog release notes.\n\n---\n\n## 2. CLI Interface & Flags\n\n```bash\n# Preview suite release without side effects\noutfeed release suite --dry-run\n\n# Run full suite release with explicit target version\noutfeed release suite --version 0.1.0-beta.3\n\n# Run suite release skipping push\noutfeed release suite --skip-push\n```\n\n---\n\n## 3. Architecture & Verification Gates\n\n1. Core module: `crates/outfeed-core/src/suite_release.rs` (<250 LOC).\n2. Manifest generation: writes TOML formatted `suite.lock` at workspace root.\n3. Tier 2 gate: `cargo clippy -p outfeed-core -p outfeed-cli --all-targets -- -D warnings`, `cargo test -p outfeed-core`.\n4. Dogfooding: `outfeed release suite --dry-run`.\n",
+      "steps": [],
+      "plan_file_path": ".gaugeblock/storypole/plans/GB-73.md",
+      "updated_at_epoch_ms": 1793042593858
+    },
+    "active_claim": null,
+    "latest_handoff": null,
+    "verification_receipt": {
+      "verifier": "manual",
+      "command": "n/a",
+      "exit_code": 0,
+      "diagnostic_count": null,
+      "summary": "Implemented meta-harness suite release orchestration and suite.lock generation in outfeed-core and outfeed-cli",
+      "verified_at_epoch_ms": 1793043311502,
+      "git_branch": "feat/gb-73-suite-lock-orchestration",
+      "base_commit_sha": "8ab46a687c56966b8214465cf79b795ea0275d63",
+      "head_commit_sha": "8ab46a687c56966b8214465cf79b795ea0275d63",
+      "commit_shas": [
+        "8ab46a687c56966b8214465cf79b795ea0275d63"
+      ],
+      "repo": null,
+      "chain_key": null
+    },
+    "created_at_epoch_ms": 1793042298036,
+    "updated_at_epoch_ms": 1794037992459,
+    "archived_at_epoch_ms": 1794037992459
+  },
+  "events": [
+    {
+      "event": "task_created",
+      "task": {
+        "id": "00919866-8201-40a8-9e32-c48f515ca386",
+        "ticket_key": "GB-73",
+        "slug": "orchestrate-meta-harness-suite-release-and-suite-lock-generation-in-outfeed-009198",
+        "title": "Orchestrate meta-harness suite release and suite.lock generation in outfeed",
+        "description": "",
+        "kind": "feature",
+        "status": "ready",
+        "priority": 2,
+        "scope": {
+          "repo": null,
+          "crate_name": null,
+          "module_path": null,
+          "target_files": [],
+          "target_symbols": [],
+          "labels": []
+        },
+        "edges": [],
+        "decisions": [],
+        "acceptance_criteria": [],
+        "plan": null,
+        "active_claim": null,
+        "latest_handoff": null,
+        "verification_receipt": null,
+        "created_at_epoch_ms": 1793042298036,
+        "updated_at_epoch_ms": 1793042298036
+      }
+    },
+    {
+      "event": "task_updated",
+      "task_id": "00919866-8201-40a8-9e32-c48f515ca386",
+      "title": null,
+      "description": "Implement 'outfeed release suite' to orchestrate pre-flight suite checks, generate suite.lock, stamp root CHANGELOG.md, create suite-v<version> git tag, push to gaugeblock/gaugeblock, and publish GitHub Release.",
+      "priority": null,
+      "scope": {
+        "repo": "outfeed",
+        "crate_name": "outfeed-core",
+        "module_path": null,
+        "target_files": [],
+        "target_symbols": [],
+        "labels": [
+          "outfeed,release,suite,orchestration"
+        ]
+      },
+      "acceptance_criteria": [
+        "outfeed release suite command parsed via CLI",
+        "suite.lock generated with exact commit SHAs and tags across all 10 tools",
+        "annotated git tag suite-v<version> created and pushed to origin"
+      ],
+      "timestamp_ms": 1793042512433
+    },
+    {
+      "event": "edge_added",
+      "task_id": "00919866-8201-40a8-9e32-c48f515ca386",
+      "edge": {
+        "kind": "related_to",
+        "target_id": "d928e3f5-5943-43be-897a-76c44de13c0e",
+        "target_ticket_key": "GB-74",
+        "target_repo": "outfeed"
+      },
+      "timestamp_ms": 1793042553400
+    },
+    {
+      "event": "task_claimed",
+      "task_id": "00919866-8201-40a8-9e32-c48f515ca386",
+      "claim": {
+        "agent_id": "agent-antigravity",
+        "claimed_at_epoch_ms": 1793042562819,
+        "lease_expires_at_epoch_ms": 1793046162819,
+        "git_branch": "feat/gb-73-suite-lock-orchestration",
+        "base_commit_sha": "8ab46a687c56966b8214465cf79b795ea0275d63"
+      }
+    },
+    {
+      "event": "status_changed",
+      "task_id": "00919866-8201-40a8-9e32-c48f515ca386",
+      "from": "ready",
+      "to": "in_progress",
+      "reason": "Claimed by agent-antigravity",
+      "timestamp_ms": 1793042562819
+    },
+    {
+      "event": "plan_updated",
+      "task_id": "00919866-8201-40a8-9e32-c48f515ca386",
+      "plan": {
+        "summary": "GB-73: Orchestrate meta-harness suite release and suite.lock generation in outfeed",
+        "design_markdown": "# GB-73: Orchestrate meta-harness suite release and suite.lock generation in outfeed\n\n> **Status:** Ready  \n> **Target Scope:** `outfeed-core`, `outfeed-cli`  \n> **Key Invariants:**  \n> 1. Hard 250 LOC rule on all `.rs` files.  \n> 2. Zero-panic error handling with strongly typed errors via `thiserror`.  \n> 3. Enforces clean porcelain tree checks before release tagging.  \n> 4. Deterministic snapshot reproducibility via `suite.lock`.  \n\n---\n\n## 1. Overview & Objectives\n\nWhile `outfeed release --all` (GB-72) iterates across the 10 member repositories to plan, apply, install, push, and publish individual crates, the meta-harness itself (`gaugeblock/gaugeblock`) requires an overarching release coordinator:\n\n`outfeed release suite` (or `outfeed release --suite`):\n1. Runs pre-flight verification across the workspace.\n2. Gathers the latest verified tags, versions, and commit SHAs across all 10 member repositories.\n3. Generates the canonical `suite.lock` manifest.\n4. Verifies/updates root `CHANGELOG.md` with suite milestone highlights.\n5. Commits `suite.lock` and `CHANGELOG.md` to `main`.\n6. Creates the annotated git tag `suite-v<version>` (e.g., `suite-v0.1.0-beta.2`).\n7. Pushes the release commit and tag to `origin` (`gaugeblock/gaugeblock`).\n8. Generates a GitHub Release with changelog release notes.\n\n---\n\n## 2. CLI Interface & Flags\n\n```bash\n# Preview suite release without side effects\noutfeed release suite --dry-run\n\n# Run full suite release with explicit target version\noutfeed release suite --version 0.1.0-beta.3\n\n# Run suite release skipping push\noutfeed release suite --skip-push\n```\n\n---\n\n## 3. Architecture & Verification Gates\n\n1. Core module: `crates/outfeed-core/src/suite_release.rs` (<250 LOC).\n2. Manifest generation: writes TOML formatted `suite.lock` at workspace root.\n3. Tier 2 gate: `cargo clippy -p outfeed-core -p outfeed-cli --all-targets -- -D warnings`, `cargo test -p outfeed-core`.\n4. Dogfooding: `outfeed release suite --dry-run`.\n",
+        "steps": [],
+        "plan_file_path": ".gaugeblock/storypole/plans/GB-73.md",
+        "updated_at_epoch_ms": 1793042593858
+      },
+      "timestamp_ms": 1793042593858
+    },
+    {
+      "event": "decision_raised",
+      "task_id": "00919866-8201-40a8-9e32-c48f515ca386",
+      "decision": {
+        "decision_id": "9550c596-f6a8-4484-a8b9-38f68b0de6c1",
+        "parent_decision_id": null,
+        "status": "pending",
+        "category": "architecture",
+        "question": "What should be the repository name under the GitHub organization (github.com/gaugeblock) for the meta-harness?",
+        "proposed_options": [
+          "gaugeblock/gaugeblock",
+          "gaugeblock/neurosymbolic-suite",
+          "gaugeblock/meta"
+        ],
+        "chosen_option": null,
+        "rationale": null,
+        "resolved_by": null,
+        "updated_at_epoch_ms": 1793042636303
+      },
+      "timestamp_ms": 1793042636303
+    },
+    {
+      "event": "status_changed",
+      "task_id": "00919866-8201-40a8-9e32-c48f515ca386",
+      "from": "in_progress",
+      "to": "blocked",
+      "reason": "Pending architectural decision required",
+      "timestamp_ms": 1793042636303
+    },
+    {
+      "event": "decision_resolved",
+      "task_id": "00919866-8201-40a8-9e32-c48f515ca386",
+      "decision_id": "9550c596-f6a8-4484-a8b9-38f68b0de6c1",
+      "chosen_option": "gaugeblock/gaugeblock",
+      "rationale": "Serves as the flagship organization entrypoint and profile repository on github.com/gaugeblock.",
+      "resolved_by": "user",
+      "spawned_followup": null,
+      "appended_criterion": null,
+      "timestamp_ms": 1793042639194
+    },
+    {
+      "event": "status_changed",
+      "task_id": "00919866-8201-40a8-9e32-c48f515ca386",
+      "from": "blocked",
+      "to": "ready",
+      "reason": "All pending decisions and dependencies satisfied",
+      "timestamp_ms": 1793042639194
+    },
+    {
+      "event": "decision_raised",
+      "task_id": "00919866-8201-40a8-9e32-c48f515ca386",
+      "decision": {
+        "decision_id": "b6a9e2fc-5cd6-4d12-b72c-69a4cf87e387",
+        "parent_decision_id": null,
+        "status": "pending",
+        "category": "architecture",
+        "question": "Should the meta-harness repository run GitHub Actions CI workflows?",
+        "proposed_options": [
+          "lean_no_heavy_ci",
+          "full_workspace_ci_matrix"
+        ],
+        "chosen_option": null,
+        "rationale": null,
+        "resolved_by": null,
+        "updated_at_epoch_ms": 1793042676885
+      },
+      "timestamp_ms": 1793042676885
+    },
+    {
+      "event": "status_changed",
+      "task_id": "00919866-8201-40a8-9e32-c48f515ca386",
+      "from": "ready",
+      "to": "blocked",
+      "reason": "Pending architectural decision required",
+      "timestamp_ms": 1793042676885
+    },
+    {
+      "event": "decision_resolved",
+      "task_id": "00919866-8201-40a8-9e32-c48f515ca386",
+      "decision_id": "b6a9e2fc-5cd6-4d12-b72c-69a4cf87e387",
+      "chosen_option": "lean_no_heavy_ci",
+      "rationale": "Redundant build/test matrices across 10 repositories are unnecessary because each member repository runs its own exhaustive CI pipeline.",
+      "resolved_by": "user",
+      "spawned_followup": null,
+      "appended_criterion": null,
+      "timestamp_ms": 1793042679849
+    },
+    {
+      "event": "status_changed",
+      "task_id": "00919866-8201-40a8-9e32-c48f515ca386",
+      "from": "blocked",
+      "to": "ready",
+      "reason": "All pending decisions and dependencies satisfied",
+      "timestamp_ms": 1793042679849
+    },
+    {
+      "event": "task_verified",
+      "task_id": "00919866-8201-40a8-9e32-c48f515ca386",
+      "receipt": {
+        "verifier": "manual",
+        "command": "n/a",
+        "exit_code": 0,
+        "diagnostic_count": null,
+        "summary": "Implemented meta-harness suite release orchestration and suite.lock generation in outfeed-core and outfeed-cli",
+        "verified_at_epoch_ms": 1793043311502,
+        "git_branch": "feat/gb-73-suite-lock-orchestration",
+        "base_commit_sha": "8ab46a687c56966b8214465cf79b795ea0275d63",
+        "head_commit_sha": "8ab46a687c56966b8214465cf79b795ea0275d63",
+        "commit_shas": [
+          "8ab46a687c56966b8214465cf79b795ea0275d63"
+        ],
+        "repo": null,
+        "chain_key": null
+      }
+    },
+    {
+      "event": "task_archived",
+      "task_id": "00919866-8201-40a8-9e32-c48f515ca386",
+      "status": "verified",
+      "timestamp_ms": 1794037695659
+    },
+    {
+      "event": "task_archived",
+      "task_id": "00919866-8201-40a8-9e32-c48f515ca386",
+      "status": "verified",
+      "timestamp_ms": 1794037992459
+    }
+  ]
+}

@@ -1,0 +1,172 @@
+{
+  "ticket": {
+    "id": "a6adff8c-c499-4a31-99f8-447acef878fd",
+    "ticket_key": "GB-48",
+    "slug": "packaging-delivery-suite-outfeed-install-push-publish-release-orchestration-a6adff",
+    "title": "Packaging & Delivery Suite: outfeed install, push, publish & release orchestration",
+    "description": "",
+    "kind": "feature",
+    "status": "verified",
+    "priority": 1,
+    "scope": {
+      "repo": "outfeed",
+      "crate_name": "outfeed-core",
+      "module_path": null,
+      "target_files": [],
+      "target_symbols": [],
+      "labels": []
+    },
+    "edges": [],
+    "decisions": [],
+    "acceptance_criteria": [],
+    "plan": {
+      "summary": "GB-48: Packaging & Delivery Suite: `outfeed` install, push, publish & release orchestration",
+      "design_markdown": "# GB-48: Packaging & Delivery Suite: `outfeed` install, push, publish & release orchestration\n\n> **Status:** Ready / Specified  \n> **Target Scope:** `outfeed` (`outfeed-core`, `outfeed-cli`, `outfeed-mcp`), `scripts/install-suite.sh`  \n> **Key Invariants:**  \n> 1. Hard 250 LOC rule on all `.rs` files.  \n> 2. Intra-repo and cross-repo topological DAG sorting for publish order.  \n> 3. Safe `--dry-run` modes for both push and publish.  \n> 4. Verification of installed binaries via `--version` checks.  \n\n---\n\n## 1. Executive Summary\n\n`outfeed` currently handles release planning, changelog synthesis, manifest bumping, and local git commit/tag creation (`outfeed plan`, `outfeed apply`).\nGB-48 completes the packaging and delivery pipeline by introducing four core capabilities:\n1. **`outfeed install [repo | --all]`**: Compiles and installs CLI binaries to `~/.cargo/bin`, replacing the legacy `scripts/install-suite.sh` with a native Rust runner.\n2. **`outfeed push [repo | --all]`**: Pushes release commits and git tags to the configured remote with branch validation and dry-run safety.\n3. **`outfeed publish [repo | --all]`**: Dynamically computes the workspace crate DAG, runs `cargo publish --dry-run`, and uploads crates to crates.io in strict topological dependency order (e.g., `*-core` before `*-cli`/`*-mcp` before root facade), with index propagation backoff.\n4. **`outfeed release [repo | --all]`**: An orchestrated macro command executing the full delivery sequence: `plan` -> `apply` -> `install` -> `push` -> `publish`.\n\n---\n\n## 2. Architecture & File Layout\n\n```text\noutfeed/crates/outfeed-core/src/\n├── install.rs      # Discovers CLI binary crates, runs cargo install, verifies --version\n├── push.rs         # Validates git remote, pushes branch and tags with --dry-run\n├── publish.rs      # Computes workspace crate DAG, sorts topologically, runs cargo publish\n├── release.rs      # Macro orchestrator uniting apply, install, push, publish\n├── model.rs        # Adds InstallOpts, PushOpts, PublishOpts, ReleaseOpts\n└── lib.rs          # Re-exports new modules\n\noutfeed/crates/outfeed-cli/src/\n├── args.rs         # Adds Subcommands::Install, Push, Publish, Release\n└── main.rs         # Dispatches new commands\n\noutfeed/crates/outfeed-mcp/src/\n├── schema.rs       # Adds schemas for outfeed_install, outfeed_push, outfeed_publish\n└── dispatch.rs     # Dispatches tool execution to outfeed-core\n```\n\n---\n\n## 3. Implementation Milestones\n\n### Phase 1: `outfeed-core` Install Engine (`install.rs`)\n* [x] Discover member CLI crates in repository workspaces (crates with `src/main.rs` or `[[bin]]`).\n* [x] Invoke `cargo install --path <path> [--release] [--force]`.\n* [x] Verify installed binary executes `--version` successfully.\n* [x] Support `--all` to build and install all 9 suite CLI binaries in order.\n\n### Phase 2: `outfeed-core` Git Push Engine (`push.rs`)\n* [x] Validate git remote tracking and assert clean working tree.\n* [x] Execute `git push <remote> <branch> --tags` (or specific release tag).\n* [x] Support `--dry-run` to preview remote push refspecs without network mutation.\n\n### Phase 3: `outfeed-core` Topological Publish Engine (`publish.rs`)\n* [x] Parse workspace members and intra-workspace dependencies via `toml_edit` / `cargo_metadata`.\n* [x] Build DAG and compute topological ordering (leaf crates like `*-core` first, facade crates last).\n* [x] Execute `cargo publish --dry-run` gate for each member crate.\n* [x] Execute real `cargo publish` in topological order with configurable delay/polling for index propagation.\n\n### Phase 4: `outfeed-core` Release Macro Orchestrator (`release.rs`)\n* [x] Sequentially run: `apply` -> `install` -> `push` -> `publish`.\n* [x] Support `--dry-run` and `--skip-publish` / `--skip-push` flags.\n\n### Phase 5: `outfeed-cli` & `outfeed-mcp` Command Exposure\n* [x] Update `args.rs` and `main.rs` in `outfeed-cli`.\n* [x] Update `schema.rs` and `dispatch.rs` in `outfeed-mcp`.\n* [x] Update `scripts/install-suite.sh` to delegate to `outfeed install --all \"$@\"`.\n\n",
+      "steps": [],
+      "plan_file_path": ".gaugeblock/storypole/plans/GB-48.md",
+      "updated_at_epoch_ms": 1792993987680
+    },
+    "active_claim": null,
+    "latest_handoff": null,
+    "verification_receipt": {
+      "verifier": "manual",
+      "command": "n/a",
+      "exit_code": 0,
+      "diagnostic_count": null,
+      "summary": "Delivered: outfeed install, push, publish, release, clone, sync, clean and prune all ship in outfeed-cli with outfeed-core/src/{install,push,publish,release,clean}. The only remaining packaging gap is namespace reservation, tracked as OF-5.",
+      "verified_at_epoch_ms": 1793942109730,
+      "git_branch": "main",
+      "base_commit_sha": "2fafe563e840503b0dd4fc4f3d9a66b4d26fb73e",
+      "head_commit_sha": "2fafe563e840503b0dd4fc4f3d9a66b4d26fb73e",
+      "commit_shas": [
+        "2fafe563e840503b0dd4fc4f3d9a66b4d26fb73e"
+      ],
+      "repo": null,
+      "chain_key": null
+    },
+    "created_at_epoch_ms": 1792993217968,
+    "updated_at_epoch_ms": 1794037962410,
+    "archived_at_epoch_ms": 1794037962410
+  },
+  "events": [
+    {
+      "event": "task_created",
+      "task": {
+        "id": "a6adff8c-c499-4a31-99f8-447acef878fd",
+        "ticket_key": "GB-48",
+        "slug": "packaging-delivery-suite-outfeed-install-push-publish-release-orchestration-a6adff",
+        "title": "Packaging & Delivery Suite: outfeed install, push, publish & release orchestration",
+        "description": "",
+        "kind": "feature",
+        "status": "ready",
+        "priority": 1,
+        "scope": {
+          "repo": "outfeed",
+          "crate_name": "outfeed-core",
+          "module_path": null,
+          "target_files": [],
+          "target_symbols": [],
+          "labels": []
+        },
+        "edges": [],
+        "decisions": [],
+        "acceptance_criteria": [],
+        "plan": null,
+        "active_claim": null,
+        "latest_handoff": null,
+        "verification_receipt": null,
+        "created_at_epoch_ms": 1792993217968,
+        "updated_at_epoch_ms": 1792993217968
+      }
+    },
+    {
+      "event": "task_claimed",
+      "task_id": "a6adff8c-c499-4a31-99f8-447acef878fd",
+      "claim": {
+        "agent_id": "agent-antigravity",
+        "claimed_at_epoch_ms": 1792993224418,
+        "lease_expires_at_epoch_ms": 1792996824418,
+        "git_branch": "feat/gb-48-outfeed-delivery-suite",
+        "base_commit_sha": "7b7635012a36ab63f9c9c9437af13654e15249cd"
+      }
+    },
+    {
+      "event": "status_changed",
+      "task_id": "a6adff8c-c499-4a31-99f8-447acef878fd",
+      "from": "ready",
+      "to": "in_progress",
+      "reason": "Claimed by agent-antigravity",
+      "timestamp_ms": 1792993224418
+    },
+    {
+      "event": "plan_updated",
+      "task_id": "a6adff8c-c499-4a31-99f8-447acef878fd",
+      "plan": {
+        "summary": "GB-48: Packaging & Delivery Suite: `outfeed` install, push, publish & release orchestration",
+        "design_markdown": "# GB-48: Packaging & Delivery Suite: `outfeed` install, push, publish & release orchestration\n\n> **Status:** Ready / Specified  \n> **Target Scope:** `outfeed` (`outfeed-core`, `outfeed-cli`, `outfeed-mcp`), `scripts/install-suite.sh`  \n> **Key Invariants:**  \n> 1. Hard 250 LOC rule on all `.rs` files.  \n> 2. Intra-repo and cross-repo topological DAG sorting for publish order.  \n> 3. Safe `--dry-run` modes for both push and publish.  \n> 4. Verification of installed binaries via `--version` checks.  \n\n---\n\n## 1. Executive Summary\n\n`outfeed` currently handles release planning, changelog synthesis, manifest bumping, and local git commit/tag creation (`outfeed plan`, `outfeed apply`).\nGB-48 completes the packaging and delivery pipeline by introducing four core capabilities:\n1. **`outfeed install [repo | --all]`**: Compiles and installs CLI binaries to `~/.cargo/bin`, replacing the legacy `scripts/install-suite.sh` with a native Rust runner.\n2. **`outfeed push [repo | --all]`**: Pushes release commits and git tags to the configured remote with branch validation and dry-run safety.\n3. **`outfeed publish [repo | --all]`**: Dynamically computes the workspace crate DAG, runs `cargo publish --dry-run`, and uploads crates to crates.io in strict topological dependency order (e.g., `*-core` before `*-cli`/`*-mcp` before root facade), with index propagation backoff.\n4. **`outfeed release [repo | --all]`**: An orchestrated macro command executing the full delivery sequence: `plan` -> `apply` -> `install` -> `push` -> `publish`.\n\n---\n\n## 2. Architecture & File Layout\n\n```text\noutfeed/crates/outfeed-core/src/\n├── install.rs      # Discovers CLI binary crates, runs cargo install, verifies --version\n├── push.rs         # Validates git remote, pushes branch and tags with --dry-run\n├── publish.rs      # Computes workspace crate DAG, sorts topologically, runs cargo publish\n├── release.rs      # Macro orchestrator uniting apply, install, push, publish\n├── model.rs        # Adds InstallOpts, PushOpts, PublishOpts, ReleaseOpts\n└── lib.rs          # Re-exports new modules\n\noutfeed/crates/outfeed-cli/src/\n├── args.rs         # Adds Subcommands::Install, Push, Publish, Release\n└── main.rs         # Dispatches new commands\n\noutfeed/crates/outfeed-mcp/src/\n├── schema.rs       # Adds schemas for outfeed_install, outfeed_push, outfeed_publish\n└── dispatch.rs     # Dispatches tool execution to outfeed-core\n```\n\n---\n\n## 3. Implementation Milestones\n\n### Phase 1: `outfeed-core` Install Engine (`install.rs`)\n* [ ] Discover member CLI crates in repository workspaces (crates with `src/main.rs` or `[[bin]]`).\n* [ ] Invoke `cargo install --path <path> [--release] [--force]`.\n* [ ] Verify installed binary executes `--version` successfully.\n* [ ] Support `--all` to build and install all 9 suite CLI binaries in order.\n\n### Phase 2: `outfeed-core` Git Push Engine (`push.rs`)\n* [ ] Validate git remote tracking and assert clean working tree.\n* [ ] Execute `git push <remote> <branch> --tags` (or specific release tag).\n* [ ] Support `--dry-run` to preview remote push refspecs without network mutation.\n\n### Phase 3: `outfeed-core` Topological Publish Engine (`publish.rs`)\n* [ ] Parse workspace members and intra-workspace dependencies via `toml_edit` / `cargo_metadata`.\n* [ ] Build DAG and compute topological ordering (leaf crates like `*-core` first, facade crates last).\n* [ ] Execute `cargo publish --dry-run` gate for each member crate.\n* [ ] Execute real `cargo publish` in topological order with configurable delay/polling for index propagation.\n\n### Phase 4: `outfeed-core` Release Macro Orchestrator (`release.rs`)\n* [ ] Sequentially run: `apply` -> `install` -> `push` -> `publish`.\n* [ ] Support `--dry-run` and `--skip-publish` / `--skip-push` flags.\n\n### Phase 5: `outfeed-cli` & `outfeed-mcp` Command Exposure\n* [ ] Update `args.rs` and `main.rs` in `outfeed-cli`.\n* [ ] Update `schema.rs` and `dispatch.rs` in `outfeed-mcp`.\n* [ ] Update `scripts/install-suite.sh` to delegate to `outfeed install --all \"$@\"`.\n",
+        "steps": [],
+        "plan_file_path": ".gaugeblock/storypole/plans/GB-48.md",
+        "updated_at_epoch_ms": 1792993242193
+      },
+      "timestamp_ms": 1792993242193
+    },
+    {
+      "event": "plan_updated",
+      "task_id": "a6adff8c-c499-4a31-99f8-447acef878fd",
+      "plan": {
+        "summary": "GB-48: Packaging & Delivery Suite: `outfeed` install, push, publish & release orchestration",
+        "design_markdown": "# GB-48: Packaging & Delivery Suite: `outfeed` install, push, publish & release orchestration\n\n> **Status:** Ready / Specified  \n> **Target Scope:** `outfeed` (`outfeed-core`, `outfeed-cli`, `outfeed-mcp`), `scripts/install-suite.sh`  \n> **Key Invariants:**  \n> 1. Hard 250 LOC rule on all `.rs` files.  \n> 2. Intra-repo and cross-repo topological DAG sorting for publish order.  \n> 3. Safe `--dry-run` modes for both push and publish.  \n> 4. Verification of installed binaries via `--version` checks.  \n\n---\n\n## 1. Executive Summary\n\n`outfeed` currently handles release planning, changelog synthesis, manifest bumping, and local git commit/tag creation (`outfeed plan`, `outfeed apply`).\nGB-48 completes the packaging and delivery pipeline by introducing four core capabilities:\n1. **`outfeed install [repo | --all]`**: Compiles and installs CLI binaries to `~/.cargo/bin`, replacing the legacy `scripts/install-suite.sh` with a native Rust runner.\n2. **`outfeed push [repo | --all]`**: Pushes release commits and git tags to the configured remote with branch validation and dry-run safety.\n3. **`outfeed publish [repo | --all]`**: Dynamically computes the workspace crate DAG, runs `cargo publish --dry-run`, and uploads crates to crates.io in strict topological dependency order (e.g., `*-core` before `*-cli`/`*-mcp` before root facade), with index propagation backoff.\n4. **`outfeed release [repo | --all]`**: An orchestrated macro command executing the full delivery sequence: `plan` -> `apply` -> `install` -> `push` -> `publish`.\n\n---\n\n## 2. Architecture & File Layout\n\n```text\noutfeed/crates/outfeed-core/src/\n├── install.rs      # Discovers CLI binary crates, runs cargo install, verifies --version\n├── push.rs         # Validates git remote, pushes branch and tags with --dry-run\n├── publish.rs      # Computes workspace crate DAG, sorts topologically, runs cargo publish\n├── release.rs      # Macro orchestrator uniting apply, install, push, publish\n├── model.rs        # Adds InstallOpts, PushOpts, PublishOpts, ReleaseOpts\n└── lib.rs          # Re-exports new modules\n\noutfeed/crates/outfeed-cli/src/\n├── args.rs         # Adds Subcommands::Install, Push, Publish, Release\n└── main.rs         # Dispatches new commands\n\noutfeed/crates/outfeed-mcp/src/\n├── schema.rs       # Adds schemas for outfeed_install, outfeed_push, outfeed_publish\n└── dispatch.rs     # Dispatches tool execution to outfeed-core\n```\n\n---\n\n## 3. Implementation Milestones\n\n### Phase 1: `outfeed-core` Install Engine (`install.rs`)\n* [x] Discover member CLI crates in repository workspaces (crates with `src/main.rs` or `[[bin]]`).\n* [x] Invoke `cargo install --path <path> [--release] [--force]`.\n* [x] Verify installed binary executes `--version` successfully.\n* [x] Support `--all` to build and install all 9 suite CLI binaries in order.\n\n### Phase 2: `outfeed-core` Git Push Engine (`push.rs`)\n* [x] Validate git remote tracking and assert clean working tree.\n* [x] Execute `git push <remote> <branch> --tags` (or specific release tag).\n* [x] Support `--dry-run` to preview remote push refspecs without network mutation.\n\n### Phase 3: `outfeed-core` Topological Publish Engine (`publish.rs`)\n* [x] Parse workspace members and intra-workspace dependencies via `toml_edit` / `cargo_metadata`.\n* [x] Build DAG and compute topological ordering (leaf crates like `*-core` first, facade crates last).\n* [x] Execute `cargo publish --dry-run` gate for each member crate.\n* [x] Execute real `cargo publish` in topological order with configurable delay/polling for index propagation.\n\n### Phase 4: `outfeed-core` Release Macro Orchestrator (`release.rs`)\n* [x] Sequentially run: `apply` -> `install` -> `push` -> `publish`.\n* [x] Support `--dry-run` and `--skip-publish` / `--skip-push` flags.\n\n### Phase 5: `outfeed-cli` & `outfeed-mcp` Command Exposure\n* [x] Update `args.rs` and `main.rs` in `outfeed-cli`.\n* [x] Update `schema.rs` and `dispatch.rs` in `outfeed-mcp`.\n* [x] Update `scripts/install-suite.sh` to delegate to `outfeed install --all \"$@\"`.\n\n",
+        "steps": [],
+        "plan_file_path": ".gaugeblock/storypole/plans/GB-48.md",
+        "updated_at_epoch_ms": 1792993987680
+      },
+      "timestamp_ms": 1792993987680
+    },
+    {
+      "event": "task_verified",
+      "task_id": "a6adff8c-c499-4a31-99f8-447acef878fd",
+      "receipt": {
+        "verifier": "agent-antigravity",
+        "command": "n/a",
+        "exit_code": 0,
+        "diagnostic_count": null,
+        "summary": "Implemented outfeed packaging & delivery suite (install, push, publish, release, MCP tools, tests, install-suite wrapper)",
+        "verified_at_epoch_ms": 1792993991203,
+        "git_branch": "feat/gb-48-outfeed-delivery-suite",
+        "base_commit_sha": "7b7635012a36ab63f9c9c9437af13654e15249cd",
+        "head_commit_sha": "be39776f30191b42d99d55e6f10116f66fce37a4",
+        "commit_shas": [
+          "be39776f30191b42d99d55e6f10116f66fce37a4"
+        ],
+        "repo": null,
+        "chain_key": null
+      }
+    },
+    {
+      "event": "task_verified",
+      "task_id": "a6adff8c-c499-4a31-99f8-447acef878fd",
+      "receipt": {
+        "verifier": "manual",
+        "command": "n/a",
+        "exit_code": 0,
+        "diagnostic_count": null,
+        "summary": "Delivered: outfeed install, push, publish, release, clone, sync, clean and prune all ship in outfeed-cli with outfeed-core/src/{install,push,publish,release,clean}. The only remaining packaging gap is namespace reservation, tracked as OF-5.",
+        "verified_at_epoch_ms": 1793942109730,
+        "git_branch": "main",
+        "base_commit_sha": "2fafe563e840503b0dd4fc4f3d9a66b4d26fb73e",
+        "head_commit_sha": "2fafe563e840503b0dd4fc4f3d9a66b4d26fb73e",
+        "commit_shas": [
+          "2fafe563e840503b0dd4fc4f3d9a66b4d26fb73e"
+        ],
+        "repo": null,
+        "chain_key": null
+      }
+    },
+    {
+      "event": "task_archived",
+      "task_id": "a6adff8c-c499-4a31-99f8-447acef878fd",
+      "status": "verified",
+      "timestamp_ms": 1794037962410
+    }
+  ]
+}
