@@ -15,6 +15,7 @@ name = "outfeed"
 path = "src/main.rs"
 
 [dependencies]
+gaugeblock-workspace = "0.1.0-beta.1"
 outfeed-core = { path = "../outfeed-core", version = "0.1.0-beta.7" }
 outfeed-orchestrator = { path = "../outfeed-orchestrator", version = "0.1.0-beta.7" }
 outfeed-mcp = { path = "../outfeed-mcp", version = "0.1.0-beta.7" }
