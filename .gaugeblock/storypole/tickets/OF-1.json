@@ -1,0 +1,77 @@
+{
+  "ticket": {
+    "id": "deea4a6a-fbc6-41b0-98ea-c5bfc998c8fa",
+    "ticket_key": "OF-1",
+    "slug": "review-outfeed-gate-should-it-run-the-configured-chain-and-should-tier-make-the-verification-matrix-executable-deea4a",
+    "title": "Review outfeed gate - should it run the configured chain, and should --tier make the verification matrix executable",
+    "description": "Review what `outfeed gate` is for, and whether it should execute the configured chain by tier.\n\nWHAT IT DOES TODAY (measured): outfeed-core has a hard-coded step matrix - gate_steps() returns fmt, clippy and their siblings as GateStep values - and run_gate_steps(dir, steps, skip, reporter) runs them with a progress reporter and a --skip list. So it is a real gate runner already, repository-scoped, with no receipt.\n\nTWO PROBLEMS, both documentation-adjacent and one structural:\n  1. `outfeed gate --help` says \"Verify every member repository tracks a fresh Cargo.lock\". That is not what it runs. Same disease as miter audit, whose help described a report while thirteen chains gated on its exit code (ADR 0011).\n  2. There are two descriptions of what must pass in a repository: gate_steps() in outfeed-core, and the per-repository strings in [storypole] verification_commands. They can drift, and nothing compares them.\n\nTHE PROPOSAL WORTH ASSESSING: `outfeed gate --tier N`, where N selects a row of the verification matrix in AGENTS.md section 4. That matrix is currently PROSE ONLY - Tier 1 inner loop (cargo check, targeted nextest), Tier 2 atomic commit (fmt check, clippy, nextest, miter audit, chalkline docs check), Tier 3 task completion (workspace-wide), Tier 4 release (contracts, lockfiles, docs, full suite). Every agent and every chain re-types those command lists by hand, which is where a wrong flag comes from - this session alone typed the Tier 2 list dozens of times and lost a cycle each time to `cargo fmt --all` versus `cargo fmt --check`.\n\nVALUE: yes, if it makes the law executable rather than duplicated. A tier flag turns a paragraph nobody can verify into a command, and gives the suite one place to fix a step.\n\nRISK TO DESIGN AROUND: a second runner. storypole verify is ticket-scoped and writes a receipt naming repository, branch and commit window; outfeed gate is repository-scoped and writes nothing. Two runners with different semantics is how GB-79 diverged. So the decision this ticket must make first is which one OWNS the chain definition - probably: outfeed gate executes the configured chain, gate_steps() becomes the default when a repository configures none, and storypole verify calls the same definition and adds the receipt.\n\nACCEPTANCE (proposed): `outfeed gate --tier 2` runs exactly the Tier 2 row and names each step as it runs; `--tier` and `--skip` compose; a repository with a configured chain gets that chain, not the hard-coded default; the help text states what runs and whether it writes anything; and a test asserts the Tier 2 row matches AGENTS.md section 4, so the law and the tool cannot drift.",
+    "kind": "feature",
+    "status": "deferred",
+    "priority": 3,
+    "scope": {
+      "repo": "outfeed",
+      "crate_name": "outfeed-core",
+      "module_path": null,
+      "target_files": [],
+      "target_symbols": [
+        "outfeed_core::gate::run_gate"
+      ],
+      "labels": []
+    },
+    "edges": [],
+    "decisions": [],
+    "acceptance_criteria": [],
+    "plan": null,
+    "active_claim": null,
+    "latest_handoff": null,
+    "verification_receipt": null,
+    "created_at_epoch_ms": 1794247205626,
+    "updated_at_epoch_ms": 1794247205626
+  },
+  "events": [
+    {
+      "event": "deferred_item_captured",
+      "task": {
+        "id": "deea4a6a-fbc6-41b0-98ea-c5bfc998c8fa",
+        "ticket_key": "OF-1",
+        "slug": "review-outfeed-gate-should-it-run-the-configured-chain-and-should-tier-make-the-verification-matrix-executable-deea4a",
+        "title": "Review outfeed gate - should it run the configured chain, and should --tier make the verification matrix executable",
+        "description": "Review what `outfeed gate` is for, and whether it should execute the configured chain by tier.\n\nWHAT IT DOES TODAY (measured): outfeed-core has a hard-coded step matrix - gate_steps() returns fmt, clippy and their siblings as GateStep values - and run_gate_steps(dir, steps, skip, reporter) runs them with a progress reporter and a --skip list. So it is a real gate runner already, repository-scoped, with no receipt.\n\nTWO PROBLEMS, both documentation-adjacent and one structural:\n  1. `outfeed gate --help` says \"Verify every member repository tracks a fresh Cargo.lock\". That is not what it runs. Same disease as miter audit, whose help described a report while thirteen chains gated on its exit code (ADR 0011).\n  2. There are two descriptions of what must pass in a repository: gate_steps() in outfeed-core, and the per-repository strings in [storypole] verification_commands. They can drift, and nothing compares them.\n\nTHE PROPOSAL WORTH ASSESSING: `outfeed gate --tier N`, where N selects a row of the verification matrix in AGENTS.md section 4. That matrix is currently PROSE ONLY - Tier 1 inner loop (cargo check, targeted nextest), Tier 2 atomic commit (fmt check, clippy, nextest, miter audit, chalkline docs check), Tier 3 task completion (workspace-wide), Tier 4 release (contracts, lockfiles, docs, full suite). Every agent and every chain re-types those command lists by hand, which is where a wrong flag comes from - this session alone typed the Tier 2 list dozens of times and lost a cycle each time to `cargo fmt --all` versus `cargo fmt --check`.\n\nVALUE: yes, if it makes the law executable rather than duplicated. A tier flag turns a paragraph nobody can verify into a command, and gives the suite one place to fix a step.\n\nRISK TO DESIGN AROUND: a second runner. storypole verify is ticket-scoped and writes a receipt naming repository, branch and commit window; outfeed gate is repository-scoped and writes nothing. Two runners with different semantics is how GB-79 diverged. So the decision this ticket must make first is which one OWNS the chain definition - probably: outfeed gate executes the configured chain, gate_steps() becomes the default when a repository configures none, and storypole verify calls the same definition and adds the receipt.\n\nACCEPTANCE (proposed): `outfeed gate --tier 2` runs exactly the Tier 2 row and names each step as it runs; `--tier` and `--skip` compose; a repository with a configured chain gets that chain, not the hard-coded default; the help text states what runs and whether it writes anything; and a test asserts the Tier 2 row matches AGENTS.md section 4, so the law and the tool cannot drift.",
+        "kind": "feature",
+        "status": "deferred",
+        "priority": 3,
+        "scope": {
+          "repo": "outfeed",
+          "crate_name": "outfeed-core",
+          "module_path": null,
+          "target_files": [],
+          "target_symbols": [
+            "outfeed_core::gate::run_gate"
+          ],
+          "labels": []
+        },
+        "edges": [],
+        "decisions": [],
+        "acceptance_criteria": [],
+        "plan": null,
+        "active_claim": null,
+        "latest_handoff": null,
+        "verification_receipt": null,
+        "created_at_epoch_ms": 1794247205626,
+        "updated_at_epoch_ms": 1794247205626
+      },
+      "captured_by_agent": "user",
+      "discovered_from_task_id": null
+    },
+    {
+      "event": "task_updated",
+      "task_id": "deea4a6a-fbc6-41b0-98ea-c5bfc998c8fa",
+      "title": null,
+      "description": null,
+      "priority": 2,
+      "scope": null,
+      "acceptance_criteria": null,
+      "timestamp_ms": 1794247217363
+    }
+  ]
+}
