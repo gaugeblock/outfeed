@@ -1,0 +1,214 @@
+{
+  "ticket": {
+    "id": "1c7fe808-9e25-4373-a8b0-38094e0033f6",
+    "ticket_key": "GB-153",
+    "slug": "outfeed-release-leaves-repositories-that-are-clean-but-ahead-of-origin-unpushed-1c7fe8",
+    "title": "outfeed release leaves repositories that are clean but ahead of origin unpushed",
+    "description": "Add the missing push half of release self-healing. Precedent already in the codebase: GB-101 (verified) added registry-side recovery - plan_suite_releases marks a version whose tag exists but is not on crates.io as SuitePlanAction::PublishPending instead of SkipClean, and execute_suite_plan then publishes it, so an interrupted publish heals on the next release --all. There is no analogue for git: SuitePlanAction has only ReleasePatch, ReleaseMinor, ReleaseMajor, PublishPending and SkipClean, and nothing inspects whether a member's commits or tags exist on origin. So a run that dies after commit+tag but before push (or one invoked with --skip-push, or a push that fails on the last repo) leaves HEAD sitting on an already-tagged commit; the next release --all sees zero commits since the tag, reports Skip (Clean), and the remote stays behind indefinitely while the run reports success. Verified in this workspace 2026-10-28 that routine local work is always released (any commit after the tag makes a repo non-clean and origin/main matched local HEAD~1 in every 'clean' member), so this is strictly a recovery/idempotency gap. Proposed fix, mirroring GB-101: add SuitePlanAction::PushPending (or a combined Reconcile action) set when the member's HEAD is tagged but branch or tag is absent from origin, detected with the existing sync_model::calculate_divergence (BranchDivergence::Ahead(n)) rather than new git plumbing, and have execute_suite_plan push it; consider uniting push and publish reconciliation into one end-of-run repair pass so a half-finished repository is healed by re-running instead of being reported as success. Acceptance: a release interrupted between tag and push is completed by re-running release --all, a clean-but-behind member is never reported as success, and the new action is covered by plan/execute tests.",
+    "kind": "feature",
+    "status": "verified",
+    "priority": 3,
+    "scope": {
+      "repo": null,
+      "crate_name": "outfeed-core",
+      "module_path": null,
+      "target_files": [
+        "outfeed/crates/outfeed-core/src/suite_exec.rs,outfeed/crates/outfeed-core/src/suite_plan.rs"
+      ],
+      "target_symbols": [
+        "outfeed_core::suite_exec::execute_suite_plan"
+      ],
+      "labels": [
+        "release,push"
+      ]
+    },
+    "edges": [
+      {
+        "kind": "related_to",
+        "target_id": "bf0e06c2-20f3-4e00-bfa4-e7a1b81d39a8",
+        "target_ticket_key": "GB-75",
+        "target_repo": "outfeed"
+      },
+      {
+        "kind": "related_to",
+        "target_id": "9bd73eed-d7d9-4ca6-a972-a08ea5011477",
+        "target_ticket_key": "GB-101",
+        "target_repo": "outfeed"
+      },
+      {
+        "kind": "related_to",
+        "target_id": "87e08769-7bd4-45c0-ba9e-7379b30e52c0",
+        "target_ticket_key": "GB-151"
+      }
+    ],
+    "decisions": [],
+    "acceptance_criteria": [],
+    "plan": null,
+    "active_claim": null,
+    "latest_handoff": null,
+    "verification_receipt": {
+      "verifier": "cline",
+      "command": "n/a",
+      "exit_code": 0,
+      "diagnostic_count": null,
+      "summary": "Fixed on outfeed main at d2ddec6 + 8679b53: push::is_ahead_of_remote distinguishes no-remote (false), never-pushed branch (no upstream, true) and local commits via rev-list --count @{upstream}..HEAD (true), and lives in push.rs because git.rs was already 234 lines. The suite planner gains SuitePlanAction::PushPending ('Push (Ahead)') for a published repository that is still ahead of its remote, ordered after PublishPending; release_entry pushes it in place honouring --skip-push and --dry-run. Proof: tests/push_pending_tests.rs builds real repositories for all three verdicts, and suite_waves_tests asserts a PushPending entry reaches the wave schedule next to a skipped clean one. Gates: fmt clean, clippy --workspace --all-targets -D warnings clean, nextest 73/73. The live end-to-end case still needs a real push, which is release-gated.",
+      "verified_at_epoch_ms": 1793241739790,
+      "git_branch": "main",
+      "base_commit_sha": "8679b53035c1f8e4b1e601e61b146a3827a83e02",
+      "head_commit_sha": "8679b53035c1f8e4b1e601e61b146a3827a83e02",
+      "commit_shas": [
+        "8679b53035c1f8e4b1e601e61b146a3827a83e02"
+      ],
+      "repo": null,
+      "chain_key": null
+    },
+    "created_at_epoch_ms": 1793232030738,
+    "updated_at_epoch_ms": 1794038010766,
+    "archived_at_epoch_ms": 1794038010766
+  },
+  "events": [
+    {
+      "event": "deferred_item_captured",
+      "task": {
+        "id": "1c7fe808-9e25-4373-a8b0-38094e0033f6",
+        "ticket_key": "GB-153",
+        "slug": "outfeed-release-leaves-repositories-that-are-clean-but-ahead-of-origin-unpushed-1c7fe8",
+        "title": "outfeed release leaves repositories that are clean but ahead of origin unpushed",
+        "description": "Observed while preparing the suite release: chalkline, joiner, benchwork and rabbet each have one commit ahead of origin/main but no unreleased changes since their last tag, so the plan marks them Skip (Clean) and outfeed release --all never pushes them. A repo can legitimately be clean and ahead - its last release was committed and tagged locally but the push never happened - so finishing a release pass leaves the remote behind. Options: have the suite release push any member whose branch is ahead of its upstream even when there is nothing to release, or report those repositories at the end of the run with a pointer to 'outfeed push --all'. Acceptance: after a release pass, no member with an origin remote is left ahead of origin/main without an explicit note or skip flag.",
+        "kind": "feature",
+        "status": "deferred",
+        "priority": 3,
+        "scope": {
+          "repo": null,
+          "crate_name": "outfeed-core",
+          "module_path": null,
+          "target_files": [
+            "outfeed/crates/outfeed-core/src/suite_exec.rs,outfeed/crates/outfeed-core/src/suite_plan.rs"
+          ],
+          "target_symbols": [
+            "outfeed_core::suite_exec::execute_suite_plan"
+          ],
+          "labels": [
+            "release,push"
+          ]
+        },
+        "edges": [],
+        "decisions": [],
+        "acceptance_criteria": [],
+        "plan": null,
+        "active_claim": null,
+        "latest_handoff": null,
+        "verification_receipt": null,
+        "created_at_epoch_ms": 1793232030738,
+        "updated_at_epoch_ms": 1793232030738
+      },
+      "captured_by_agent": "cline",
+      "discovered_from_task_id": null
+    },
+    {
+      "event": "task_updated",
+      "task_id": "1c7fe808-9e25-4373-a8b0-38094e0033f6",
+      "title": null,
+      "description": "Corrected framing after investigation (2026-10-28). Outfeed's release state machine is per repository: plan collects commits between the latest tag and HEAD, and only a repository with at least one such commit is versioned, tagged, pushed and published. Anything after the tag makes a repository 'not clean', so ordinary local work is always swept into the next release - there is no routine case where local changes sit outside a release. Verified in this workspace: for chalkline, joiner, benchwork and rabbet, origin/main equals local HEAD~1 (the last release commit) and the release tags are present on origin; the only pending commit in each is today's chore(<repo>): track Cargo.lock, so the next release --all will patch-bump all four and push them normally. The real gap is failure recovery, not routine operation: because push and publish live inside the per-repository release step, a run that dies after commit+tag but before push (or a run with --skip-push, or a publish that 429s out) leaves a repository whose HEAD is the tagged commit. A later release --all then sees zero commits since the tag, reports Skip (Clean), and never retries the push or the publish - the operator gets a green run while the remote or the registry is behind. Desired: after the release loop, reconcile state for every member (compare HEAD with origin/main and the published registry version) and either finish the missing step or report it loudly, and make a re-run able to heal a half-finished repository. Outfeed sync already audits divergence and is the natural place to share that logic. Acceptance: a release interrupted between tag and push is completed by re-running, and a clean-but-behind repository is never reported as success.",
+      "priority": null,
+      "scope": null,
+      "acceptance_criteria": null,
+      "timestamp_ms": 1793232547927
+    },
+    {
+      "event": "edge_added",
+      "task_id": "1c7fe808-9e25-4373-a8b0-38094e0033f6",
+      "edge": {
+        "kind": "related_to",
+        "target_id": "bf0e06c2-20f3-4e00-bfa4-e7a1b81d39a8",
+        "target_ticket_key": "GB-75",
+        "target_repo": "outfeed"
+      },
+      "timestamp_ms": 1793232867079
+    },
+    {
+      "event": "edge_added",
+      "task_id": "1c7fe808-9e25-4373-a8b0-38094e0033f6",
+      "edge": {
+        "kind": "related_to",
+        "target_id": "9bd73eed-d7d9-4ca6-a972-a08ea5011477",
+        "target_ticket_key": "GB-101",
+        "target_repo": "outfeed"
+      },
+      "timestamp_ms": 1793232867192
+    },
+    {
+      "event": "edge_added",
+      "task_id": "1c7fe808-9e25-4373-a8b0-38094e0033f6",
+      "edge": {
+        "kind": "related_to",
+        "target_id": "87e08769-7bd4-45c0-ba9e-7379b30e52c0",
+        "target_ticket_key": "GB-151"
+      },
+      "timestamp_ms": 1793232867303
+    },
+    {
+      "event": "task_updated",
+      "task_id": "1c7fe808-9e25-4373-a8b0-38094e0033f6",
+      "title": null,
+      "description": "Add the missing push half of release self-healing. Precedent already in the codebase: GB-101 (verified) added registry-side recovery - plan_suite_releases marks a version whose tag exists but is not on crates.io as SuitePlanAction::PublishPending instead of SkipClean, and execute_suite_plan then publishes it, so an interrupted publish heals on the next release --all. There is no analogue for git: SuitePlanAction has only ReleasePatch, ReleaseMinor, ReleaseMajor, PublishPending and SkipClean, and nothing inspects whether a member's commits or tags exist on origin. So a run that dies after commit+tag but before push (or one invoked with --skip-push, or a push that fails on the last repo) leaves HEAD sitting on an already-tagged commit; the next release --all sees zero commits since the tag, reports Skip (Clean), and the remote stays behind indefinitely while the run reports success. Verified in this workspace 2026-10-28 that routine local work is always released (any commit after the tag makes a repo non-clean and origin/main matched local HEAD~1 in every 'clean' member), so this is strictly a recovery/idempotency gap. Proposed fix, mirroring GB-101: add SuitePlanAction::PushPending (or a combined Reconcile action) set when the member's HEAD is tagged but branch or tag is absent from origin, detected with the existing sync_model::calculate_divergence (BranchDivergence::Ahead(n)) rather than new git plumbing, and have execute_suite_plan push it; consider uniting push and publish reconciliation into one end-of-run repair pass so a half-finished repository is healed by re-running instead of being reported as success. Acceptance: a release interrupted between tag and push is completed by re-running release --all, a clean-but-behind member is never reported as success, and the new action is covered by plan/execute tests.",
+      "priority": null,
+      "scope": null,
+      "acceptance_criteria": null,
+      "timestamp_ms": 1793232923481
+    },
+    {
+      "event": "task_claimed",
+      "task_id": "1c7fe808-9e25-4373-a8b0-38094e0033f6",
+      "claim": {
+        "agent_id": "cline",
+        "claimed_at_epoch_ms": 1793241739659,
+        "lease_expires_at_epoch_ms": 1793245339659,
+        "git_branch": "feat/outfeed-push-pending",
+        "base_commit_sha": null
+      }
+    },
+    {
+      "event": "status_changed",
+      "task_id": "1c7fe808-9e25-4373-a8b0-38094e0033f6",
+      "from": "deferred",
+      "to": "in_progress",
+      "reason": "Claimed by cline",
+      "timestamp_ms": 1793241739659
+    },
+    {
+      "event": "task_verified",
+      "task_id": "1c7fe808-9e25-4373-a8b0-38094e0033f6",
+      "receipt": {
+        "verifier": "cline",
+        "command": "n/a",
+        "exit_code": 0,
+        "diagnostic_count": null,
+        "summary": "Fixed on outfeed main at d2ddec6 + 8679b53: push::is_ahead_of_remote distinguishes no-remote (false), never-pushed branch (no upstream, true) and local commits via rev-list --count @{upstream}..HEAD (true), and lives in push.rs because git.rs was already 234 lines. The suite planner gains SuitePlanAction::PushPending ('Push (Ahead)') for a published repository that is still ahead of its remote, ordered after PublishPending; release_entry pushes it in place honouring --skip-push and --dry-run. Proof: tests/push_pending_tests.rs builds real repositories for all three verdicts, and suite_waves_tests asserts a PushPending entry reaches the wave schedule next to a skipped clean one. Gates: fmt clean, clippy --workspace --all-targets -D warnings clean, nextest 73/73. The live end-to-end case still needs a real push, which is release-gated.",
+        "verified_at_epoch_ms": 1793241739790,
+        "git_branch": "main",
+        "base_commit_sha": "8679b53035c1f8e4b1e601e61b146a3827a83e02",
+        "head_commit_sha": "8679b53035c1f8e4b1e601e61b146a3827a83e02",
+        "commit_shas": [
+          "8679b53035c1f8e4b1e601e61b146a3827a83e02"
+        ],
+        "repo": null,
+        "chain_key": null
+      }
+    },
+    {
+      "event": "status_changed",
+      "task_id": "1c7fe808-9e25-4373-a8b0-38094e0033f6",
+      "from": "verified",
+      "to": "archived",
+      "reason": "Archived out of active backlog",
+      "timestamp_ms": 1793289274708
+    },
+    {
+      "event": "task_archived",
+      "task_id": "1c7fe808-9e25-4373-a8b0-38094e0033f6",
+      "status": "verified",
+      "timestamp_ms": 1794038010766
+    }
+  ]
+}

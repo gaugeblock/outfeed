@@ -1,0 +1,140 @@
+{
+  "ticket": {
+    "id": "45d0e0bf-ad71-4137-95e3-fbda310e401b",
+    "ticket_key": "GB-140",
+    "slug": "parse-cooldown-misses-crates-io-s-try-again-after-rfc2822-date-body-form-45d0e0",
+    "title": "parse_cooldown misses crates.io's 'try again after <RFC2822 date>' body form",
+    "description": "Observed during the GB-127 namespace reservation: crates.io returns 429 with the deadline only in the message body ('You have published too many new crates in a short period of time. Please try again after Wed, 28 Oct 2026 15:30:25 GMT') and no Retry-After header. parse_cooldown matched neither 'retry after <n>' nor 'try again in <n>', so it fell back to the 30s default and the 3-attempt budget was exhausted before the real ~2 minute cooldown elapsed. Add a 'try again after <RFC2822>' form plus a generic HTTP-date scan.",
+    "kind": "bug",
+    "status": "verified",
+    "priority": 3,
+    "scope": {
+      "repo": null,
+      "crate_name": "outfeed-core",
+      "module_path": null,
+      "target_files": [
+        "outfeed/crates/outfeed-core/src/rate_limit.rs"
+      ],
+      "target_symbols": [
+        "outfeed_core::rate_limit::parse_cooldown"
+      ],
+      "labels": []
+    },
+    "edges": [],
+    "decisions": [],
+    "acceptance_criteria": [],
+    "plan": null,
+    "active_claim": null,
+    "latest_handoff": null,
+    "verification_receipt": {
+      "verifier": "cline",
+      "command": "n/a",
+      "exit_code": 0,
+      "diagnostic_count": null,
+      "summary": "Merged to outfeed main (9f84ff1): parse_cooldown resolves an explicit Retry-After token first, then prose deadlines as RFC 2822 dates before any bare integer (a day-of-month was previously read as 28 seconds), then scans the whole output as a last resort. Reproduced with the verbatim crates.io 429 body observed during the GB-127 reservation; gates: clippy --workspace --all-targets -D warnings clean, nextest --workspace 67/67, fmt OK, docs 9/9.",
+      "verified_at_epoch_ms": 1793201785506,
+      "git_branch": "main",
+      "base_commit_sha": "9f84ff1d6fd14616adf719311d3501dc7dfe73b2",
+      "head_commit_sha": "9f84ff1d6fd14616adf719311d3501dc7dfe73b2",
+      "commit_shas": [
+        "9f84ff1d6fd14616adf719311d3501dc7dfe73b2"
+      ],
+      "repo": null,
+      "chain_key": null
+    },
+    "created_at_epoch_ms": 1793201526692,
+    "updated_at_epoch_ms": 1794038009106,
+    "archived_at_epoch_ms": 1794038009106
+  },
+  "events": [
+    {
+      "event": "deferred_item_captured",
+      "task": {
+        "id": "45d0e0bf-ad71-4137-95e3-fbda310e401b",
+        "ticket_key": "GB-140",
+        "slug": "parse-cooldown-misses-crates-io-s-try-again-after-rfc2822-date-body-form-45d0e0",
+        "title": "parse_cooldown misses crates.io's 'try again after <RFC2822 date>' body form",
+        "description": "Observed during the GB-127 namespace reservation: crates.io returns 429 with the deadline only in the message body ('You have published too many new crates in a short period of time. Please try again after Wed, 28 Oct 2026 15:30:25 GMT') and no Retry-After header. parse_cooldown matched neither 'retry after <n>' nor 'try again in <n>', so it fell back to the 30s default and the 3-attempt budget was exhausted before the real ~2 minute cooldown elapsed. Add a 'try again after <RFC2822>' form plus a generic HTTP-date scan.",
+        "kind": "bug",
+        "status": "triage",
+        "priority": 3,
+        "scope": {
+          "repo": null,
+          "crate_name": "outfeed-core",
+          "module_path": null,
+          "target_files": [
+            "outfeed/crates/outfeed-core/src/rate_limit.rs"
+          ],
+          "target_symbols": [
+            "outfeed_core::rate_limit::parse_cooldown"
+          ],
+          "labels": []
+        },
+        "edges": [],
+        "decisions": [],
+        "acceptance_criteria": [],
+        "plan": null,
+        "active_claim": null,
+        "latest_handoff": null,
+        "verification_receipt": null,
+        "created_at_epoch_ms": 1793201526692,
+        "updated_at_epoch_ms": 1793201526692
+      },
+      "captured_by_agent": "cline",
+      "discovered_from_task_id": null
+    },
+    {
+      "event": "task_claimed",
+      "task_id": "45d0e0bf-ad71-4137-95e3-fbda310e401b",
+      "claim": {
+        "agent_id": "cline",
+        "claimed_at_epoch_ms": 1793201589666,
+        "lease_expires_at_epoch_ms": 1793205189666,
+        "git_branch": "fix/outfeed-cooldown-date-form",
+        "base_commit_sha": null
+      }
+    },
+    {
+      "event": "status_changed",
+      "task_id": "45d0e0bf-ad71-4137-95e3-fbda310e401b",
+      "from": "triage",
+      "to": "in_progress",
+      "reason": "Claimed by cline",
+      "timestamp_ms": 1793201589666
+    },
+    {
+      "event": "task_verified",
+      "task_id": "45d0e0bf-ad71-4137-95e3-fbda310e401b",
+      "receipt": {
+        "verifier": "cline",
+        "command": "n/a",
+        "exit_code": 0,
+        "diagnostic_count": null,
+        "summary": "Merged to outfeed main (9f84ff1): parse_cooldown resolves an explicit Retry-After token first, then prose deadlines as RFC 2822 dates before any bare integer (a day-of-month was previously read as 28 seconds), then scans the whole output as a last resort. Reproduced with the verbatim crates.io 429 body observed during the GB-127 reservation; gates: clippy --workspace --all-targets -D warnings clean, nextest --workspace 67/67, fmt OK, docs 9/9.",
+        "verified_at_epoch_ms": 1793201785506,
+        "git_branch": "main",
+        "base_commit_sha": "9f84ff1d6fd14616adf719311d3501dc7dfe73b2",
+        "head_commit_sha": "9f84ff1d6fd14616adf719311d3501dc7dfe73b2",
+        "commit_shas": [
+          "9f84ff1d6fd14616adf719311d3501dc7dfe73b2"
+        ],
+        "repo": null,
+        "chain_key": null
+      }
+    },
+    {
+      "event": "status_changed",
+      "task_id": "45d0e0bf-ad71-4137-95e3-fbda310e401b",
+      "from": "verified",
+      "to": "archived",
+      "reason": "Archived out of active backlog",
+      "timestamp_ms": 1793289286115
+    },
+    {
+      "event": "task_archived",
+      "task_id": "45d0e0bf-ad71-4137-95e3-fbda310e401b",
+      "status": "verified",
+      "timestamp_ms": 1794038009106
+    }
+  ]
+}

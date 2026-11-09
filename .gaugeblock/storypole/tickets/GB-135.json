@@ -1,0 +1,140 @@
+{
+  "ticket": {
+    "id": "03a09e5a-0c5f-4e86-beab-07d924c4f9d3",
+    "ticket_key": "GB-135",
+    "slug": "prune-workspace-deletes-rlibs-rmeta-files-and-proc-macros-not-just-test-binaries-03a09e",
+    "title": "prune_workspace deletes rlibs, rmeta files and proc-macros, not just test binaries",
+    "description": "prune_workspace sweeps every entry in target/debug/deps older than keep_days, including compiled dependencies and proc-macro libraries. With keep_days=0 it is equivalent to wiping the dependency cache, which defeats cache retention. Consider an extension-aware (surgical) mode that only removes extension-less executables, mirroring outfeed_core::headroom::prune_test_binaries.",
+    "kind": "feature",
+    "status": "verified",
+    "priority": 3,
+    "scope": {
+      "repo": null,
+      "crate_name": "outfeed-core",
+      "module_path": null,
+      "target_files": [
+        "outfeed/crates/outfeed-core/src/clean.rs"
+      ],
+      "target_symbols": [
+        "outfeed_core::clean::prune_workspace"
+      ],
+      "labels": []
+    },
+    "edges": [],
+    "decisions": [],
+    "acceptance_criteria": [],
+    "plan": null,
+    "active_claim": null,
+    "latest_handoff": null,
+    "verification_receipt": {
+      "verifier": "cline",
+      "command": "n/a",
+      "exit_code": 0,
+      "diagnostic_count": null,
+      "summary": "Tier 3 gate green on merged outfeed main (f54974c): fmt OK, clippy --workspace --all-targets -D warnings OK, nextest --workspace 55/55, docs check 9/9. prune_workspace now preserves rlib/rmeta/dep-info/proc-macro artifacts via clean::is_prunable_artifact, covered by classification and end-to-end prune tests.",
+      "verified_at_epoch_ms": 1793176838448,
+      "git_branch": "main",
+      "base_commit_sha": "99d401e22b6e03076200e3245790bd6068e79509",
+      "head_commit_sha": "99d401e22b6e03076200e3245790bd6068e79509",
+      "commit_shas": [
+        "99d401e22b6e03076200e3245790bd6068e79509"
+      ],
+      "repo": null,
+      "chain_key": null
+    },
+    "created_at_epoch_ms": 1793171797472,
+    "updated_at_epoch_ms": 1794038007697,
+    "archived_at_epoch_ms": 1794038007697
+  },
+  "events": [
+    {
+      "event": "deferred_item_captured",
+      "task": {
+        "id": "03a09e5a-0c5f-4e86-beab-07d924c4f9d3",
+        "ticket_key": "GB-135",
+        "slug": "prune-workspace-deletes-rlibs-rmeta-files-and-proc-macros-not-just-test-binaries-03a09e",
+        "title": "prune_workspace deletes rlibs, rmeta files and proc-macros, not just test binaries",
+        "description": "prune_workspace sweeps every entry in target/debug/deps older than keep_days, including compiled dependencies and proc-macro libraries. With keep_days=0 it is equivalent to wiping the dependency cache, which defeats cache retention. Consider an extension-aware (surgical) mode that only removes extension-less executables, mirroring outfeed_core::headroom::prune_test_binaries.",
+        "kind": "feature",
+        "status": "deferred",
+        "priority": 3,
+        "scope": {
+          "repo": null,
+          "crate_name": "outfeed-core",
+          "module_path": null,
+          "target_files": [
+            "outfeed/crates/outfeed-core/src/clean.rs"
+          ],
+          "target_symbols": [
+            "outfeed_core::clean::prune_workspace"
+          ],
+          "labels": []
+        },
+        "edges": [],
+        "decisions": [],
+        "acceptance_criteria": [],
+        "plan": null,
+        "active_claim": null,
+        "latest_handoff": null,
+        "verification_receipt": null,
+        "created_at_epoch_ms": 1793171797472,
+        "updated_at_epoch_ms": 1793171797472
+      },
+      "captured_by_agent": "cline",
+      "discovered_from_task_id": null
+    },
+    {
+      "event": "task_claimed",
+      "task_id": "03a09e5a-0c5f-4e86-beab-07d924c4f9d3",
+      "claim": {
+        "agent_id": "cline",
+        "claimed_at_epoch_ms": 1793176631394,
+        "lease_expires_at_epoch_ms": 1793180231394,
+        "git_branch": "fix/outfeed-surgical-prune",
+        "base_commit_sha": "99d401e22b6e03076200e3245790bd6068e79509"
+      }
+    },
+    {
+      "event": "status_changed",
+      "task_id": "03a09e5a-0c5f-4e86-beab-07d924c4f9d3",
+      "from": "deferred",
+      "to": "in_progress",
+      "reason": "Claimed by cline",
+      "timestamp_ms": 1793176631394
+    },
+    {
+      "event": "task_verified",
+      "task_id": "03a09e5a-0c5f-4e86-beab-07d924c4f9d3",
+      "receipt": {
+        "verifier": "cline",
+        "command": "n/a",
+        "exit_code": 0,
+        "diagnostic_count": null,
+        "summary": "Tier 3 gate green on merged outfeed main (f54974c): fmt OK, clippy --workspace --all-targets -D warnings OK, nextest --workspace 55/55, docs check 9/9. prune_workspace now preserves rlib/rmeta/dep-info/proc-macro artifacts via clean::is_prunable_artifact, covered by classification and end-to-end prune tests.",
+        "verified_at_epoch_ms": 1793176838448,
+        "git_branch": "main",
+        "base_commit_sha": "99d401e22b6e03076200e3245790bd6068e79509",
+        "head_commit_sha": "99d401e22b6e03076200e3245790bd6068e79509",
+        "commit_shas": [
+          "99d401e22b6e03076200e3245790bd6068e79509"
+        ],
+        "repo": null,
+        "chain_key": null
+      }
+    },
+    {
+      "event": "status_changed",
+      "task_id": "03a09e5a-0c5f-4e86-beab-07d924c4f9d3",
+      "from": "verified",
+      "to": "archived",
+      "reason": "Archived out of active backlog",
+      "timestamp_ms": 1793289264078
+    },
+    {
+      "event": "task_archived",
+      "task_id": "03a09e5a-0c5f-4e86-beab-07d924c4f9d3",
+      "status": "verified",
+      "timestamp_ms": 1794038007697
+    }
+  ]
+}
