@@ -1,0 +1,216 @@
+{
+  "events": [
+    {
+      "event": "task_created",
+      "task": {
+        "acceptance_criteria": [],
+        "active_claim": null,
+        "created_at_epoch_ms": 1793036677967,
+        "decisions": [],
+        "description": "Enforce assert_main_branch and porcelain working tree checks on both target repository and meta-harness workspace root in outfeed plan, apply, and release.",
+        "edges": [],
+        "id": "2aac59c6-a897-4f7c-94c7-77622eaf4b3c",
+        "kind": "bug",
+        "latest_handoff": null,
+        "plan": null,
+        "priority": 2,
+        "scope": {
+          "crate_name": "outfeed-core",
+          "labels": [],
+          "module_path": null,
+          "repo": "outfeed",
+          "target_files": [],
+          "target_symbols": []
+        },
+        "slug": "enforce-main-branch-and-porcelain-tree-checks-across-outfeed-release-pipeline-2aac59",
+        "status": "ready",
+        "ticket_key": "OF-9",
+        "title": "Enforce main branch and porcelain tree checks across outfeed release pipeline",
+        "updated_at_epoch_ms": 1793036677967,
+        "verification_receipt": null
+      }
+    },
+    {
+      "edge": {
+        "kind": "related_to",
+        "target_id": "f05a4a1c-b5b3-4cd5-98f6-b289a4c05415",
+        "target_ticket_key": "GB-69"
+      },
+      "event": "edge_added",
+      "task_id": "2aac59c6-a897-4f7c-94c7-77622eaf4b3c",
+      "timestamp_ms": 1793036689001
+    },
+    {
+      "claim": {
+        "agent_id": "antigravity",
+        "base_commit_sha": "cbee5d7b48420f20c237ac137f00a6d794e5631c",
+        "claimed_at_epoch_ms": 1793036696639,
+        "git_branch": "fix/outfeed-branch-checks",
+        "lease_expires_at_epoch_ms": 1793040296639
+      },
+      "event": "task_claimed",
+      "task_id": "2aac59c6-a897-4f7c-94c7-77622eaf4b3c"
+    },
+    {
+      "event": "status_changed",
+      "from": "ready",
+      "reason": "Claimed by antigravity",
+      "task_id": "2aac59c6-a897-4f7c-94c7-77622eaf4b3c",
+      "timestamp_ms": 1793036696639,
+      "to": "in_progress"
+    },
+    {
+      "event": "plan_updated",
+      "plan": {
+        "design_markdown": "# OF-9: Enforce main branch, porcelain tree checks, and clean Storypole release commit\n\n> **Status:** InProgress  \n> **Target Scope:** `outfeed-core`, `outfeed-cli`  \n> **Key Invariants:**  \n> 1. Hard 250 LOC rule on all `.rs` files.  \n> 2. Zero-panic safety: no `.unwrap()` / `.expect()` in production library paths (`thiserror`).  \n> 3. Releases MUST occur strictly on branch `main` with a clean working tree across both target repo and meta-harness root.  \n> 4. `outfeed apply` MUST NOT leave a dirty `.storypole/ledger.jsonl`: the release ticket must be created and certified before the release commit is made.  \n\n---\n\n## 1. Executive Summary & Root Cause\n\n1. **Branch Enforcement Gap**:\n   `OutfeedError::InvalidBranch(String)` was defined in `error.rs`, but `assert_main_branch` was never implemented or invoked in `plan_release` and `apply_release`. Furthermore, when targeting a member repository within a meta-harness, only the child directory was inspected, ignoring the parent workspace's active branch.\n\n2. **Dirty Ledger on Release**:\n   `apply_release` performed git commit and tag *before* creating and certifying the Storypole release ticket. As a result, the release ticket appended to `.storypole/ledger.jsonl` was uncommitted, leaving the working tree dirty immediately after release.\n\n---\n\n## 2. Implementation Steps\n\n1. **Step 1: Implement `assert_main_branch` in `outfeed-core::git`**\n   - Check `get_current_branch(repo_dir)? == \"main\"`.\n   - Traverse upward to detect any enclosing parent Git repository (the meta-harness workspace root) and ensure it is also on `main` and has a clean working tree.\n   - *Verification Gate:* `cargo check -p outfeed-core`.\n\n2. **Step 2: Enforce checks in `plan_release` and `apply_release`**\n   - Call `assert_main_branch(repo_dir)?` at the entry of both `plan_release` and `apply_release`.\n   - *Verification Gate:* `cargo test -p outfeed-core`.\n\n3. **Step 3: Reorder Storypole Ticket Creation before Release Commit**\n   - In `apply_release`, create and certify the Storypole release ticket *before* calling `create_release_commit_and_tag`.\n   - `git add -A` within `create_release_commit_and_tag` will stage the updated `.storypole/ledger.jsonl` into the atomic release commit.\n   - *Verification Gate:* `cargo test -p outfeed-core`.\n\n4. **Step 4: Dogfooding & Binary Update**\n   - Test `outfeed apply` and ensure working tree remains 100% clean (`git status` is empty).\n   - Recompile and reinstall binary into `~/.cargo/bin`.\n",
+        "plan_file_path": ".gaugeblock/storypole/plans/OF-9.md",
+        "steps": [
+          {
+            "completed": false,
+            "step_id": "1",
+            "target_files": [],
+            "title": "Implement assert_main_branch in outfeed-core::git",
+            "verification_gate": "cargo check -p outfeed-core"
+          },
+          {
+            "completed": false,
+            "step_id": "2",
+            "target_files": [],
+            "title": "Enforce checks in plan_release and apply_release",
+            "verification_gate": "cargo test -p outfeed-core"
+          },
+          {
+            "completed": false,
+            "step_id": "3",
+            "target_files": [],
+            "title": "Reorder Storypole Ticket Creation before Release Commit",
+            "verification_gate": "cargo test -p outfeed-core"
+          },
+          {
+            "completed": false,
+            "step_id": "4",
+            "target_files": [],
+            "title": "Dogfooding & Binary Update",
+            "verification_gate": "cargo test --workspace"
+          }
+        ],
+        "summary": "Enforce main branch, porcelain tree checks, and clean Storypole release commit",
+        "updated_at_epoch_ms": 1793036718264
+      },
+      "task_id": "2aac59c6-a897-4f7c-94c7-77622eaf4b3c",
+      "timestamp_ms": 1793036718264
+    },
+    {
+      "event": "task_verified",
+      "receipt": {
+        "base_commit_sha": "cbee5d7b48420f20c237ac137f00a6d794e5631c",
+        "chain_key": null,
+        "command": "n/a",
+        "commit_shas": [
+          "2973a015ad8c1b83e57705f0dc561314fddc75ed",
+          "7bbbb31190d3f8b6814c148a610170ca5b8c1f4e"
+        ],
+        "diagnostic_count": null,
+        "exit_code": 0,
+        "git_branch": "main",
+        "head_commit_sha": "7bbbb31190d3f8b6814c148a610170ca5b8c1f4e",
+        "repo": null,
+        "summary": "Enforced main branch and porcelain tree checks across outfeed plan and apply pipelines",
+        "verified_at_epoch_ms": 1793037447012,
+        "verifier": "antigravity"
+      },
+      "task_id": "2aac59c6-a897-4f7c-94c7-77622eaf4b3c"
+    },
+    {
+      "event": "task_archived",
+      "status": "verified",
+      "task_id": "2aac59c6-a897-4f7c-94c7-77622eaf4b3c",
+      "timestamp_ms": 1794037991771
+    }
+  ],
+  "ticket": {
+    "acceptance_criteria": [],
+    "active_claim": null,
+    "archived_at_epoch_ms": 1794037991771,
+    "created_at_epoch_ms": 1793036677967,
+    "decisions": [],
+    "description": "Enforce assert_main_branch and porcelain working tree checks on both target repository and meta-harness workspace root in outfeed plan, apply, and release.",
+    "edges": [
+      {
+        "kind": "related_to",
+        "target_id": "f05a4a1c-b5b3-4cd5-98f6-b289a4c05415",
+        "target_ticket_key": "GB-69"
+      }
+    ],
+    "id": "2aac59c6-a897-4f7c-94c7-77622eaf4b3c",
+    "kind": "bug",
+    "latest_handoff": null,
+    "plan": {
+      "design_markdown": "# OF-9: Enforce main branch, porcelain tree checks, and clean Storypole release commit\n\n> **Status:** InProgress  \n> **Target Scope:** `outfeed-core`, `outfeed-cli`  \n> **Key Invariants:**  \n> 1. Hard 250 LOC rule on all `.rs` files.  \n> 2. Zero-panic safety: no `.unwrap()` / `.expect()` in production library paths (`thiserror`).  \n> 3. Releases MUST occur strictly on branch `main` with a clean working tree across both target repo and meta-harness root.  \n> 4. `outfeed apply` MUST NOT leave a dirty `.storypole/ledger.jsonl`: the release ticket must be created and certified before the release commit is made.  \n\n---\n\n## 1. Executive Summary & Root Cause\n\n1. **Branch Enforcement Gap**:\n   `OutfeedError::InvalidBranch(String)` was defined in `error.rs`, but `assert_main_branch` was never implemented or invoked in `plan_release` and `apply_release`. Furthermore, when targeting a member repository within a meta-harness, only the child directory was inspected, ignoring the parent workspace's active branch.\n\n2. **Dirty Ledger on Release**:\n   `apply_release` performed git commit and tag *before* creating and certifying the Storypole release ticket. As a result, the release ticket appended to `.storypole/ledger.jsonl` was uncommitted, leaving the working tree dirty immediately after release.\n\n---\n\n## 2. Implementation Steps\n\n1. **Step 1: Implement `assert_main_branch` in `outfeed-core::git`**\n   - Check `get_current_branch(repo_dir)? == \"main\"`.\n   - Traverse upward to detect any enclosing parent Git repository (the meta-harness workspace root) and ensure it is also on `main` and has a clean working tree.\n   - *Verification Gate:* `cargo check -p outfeed-core`.\n\n2. **Step 2: Enforce checks in `plan_release` and `apply_release`**\n   - Call `assert_main_branch(repo_dir)?` at the entry of both `plan_release` and `apply_release`.\n   - *Verification Gate:* `cargo test -p outfeed-core`.\n\n3. **Step 3: Reorder Storypole Ticket Creation before Release Commit**\n   - In `apply_release`, create and certify the Storypole release ticket *before* calling `create_release_commit_and_tag`.\n   - `git add -A` within `create_release_commit_and_tag` will stage the updated `.storypole/ledger.jsonl` into the atomic release commit.\n   - *Verification Gate:* `cargo test -p outfeed-core`.\n\n4. **Step 4: Dogfooding & Binary Update**\n   - Test `outfeed apply` and ensure working tree remains 100% clean (`git status` is empty).\n   - Recompile and reinstall binary into `~/.cargo/bin`.\n",
+      "plan_file_path": ".gaugeblock/storypole/plans/OF-9.md",
+      "steps": [
+        {
+          "completed": false,
+          "step_id": "1",
+          "target_files": [],
+          "title": "Implement assert_main_branch in outfeed-core::git",
+          "verification_gate": "cargo check -p outfeed-core"
+        },
+        {
+          "completed": false,
+          "step_id": "2",
+          "target_files": [],
+          "title": "Enforce checks in plan_release and apply_release",
+          "verification_gate": "cargo test -p outfeed-core"
+        },
+        {
+          "completed": false,
+          "step_id": "3",
+          "target_files": [],
+          "title": "Reorder Storypole Ticket Creation before Release Commit",
+          "verification_gate": "cargo test -p outfeed-core"
+        },
+        {
+          "completed": false,
+          "step_id": "4",
+          "target_files": [],
+          "title": "Dogfooding & Binary Update",
+          "verification_gate": "cargo test --workspace"
+        }
+      ],
+      "summary": "Enforce main branch, porcelain tree checks, and clean Storypole release commit",
+      "updated_at_epoch_ms": 1793036718264
+    },
+    "priority": 2,
+    "scope": {
+      "crate_name": "outfeed-core",
+      "labels": [],
+      "module_path": null,
+      "repo": "outfeed",
+      "target_files": [],
+      "target_symbols": []
+    },
+    "slug": "enforce-main-branch-and-porcelain-tree-checks-across-outfeed-release-pipeline-2aac59",
+    "status": "verified",
+    "ticket_key": "OF-9",
+    "title": "Enforce main branch and porcelain tree checks across outfeed release pipeline",
+    "updated_at_epoch_ms": 1794037991771,
+    "verification_receipt": {
+      "base_commit_sha": "cbee5d7b48420f20c237ac137f00a6d794e5631c",
+      "chain_key": null,
+      "command": "n/a",
+      "commit_shas": [
+        "2973a015ad8c1b83e57705f0dc561314fddc75ed",
+        "7bbbb31190d3f8b6814c148a610170ca5b8c1f4e"
+      ],
+      "diagnostic_count": null,
+      "exit_code": 0,
+      "git_branch": "main",
+      "head_commit_sha": "7bbbb31190d3f8b6814c148a610170ca5b8c1f4e",
+      "repo": null,
+      "summary": "Enforced main branch and porcelain tree checks across outfeed plan and apply pipelines",
+      "verified_at_epoch_ms": 1793037447012,
+      "verifier": "antigravity"
+    }
+  }
+}

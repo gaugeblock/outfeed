@@ -1,0 +1,174 @@
+{
+  "events": [
+    {
+      "event": "task_created",
+      "task": {
+        "acceptance_criteria": [],
+        "active_claim": null,
+        "created_at_epoch_ms": 1793063688972,
+        "decisions": [],
+        "description": "Add --yes / -y flag and --jobs concurrency control to outfeed release CLI, wiring confirmation prompts and multi-repo progress reporting to the 3-phase engine.",
+        "edges": [],
+        "id": "68c7e383-f470-44e8-8d90-e88a57abdbb5",
+        "kind": "feature",
+        "latest_handoff": null,
+        "plan": null,
+        "priority": 2,
+        "scope": {
+          "crate_name": "outfeed-cli",
+          "labels": [],
+          "module_path": null,
+          "repo": "outfeed",
+          "target_files": [],
+          "target_symbols": []
+        },
+        "slug": "add-yes-flag-and-jobs-concurrency-controls-to-outfeed-release-cli-68c7e3",
+        "status": "ready",
+        "ticket_key": "OF-17",
+        "title": "Add --yes flag and --jobs concurrency controls to outfeed release CLI",
+        "updated_at_epoch_ms": 1793063688972,
+        "verification_receipt": null
+      }
+    },
+    {
+      "edge": {
+        "kind": "blocked_by",
+        "target_id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
+        "target_repo": "outfeed",
+        "target_ticket_key": "OF-16"
+      },
+      "event": "edge_added",
+      "task_id": "68c7e383-f470-44e8-8d90-e88a57abdbb5",
+      "timestamp_ms": 1793063695354
+    },
+    {
+      "event": "status_changed",
+      "from": "ready",
+      "reason": "Blocked by unverified task OF-16",
+      "task_id": "68c7e383-f470-44e8-8d90-e88a57abdbb5",
+      "timestamp_ms": 1793063695354,
+      "to": "blocked"
+    },
+    {
+      "event": "plan_updated",
+      "plan": {
+        "design_markdown": "# OF-17: Add --yes Flag and Concurrency Controls to outfeed release CLI\n\n## Problem\n1. **Interactive Prompt Bypass for Automated Environments:**\n   With the introduction of the confirmation gate in the 3-phase release pipeline, automated CI scripts and agent harness runs need a non-interactive bypass flag (`--yes` / `-y`).\n2. **Missing Workstation Concurrency Control:**\n   Power users and high-core workstations should be able to specify concurrency levels via `--jobs` / `-j` when executing releases, while defaulting safely to sequential execution (`jobs = 1`) on resource-constrained laptops.\n\n## Solution\n1. **Update `ReleaseArgs` in `outfeed-cli`:**\n   - Add `#[arg(short = 'y', long = \"yes\", help = \"Automatically confirm release plan without prompting\")] pub yes: bool`.\n   - Add `#[arg(short = 'j', long = \"jobs\", default_value = \"1\", help = \"Maximum concurrent release jobs (default: 1)\")] pub jobs: usize`.\n2. **Wire Confirmation Gate in CLI Handler:**\n   - In `outfeed-cli::commands::release`:\n     - Render the Plan Table.\n     - If `--dry-run`: run simulated execution automatically.\n     - If zero releases: print status and return Ok(()).\n     - If not `--yes` and not `--json`: prompt `Proceed with release? [y/N]` using `dialoguer` or `std::io::stdin`.\n     - Dispatch to `execute_suite_releases` passing `jobs`.\n\n## Step Breakdown\n- Step 1: Add `--yes` and `--jobs` flags to `ReleaseArgs` in `outfeed-cli` (Gate: `cargo check -p outfeed-cli`)\n- Step 2: Implement confirmation prompt and wire CLI to 3-phase pipeline (Gate: `cargo test -p outfeed-cli`)\n- Step 3: Run Tier 2 verification and dogfood `outfeed release --all --dry-run` (Gate: `cargo nextest run --workspace`)\n",
+        "plan_file_path": ".gaugeblock/storypole/plans/OF-17.md",
+        "steps": [],
+        "summary": "Add --yes / -y confirmation bypass flag and --jobs / -j concurrency control to ReleaseArgs and wire prompt gate in outfeed-cli",
+        "updated_at_epoch_ms": 1793063773055
+      },
+      "task_id": "68c7e383-f470-44e8-8d90-e88a57abdbb5",
+      "timestamp_ms": 1793063773055
+    },
+    {
+      "event": "status_changed",
+      "from": "blocked",
+      "reason": "Dependency OF-16 verified",
+      "task_id": "68c7e383-f470-44e8-8d90-e88a57abdbb5",
+      "timestamp_ms": 1793064593836,
+      "to": "ready"
+    },
+    {
+      "claim": {
+        "agent_id": "agent-antigravity",
+        "base_commit_sha": "c1cea6dce4f45365aa62e45a11d95a6b49e34a38",
+        "claimed_at_epoch_ms": 1793064603113,
+        "git_branch": "feat/gb-83-release-cli-yes-and-jobs",
+        "lease_expires_at_epoch_ms": 1793068203113
+      },
+      "event": "task_claimed",
+      "task_id": "68c7e383-f470-44e8-8d90-e88a57abdbb5"
+    },
+    {
+      "event": "status_changed",
+      "from": "ready",
+      "reason": "Claimed by agent-antigravity",
+      "task_id": "68c7e383-f470-44e8-8d90-e88a57abdbb5",
+      "timestamp_ms": 1793064603113,
+      "to": "in_progress"
+    },
+    {
+      "event": "task_verified",
+      "receipt": {
+        "base_commit_sha": "c1cea6dce4f45365aa62e45a11d95a6b49e34a38",
+        "chain_key": null,
+        "command": "n/a",
+        "commit_shas": [
+          "c1cea6dce4f45365aa62e45a11d95a6b49e34a38"
+        ],
+        "diagnostic_count": null,
+        "exit_code": 0,
+        "git_branch": "feat/gb-83-release-cli-yes-and-jobs",
+        "head_commit_sha": "c1cea6dce4f45365aa62e45a11d95a6b49e34a38",
+        "repo": null,
+        "summary": "Added --yes / -y confirmation bypass flag, --jobs / -j concurrency control, compact plan table presentation, and interactive confirmation prompt in outfeed-cli",
+        "verified_at_epoch_ms": 1793064882425,
+        "verifier": "agent-antigravity"
+      },
+      "task_id": "68c7e383-f470-44e8-8d90-e88a57abdbb5"
+    },
+    {
+      "event": "task_archived",
+      "status": "verified",
+      "task_id": "68c7e383-f470-44e8-8d90-e88a57abdbb5",
+      "timestamp_ms": 1794037995969
+    }
+  ],
+  "ticket": {
+    "acceptance_criteria": [],
+    "active_claim": null,
+    "archived_at_epoch_ms": 1794037995969,
+    "created_at_epoch_ms": 1793063688972,
+    "decisions": [],
+    "description": "Add --yes / -y flag and --jobs concurrency control to outfeed release CLI, wiring confirmation prompts and multi-repo progress reporting to the 3-phase engine.",
+    "edges": [
+      {
+        "kind": "blocked_by",
+        "target_id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
+        "target_repo": "outfeed",
+        "target_ticket_key": "OF-16"
+      }
+    ],
+    "id": "68c7e383-f470-44e8-8d90-e88a57abdbb5",
+    "kind": "feature",
+    "latest_handoff": null,
+    "plan": {
+      "design_markdown": "# OF-17: Add --yes Flag and Concurrency Controls to outfeed release CLI\n\n## Problem\n1. **Interactive Prompt Bypass for Automated Environments:**\n   With the introduction of the confirmation gate in the 3-phase release pipeline, automated CI scripts and agent harness runs need a non-interactive bypass flag (`--yes` / `-y`).\n2. **Missing Workstation Concurrency Control:**\n   Power users and high-core workstations should be able to specify concurrency levels via `--jobs` / `-j` when executing releases, while defaulting safely to sequential execution (`jobs = 1`) on resource-constrained laptops.\n\n## Solution\n1. **Update `ReleaseArgs` in `outfeed-cli`:**\n   - Add `#[arg(short = 'y', long = \"yes\", help = \"Automatically confirm release plan without prompting\")] pub yes: bool`.\n   - Add `#[arg(short = 'j', long = \"jobs\", default_value = \"1\", help = \"Maximum concurrent release jobs (default: 1)\")] pub jobs: usize`.\n2. **Wire Confirmation Gate in CLI Handler:**\n   - In `outfeed-cli::commands::release`:\n     - Render the Plan Table.\n     - If `--dry-run`: run simulated execution automatically.\n     - If zero releases: print status and return Ok(()).\n     - If not `--yes` and not `--json`: prompt `Proceed with release? [y/N]` using `dialoguer` or `std::io::stdin`.\n     - Dispatch to `execute_suite_releases` passing `jobs`.\n\n## Step Breakdown\n- Step 1: Add `--yes` and `--jobs` flags to `ReleaseArgs` in `outfeed-cli` (Gate: `cargo check -p outfeed-cli`)\n- Step 2: Implement confirmation prompt and wire CLI to 3-phase pipeline (Gate: `cargo test -p outfeed-cli`)\n- Step 3: Run Tier 2 verification and dogfood `outfeed release --all --dry-run` (Gate: `cargo nextest run --workspace`)\n",
+      "plan_file_path": ".gaugeblock/storypole/plans/OF-17.md",
+      "steps": [],
+      "summary": "Add --yes / -y confirmation bypass flag and --jobs / -j concurrency control to ReleaseArgs and wire prompt gate in outfeed-cli",
+      "updated_at_epoch_ms": 1793063773055
+    },
+    "priority": 2,
+    "scope": {
+      "crate_name": "outfeed-cli",
+      "labels": [],
+      "module_path": null,
+      "repo": "outfeed",
+      "target_files": [],
+      "target_symbols": []
+    },
+    "slug": "add-yes-flag-and-jobs-concurrency-controls-to-outfeed-release-cli-68c7e3",
+    "status": "verified",
+    "ticket_key": "OF-17",
+    "title": "Add --yes flag and --jobs concurrency controls to outfeed release CLI",
+    "updated_at_epoch_ms": 1794037995969,
+    "verification_receipt": {
+      "base_commit_sha": "c1cea6dce4f45365aa62e45a11d95a6b49e34a38",
+      "chain_key": null,
+      "command": "n/a",
+      "commit_shas": [
+        "c1cea6dce4f45365aa62e45a11d95a6b49e34a38"
+      ],
+      "diagnostic_count": null,
+      "exit_code": 0,
+      "git_branch": "feat/gb-83-release-cli-yes-and-jobs",
+      "head_commit_sha": "c1cea6dce4f45365aa62e45a11d95a6b49e34a38",
+      "repo": null,
+      "summary": "Added --yes / -y confirmation bypass flag, --jobs / -j concurrency control, compact plan table presentation, and interactive confirmation prompt in outfeed-cli",
+      "verified_at_epoch_ms": 1793064882425,
+      "verifier": "agent-antigravity"
+    }
+  }
+}

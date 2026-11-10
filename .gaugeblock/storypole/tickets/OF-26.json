@@ -1,0 +1,210 @@
+{
+  "events": [
+    {
+      "event": "task_created",
+      "task": {
+        "acceptance_criteria": [
+          "cargo-nextest is used when installed on PATH,cargo check preceding test is eliminated,cargo install is skipped during release unless --install is passed"
+        ],
+        "active_claim": null,
+        "created_at_epoch_ms": 1793170321953,
+        "decisions": [],
+        "description": "Integrate cargo-nextest run --workspace as the primary verification runner during outfeed release (falling back to cargo test if absent). Eliminate redundant cargo check before test. Make cargo install into ~/.cargo/bin opt-in via --install.",
+        "edges": [],
+        "id": "0a36de7b-9d9b-4f23-85ef-3417b8ac9a15",
+        "kind": "feature",
+        "latest_handoff": null,
+        "plan": null,
+        "priority": 1,
+        "scope": {
+          "crate_name": "outfeed-core",
+          "labels": [
+            "perf,nextest,verification,outfeed"
+          ],
+          "module_path": null,
+          "repo": "outfeed",
+          "target_files": [],
+          "target_symbols": []
+        },
+        "slug": "switch-release-verification-to-cargo-nextest-and-make-binary-install-opt-in-0a36de",
+        "status": "ready",
+        "ticket_key": "OF-26",
+        "title": "Switch release verification to cargo-nextest and make binary install opt-in",
+        "updated_at_epoch_ms": 1793170321953,
+        "verification_receipt": null
+      }
+    },
+    {
+      "edge": {
+        "kind": "parent_epic",
+        "target_id": "68e622ee-6f35-40ee-aa01-03c509c1dc44",
+        "target_repo": "outfeed",
+        "target_ticket_key": "OF-23"
+      },
+      "event": "edge_added",
+      "task_id": "0a36de7b-9d9b-4f23-85ef-3417b8ac9a15",
+      "timestamp_ms": 1793170327249
+    },
+    {
+      "event": "plan_updated",
+      "plan": {
+        "design_markdown": "# Task Plan: OF-26 — Switch Release Verification to cargo-nextest and Make Binary Install Opt-in\n\n> **Task Key:** `OF-26`  \n> **Parent Epic:** `OF-23`  \n> **Scope:** `outfeed-core,outfeed-cli`  \n> **Status:** Planned\n\n---\n\n## 1. Problem Statement\n`outfeed-core/src/engine.rs` hardcodes `cargo test --workspace` via standard subprocess, completely bypassing the installed `cargo-nextest` runner. Before running tests, it runs a redundant `cargo check --workspace`. Furthermore, `release_repo` forces a full `cargo install --force` in release mode for every single repository, adding 20–30 minutes of binary compilation during releases.\n\n---\n\n## 2. Technical Blueprint\n1. In `outfeed-core/src/engine.rs`:\n   * Eliminate the redundant `cargo check --workspace` prior to testing.\n   * Detect `cargo-nextest` on PATH:\n     * If present: execute `cargo nextest run --workspace` (followed by `cargo test --doc` if doc tests exist).\n     * If absent: fallback cleanly to `cargo test --workspace`.\n2. In `outfeed-core/src/model/options.rs` & `outfeed-cli/src/args/release.rs`:\n   * Invert installation behavior: skip binary compilation into `~/.cargo/bin` by default during `release --all`.\n   * Add `--install` flag to explicitly opt in to local binary installations.\n\n---\n\n## 3. Execution Steps\n* **Step 1:** Invert install default and add `--install` argument.\n* **Step 2:** Wire `cargo-nextest` execution into `engine.rs` and drop redundant `cargo check`.\n* **Step 3:** Tier 2 verification (`cargo nextest run -p outfeed-core`).\n",
+        "plan_file_path": ".gaugeblock/storypole/plans/OF-26.md",
+        "steps": [
+          {
+            "completed": false,
+            "step_id": "1",
+            "target_files": [],
+            "title": "Invert install default and add --install flag",
+            "verification_gate": "cargo check -p outfeed-cli"
+          },
+          {
+            "completed": false,
+            "step_id": "2",
+            "target_files": [],
+            "title": "Wire cargo-nextest execution and drop redundant cargo check",
+            "verification_gate": "cargo check -p outfeed-core"
+          },
+          {
+            "completed": false,
+            "step_id": "3",
+            "target_files": [],
+            "title": "Tier 2 verification",
+            "verification_gate": "cargo nextest run -p outfeed-core"
+          }
+        ],
+        "summary": "Switch verification to cargo-nextest and make binary install opt-in",
+        "updated_at_epoch_ms": 1793170488639
+      },
+      "task_id": "0a36de7b-9d9b-4f23-85ef-3417b8ac9a15",
+      "timestamp_ms": 1793170488639
+    },
+    {
+      "claim": {
+        "agent_id": "cline",
+        "base_commit_sha": "fa2f56da94fb6a4537e7f18ea60fc3074accbeaf",
+        "claimed_at_epoch_ms": 1793175230608,
+        "git_branch": "feat/outfeed-nextest-optin-install",
+        "lease_expires_at_epoch_ms": 1793178830608
+      },
+      "event": "task_claimed",
+      "task_id": "0a36de7b-9d9b-4f23-85ef-3417b8ac9a15"
+    },
+    {
+      "event": "status_changed",
+      "from": "ready",
+      "reason": "Claimed by cline",
+      "task_id": "0a36de7b-9d9b-4f23-85ef-3417b8ac9a15",
+      "timestamp_ms": 1793175230608,
+      "to": "in_progress"
+    },
+    {
+      "event": "task_verified",
+      "receipt": {
+        "base_commit_sha": "fa2f56da94fb6a4537e7f18ea60fc3074accbeaf",
+        "chain_key": null,
+        "command": "n/a",
+        "commit_shas": [
+          "fa2f56da94fb6a4537e7f18ea60fc3074accbeaf"
+        ],
+        "diagnostic_count": null,
+        "exit_code": 0,
+        "git_branch": "main",
+        "head_commit_sha": "fa2f56da94fb6a4537e7f18ea60fc3074accbeaf",
+        "repo": null,
+        "summary": "Tier 3 gate green on merged outfeed main (2894678): fmt OK, clippy --workspace --all-targets -D warnings OK, nextest --workspace 53/53, docs check 9/9 clean. Verification now prefers cargo-nextest + doctests, Cargo.lock syncs via cargo update --workspace --offline, and binary installation is opt-in via --install (verified in release --help).",
+        "verified_at_epoch_ms": 1793175480887,
+        "verifier": "cline"
+      },
+      "task_id": "0a36de7b-9d9b-4f23-85ef-3417b8ac9a15"
+    },
+    {
+      "event": "task_archived",
+      "status": "verified",
+      "task_id": "0a36de7b-9d9b-4f23-85ef-3417b8ac9a15",
+      "timestamp_ms": 1794037983095
+    }
+  ],
+  "ticket": {
+    "acceptance_criteria": [
+      "cargo-nextest is used when installed on PATH,cargo check preceding test is eliminated,cargo install is skipped during release unless --install is passed"
+    ],
+    "active_claim": null,
+    "archived_at_epoch_ms": 1794037983095,
+    "created_at_epoch_ms": 1793170321953,
+    "decisions": [],
+    "description": "Integrate cargo-nextest run --workspace as the primary verification runner during outfeed release (falling back to cargo test if absent). Eliminate redundant cargo check before test. Make cargo install into ~/.cargo/bin opt-in via --install.",
+    "edges": [
+      {
+        "kind": "parent_epic",
+        "target_id": "68e622ee-6f35-40ee-aa01-03c509c1dc44",
+        "target_repo": "outfeed",
+        "target_ticket_key": "OF-23"
+      }
+    ],
+    "id": "0a36de7b-9d9b-4f23-85ef-3417b8ac9a15",
+    "kind": "feature",
+    "latest_handoff": null,
+    "plan": {
+      "design_markdown": "# Task Plan: OF-26 — Switch Release Verification to cargo-nextest and Make Binary Install Opt-in\n\n> **Task Key:** `OF-26`  \n> **Parent Epic:** `OF-23`  \n> **Scope:** `outfeed-core,outfeed-cli`  \n> **Status:** Planned\n\n---\n\n## 1. Problem Statement\n`outfeed-core/src/engine.rs` hardcodes `cargo test --workspace` via standard subprocess, completely bypassing the installed `cargo-nextest` runner. Before running tests, it runs a redundant `cargo check --workspace`. Furthermore, `release_repo` forces a full `cargo install --force` in release mode for every single repository, adding 20–30 minutes of binary compilation during releases.\n\n---\n\n## 2. Technical Blueprint\n1. In `outfeed-core/src/engine.rs`:\n   * Eliminate the redundant `cargo check --workspace` prior to testing.\n   * Detect `cargo-nextest` on PATH:\n     * If present: execute `cargo nextest run --workspace` (followed by `cargo test --doc` if doc tests exist).\n     * If absent: fallback cleanly to `cargo test --workspace`.\n2. In `outfeed-core/src/model/options.rs` & `outfeed-cli/src/args/release.rs`:\n   * Invert installation behavior: skip binary compilation into `~/.cargo/bin` by default during `release --all`.\n   * Add `--install` flag to explicitly opt in to local binary installations.\n\n---\n\n## 3. Execution Steps\n* **Step 1:** Invert install default and add `--install` argument.\n* **Step 2:** Wire `cargo-nextest` execution into `engine.rs` and drop redundant `cargo check`.\n* **Step 3:** Tier 2 verification (`cargo nextest run -p outfeed-core`).\n",
+      "plan_file_path": ".gaugeblock/storypole/plans/OF-26.md",
+      "steps": [
+        {
+          "completed": false,
+          "step_id": "1",
+          "target_files": [],
+          "title": "Invert install default and add --install flag",
+          "verification_gate": "cargo check -p outfeed-cli"
+        },
+        {
+          "completed": false,
+          "step_id": "2",
+          "target_files": [],
+          "title": "Wire cargo-nextest execution and drop redundant cargo check",
+          "verification_gate": "cargo check -p outfeed-core"
+        },
+        {
+          "completed": false,
+          "step_id": "3",
+          "target_files": [],
+          "title": "Tier 2 verification",
+          "verification_gate": "cargo nextest run -p outfeed-core"
+        }
+      ],
+      "summary": "Switch verification to cargo-nextest and make binary install opt-in",
+      "updated_at_epoch_ms": 1793170488639
+    },
+    "priority": 1,
+    "scope": {
+      "crate_name": "outfeed-core",
+      "labels": [
+        "perf,nextest,verification,outfeed"
+      ],
+      "module_path": null,
+      "repo": "outfeed",
+      "target_files": [],
+      "target_symbols": []
+    },
+    "slug": "switch-release-verification-to-cargo-nextest-and-make-binary-install-opt-in-0a36de",
+    "status": "verified",
+    "ticket_key": "OF-26",
+    "title": "Switch release verification to cargo-nextest and make binary install opt-in",
+    "updated_at_epoch_ms": 1794037983095,
+    "verification_receipt": {
+      "base_commit_sha": "fa2f56da94fb6a4537e7f18ea60fc3074accbeaf",
+      "chain_key": null,
+      "command": "n/a",
+      "commit_shas": [
+        "fa2f56da94fb6a4537e7f18ea60fc3074accbeaf"
+      ],
+      "diagnostic_count": null,
+      "exit_code": 0,
+      "git_branch": "main",
+      "head_commit_sha": "fa2f56da94fb6a4537e7f18ea60fc3074accbeaf",
+      "repo": null,
+      "summary": "Tier 3 gate green on merged outfeed main (2894678): fmt OK, clippy --workspace --all-targets -D warnings OK, nextest --workspace 53/53, docs check 9/9 clean. Verification now prefers cargo-nextest + doctests, Cargo.lock syncs via cargo update --workspace --offline, and binary installation is opt-in via --install (verified in release --help).",
+      "verified_at_epoch_ms": 1793175480887,
+      "verifier": "cline"
+    }
+  }
+}

@@ -1,0 +1,213 @@
+{
+  "events": [
+    {
+      "event": "task_created",
+      "task": {
+        "acceptance_criteria": [
+          "outfeed clone all clones missing suite repositories"
+        ],
+        "active_claim": null,
+        "created_at_epoch_ms": 1793042525942,
+        "decisions": [],
+        "description": "Add outfeed clone subcommand to clone all 10 suite repositories or specific named tools. Supports all, locked (reading suite.lock commit SHAs), protocol (ssh/https), install, sync-mcp, and dry-run.",
+        "edges": [],
+        "id": "d928e3f5-5943-43be-897a-76c44de13c0e",
+        "kind": "feature",
+        "latest_handoff": null,
+        "plan": null,
+        "priority": 2,
+        "scope": {
+          "crate_name": "outfeed-cli",
+          "labels": [
+            "outfeed,clone,bootstrap,workspace"
+          ],
+          "module_path": null,
+          "repo": "outfeed",
+          "target_files": [],
+          "target_symbols": []
+        },
+        "slug": "implement-outfeed-clone-and-bootstrap-commands-for-suite-wide-and-selective-repo-setup-d928e3",
+        "status": "ready",
+        "ticket_key": "OF-12",
+        "title": "Implement outfeed clone and bootstrap commands for suite-wide and selective repo setup",
+        "updated_at_epoch_ms": 1793042525942,
+        "verification_receipt": null
+      }
+    },
+    {
+      "event": "plan_updated",
+      "plan": {
+        "design_markdown": "# OF-12: Implement outfeed clone and bootstrap commands for suite-wide and selective repo setup\n\n> **Status:** Ready  \n> **Target Scope:** `outfeed-core`, `outfeed-cli`  \n> **Key Invariants:**  \n> 1. Hard 250 LOC rule on all `.rs` files.  \n> 2. Zero-panic error handling with strongly typed errors via `thiserror`.  \n> 3. Standalone independence: does not require submodules or complex gitdir pointers.  \n> 4. Idempotent execution: existing repositories are detected, inspected, and skipped cleanly.  \n\n---\n\n## 1. Overview & Objectives\n\nAs the `gaugeblock` meta-harness evolves into the primary developer and contributor entrypoint (`gaugeblock/gaugeblock`), developers and agents need a first-class, reliable mechanism to clone and initialize member repositories.\n\nFollowing the design directive to eliminate ad-hoc shell scripts and consolidate developer workflow under `outfeed`:\n1. `outfeed clone` clones all 10 suite repositories (`--all`) or a specific subset of named tools (`outfeed clone miter storypole`).\n2. Supports `--locked` to read `suite.lock` and checkout the pinned git tag or commit SHA for each cloned tool.\n3. Supports protocol selection via `--protocol <ssh|https>` (default: `ssh`).\n4. Supports `--install` to automatically build and install binaries to `~/.cargo/bin` upon clone completion.\n5. Supports `--sync-mcp` to update Antigravity / Cline `mcp_config.json` after installation.\n6. Integrates with `outfeed`'s progress reporting (`indicatif` spinners in interactive TTY, clean milestones in non-TTY).\n\n---\n\n## 2. CLI Interface & Flags\n\n```bash\n# Clone entire suite\noutfeed clone --all\n\n# Clone specific tools\noutfeed clone miter storypole dado\n\n# Clone entire suite pinned to exact suite.lock commits\noutfeed clone --all --locked\n\n# Clone via HTTPS instead of SSH\noutfeed clone --all --protocol https\n\n# Clone and immediately install binaries to PATH + sync Antigravity MCP\noutfeed clone --all --install --sync-mcp\n\n# Dry-run preview\noutfeed clone --all --dry-run\n```\n\n---\n\n## 3. Architecture & Module Design\n\n### 3.1. `crates/outfeed-core/src/clone.rs` (<250 LOC)\n* Types:\n  - `CloneOpts`: `all: bool`, `locked: bool`, `protocol: GitProtocol`, `dry_run: bool`, `install: bool`, `sync_mcp: bool`.\n  - `GitProtocol`: `Ssh`, `Https`.\n  - `CloneSummary`: `repo: String`, `target_dir: PathBuf`, `status: CloneStatus` (Cloned, SkippedExisting, PinnedCommit).\n* Functions:\n  - `clone_repo(workspace_root: &Path, tool: &SuiteTool, opts: &CloneOpts, reporter: &dyn ProgressReporter) -> Result<CloneSummary, OutfeedError>`\n  - `clone_suite(workspace_root: &Path, targets: &[&str], opts: &CloneOpts, reporter: &dyn ProgressReporter) -> Result<Vec<CloneSummary>, OutfeedError>`\n\n### 3.2. `crates/outfeed-cli/src/args/clone.rs` (<120 LOC)\n* Clap argument parser for `CloneArgs`.\n\n### 3.3. `crates/outfeed-cli/src/commands/clone.rs` (<150 LOC)\n* Command handler wiring `clone_suite`, spinner reporter, and optional post-clone install.\n\n---\n\n## 4. Verification Gates\n\n1. **Tier 1:** `cargo check -p outfeed-core` and `cargo check -p outfeed-cli`.\n2. **Tier 2:** `cargo clippy -p outfeed-core -p outfeed-cli --all-targets -- -D warnings`, `cargo test -p outfeed-core`.\n3. **Dogfooding:** Execute `outfeed clone --dry-run --all` in a scratch directory to verify clone URL generation and skipped repo detection.\n",
+        "plan_file_path": ".gaugeblock/storypole/plans/OF-12.md",
+        "steps": [],
+        "summary": "OF-12: Implement outfeed clone and bootstrap commands for suite-wide and selective repo setup",
+        "updated_at_epoch_ms": 1793042583868
+      },
+      "task_id": "d928e3f5-5943-43be-897a-76c44de13c0e",
+      "timestamp_ms": 1793042583868
+    },
+    {
+      "decision": {
+        "category": "architecture",
+        "chosen_option": null,
+        "decision_id": "4ee64fba-e90b-4ce1-b163-5dd772128fd0",
+        "parent_decision_id": null,
+        "proposed_options": [
+          "submodule_free_workspace_with_suite_lock",
+          "git_submodules",
+          "monorepo_subtree"
+        ],
+        "question": "How should member repositories be tracked and bootstrapped in the workspace?",
+        "rationale": null,
+        "resolved_by": null,
+        "status": "pending",
+        "updated_at_epoch_ms": 1793042643340
+      },
+      "event": "decision_raised",
+      "task_id": "d928e3f5-5943-43be-897a-76c44de13c0e",
+      "timestamp_ms": 1793042643340
+    },
+    {
+      "event": "status_changed",
+      "from": "ready",
+      "reason": "Pending architectural decision required",
+      "task_id": "d928e3f5-5943-43be-897a-76c44de13c0e",
+      "timestamp_ms": 1793042643340,
+      "to": "blocked"
+    },
+    {
+      "appended_criterion": null,
+      "chosen_option": "submodule_free_workspace_with_suite_lock",
+      "decision_id": "4ee64fba-e90b-4ce1-b163-5dd772128fd0",
+      "event": "decision_resolved",
+      "rationale": "Avoids git submodule detached HEAD friction, gitdir corruption, and parent commit noise. Each repo retains independent git history, while outfeed clone/sync and suite.lock provide deterministic pinning.",
+      "resolved_by": "user",
+      "spawned_followup": null,
+      "task_id": "d928e3f5-5943-43be-897a-76c44de13c0e",
+      "timestamp_ms": 1793042646999
+    },
+    {
+      "event": "status_changed",
+      "from": "blocked",
+      "reason": "All pending decisions and dependencies satisfied",
+      "task_id": "d928e3f5-5943-43be-897a-76c44de13c0e",
+      "timestamp_ms": 1793042646999,
+      "to": "ready"
+    },
+    {
+      "claim": {
+        "agent_id": "agent-antigravity",
+        "base_commit_sha": "aef71af6c1dec01b2b3a23f341a4ec87371c505d",
+        "claimed_at_epoch_ms": 1793043331133,
+        "git_branch": "feat/gb-74-outfeed-clone",
+        "lease_expires_at_epoch_ms": 1793046931133
+      },
+      "event": "task_claimed",
+      "task_id": "d928e3f5-5943-43be-897a-76c44de13c0e"
+    },
+    {
+      "event": "status_changed",
+      "from": "ready",
+      "reason": "Claimed by agent-antigravity",
+      "task_id": "d928e3f5-5943-43be-897a-76c44de13c0e",
+      "timestamp_ms": 1793043331133,
+      "to": "in_progress"
+    },
+    {
+      "event": "task_verified",
+      "receipt": {
+        "base_commit_sha": "aef71af6c1dec01b2b3a23f341a4ec87371c505d",
+        "chain_key": null,
+        "command": "n/a",
+        "commit_shas": [
+          "aef71af6c1dec01b2b3a23f341a4ec87371c505d"
+        ],
+        "diagnostic_count": null,
+        "exit_code": 0,
+        "git_branch": "feat/gb-74-outfeed-clone",
+        "head_commit_sha": "aef71af6c1dec01b2b3a23f341a4ec87371c505d",
+        "repo": null,
+        "summary": "Implemented outfeed clone command supporting --all, --locked, --protocol, --install, --sync-mcp, and dry-run",
+        "verified_at_epoch_ms": 1793043802471,
+        "verifier": "manual"
+      },
+      "task_id": "d928e3f5-5943-43be-897a-76c44de13c0e"
+    },
+    {
+      "event": "task_archived",
+      "status": "verified",
+      "task_id": "d928e3f5-5943-43be-897a-76c44de13c0e",
+      "timestamp_ms": 1794037992789
+    }
+  ],
+  "ticket": {
+    "acceptance_criteria": [
+      "outfeed clone all clones missing suite repositories"
+    ],
+    "active_claim": null,
+    "archived_at_epoch_ms": 1794037992789,
+    "created_at_epoch_ms": 1793042525942,
+    "decisions": [
+      {
+        "category": "architecture",
+        "chosen_option": "submodule_free_workspace_with_suite_lock",
+        "decision_id": "4ee64fba-e90b-4ce1-b163-5dd772128fd0",
+        "parent_decision_id": null,
+        "proposed_options": [
+          "submodule_free_workspace_with_suite_lock",
+          "git_submodules",
+          "monorepo_subtree"
+        ],
+        "question": "How should member repositories be tracked and bootstrapped in the workspace?",
+        "rationale": "Avoids git submodule detached HEAD friction, gitdir corruption, and parent commit noise. Each repo retains independent git history, while outfeed clone/sync and suite.lock provide deterministic pinning.",
+        "resolved_by": "user",
+        "status": "resolved",
+        "updated_at_epoch_ms": 1793042646999
+      }
+    ],
+    "description": "Add outfeed clone subcommand to clone all 10 suite repositories or specific named tools. Supports all, locked (reading suite.lock commit SHAs), protocol (ssh/https), install, sync-mcp, and dry-run.",
+    "edges": [],
+    "id": "d928e3f5-5943-43be-897a-76c44de13c0e",
+    "kind": "feature",
+    "latest_handoff": null,
+    "plan": {
+      "design_markdown": "# OF-12: Implement outfeed clone and bootstrap commands for suite-wide and selective repo setup\n\n> **Status:** Ready  \n> **Target Scope:** `outfeed-core`, `outfeed-cli`  \n> **Key Invariants:**  \n> 1. Hard 250 LOC rule on all `.rs` files.  \n> 2. Zero-panic error handling with strongly typed errors via `thiserror`.  \n> 3. Standalone independence: does not require submodules or complex gitdir pointers.  \n> 4. Idempotent execution: existing repositories are detected, inspected, and skipped cleanly.  \n\n---\n\n## 1. Overview & Objectives\n\nAs the `gaugeblock` meta-harness evolves into the primary developer and contributor entrypoint (`gaugeblock/gaugeblock`), developers and agents need a first-class, reliable mechanism to clone and initialize member repositories.\n\nFollowing the design directive to eliminate ad-hoc shell scripts and consolidate developer workflow under `outfeed`:\n1. `outfeed clone` clones all 10 suite repositories (`--all`) or a specific subset of named tools (`outfeed clone miter storypole`).\n2. Supports `--locked` to read `suite.lock` and checkout the pinned git tag or commit SHA for each cloned tool.\n3. Supports protocol selection via `--protocol <ssh|https>` (default: `ssh`).\n4. Supports `--install` to automatically build and install binaries to `~/.cargo/bin` upon clone completion.\n5. Supports `--sync-mcp` to update Antigravity / Cline `mcp_config.json` after installation.\n6. Integrates with `outfeed`'s progress reporting (`indicatif` spinners in interactive TTY, clean milestones in non-TTY).\n\n---\n\n## 2. CLI Interface & Flags\n\n```bash\n# Clone entire suite\noutfeed clone --all\n\n# Clone specific tools\noutfeed clone miter storypole dado\n\n# Clone entire suite pinned to exact suite.lock commits\noutfeed clone --all --locked\n\n# Clone via HTTPS instead of SSH\noutfeed clone --all --protocol https\n\n# Clone and immediately install binaries to PATH + sync Antigravity MCP\noutfeed clone --all --install --sync-mcp\n\n# Dry-run preview\noutfeed clone --all --dry-run\n```\n\n---\n\n## 3. Architecture & Module Design\n\n### 3.1. `crates/outfeed-core/src/clone.rs` (<250 LOC)\n* Types:\n  - `CloneOpts`: `all: bool`, `locked: bool`, `protocol: GitProtocol`, `dry_run: bool`, `install: bool`, `sync_mcp: bool`.\n  - `GitProtocol`: `Ssh`, `Https`.\n  - `CloneSummary`: `repo: String`, `target_dir: PathBuf`, `status: CloneStatus` (Cloned, SkippedExisting, PinnedCommit).\n* Functions:\n  - `clone_repo(workspace_root: &Path, tool: &SuiteTool, opts: &CloneOpts, reporter: &dyn ProgressReporter) -> Result<CloneSummary, OutfeedError>`\n  - `clone_suite(workspace_root: &Path, targets: &[&str], opts: &CloneOpts, reporter: &dyn ProgressReporter) -> Result<Vec<CloneSummary>, OutfeedError>`\n\n### 3.2. `crates/outfeed-cli/src/args/clone.rs` (<120 LOC)\n* Clap argument parser for `CloneArgs`.\n\n### 3.3. `crates/outfeed-cli/src/commands/clone.rs` (<150 LOC)\n* Command handler wiring `clone_suite`, spinner reporter, and optional post-clone install.\n\n---\n\n## 4. Verification Gates\n\n1. **Tier 1:** `cargo check -p outfeed-core` and `cargo check -p outfeed-cli`.\n2. **Tier 2:** `cargo clippy -p outfeed-core -p outfeed-cli --all-targets -- -D warnings`, `cargo test -p outfeed-core`.\n3. **Dogfooding:** Execute `outfeed clone --dry-run --all` in a scratch directory to verify clone URL generation and skipped repo detection.\n",
+      "plan_file_path": ".gaugeblock/storypole/plans/OF-12.md",
+      "steps": [],
+      "summary": "OF-12: Implement outfeed clone and bootstrap commands for suite-wide and selective repo setup",
+      "updated_at_epoch_ms": 1793042583868
+    },
+    "priority": 2,
+    "scope": {
+      "crate_name": "outfeed-cli",
+      "labels": [
+        "outfeed,clone,bootstrap,workspace"
+      ],
+      "module_path": null,
+      "repo": "outfeed",
+      "target_files": [],
+      "target_symbols": []
+    },
+    "slug": "implement-outfeed-clone-and-bootstrap-commands-for-suite-wide-and-selective-repo-setup-d928e3",
+    "status": "verified",
+    "ticket_key": "OF-12",
+    "title": "Implement outfeed clone and bootstrap commands for suite-wide and selective repo setup",
+    "updated_at_epoch_ms": 1794037992789,
+    "verification_receipt": {
+      "base_commit_sha": "aef71af6c1dec01b2b3a23f341a4ec87371c505d",
+      "chain_key": null,
+      "command": "n/a",
+      "commit_shas": [
+        "aef71af6c1dec01b2b3a23f341a4ec87371c505d"
+      ],
+      "diagnostic_count": null,
+      "exit_code": 0,
+      "git_branch": "feat/gb-74-outfeed-clone",
+      "head_commit_sha": "aef71af6c1dec01b2b3a23f341a4ec87371c505d",
+      "repo": null,
+      "summary": "Implemented outfeed clone command supporting --all, --locked, --protocol, --install, --sync-mcp, and dry-run",
+      "verified_at_epoch_ms": 1793043802471,
+      "verifier": "manual"
+    }
+  }
+}

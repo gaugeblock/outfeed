@@ -1,0 +1,140 @@
+{
+  "events": [
+    {
+      "captured_by_agent": "cline",
+      "discovered_from_task_id": null,
+      "event": "deferred_item_captured",
+      "task": {
+        "acceptance_criteria": [],
+        "active_claim": null,
+        "created_at_epoch_ms": 1793171797471,
+        "decisions": [],
+        "description": "outfeed/README.md advertises version 0.1.0-beta.5 while Cargo.toml is 0.1.0-beta.7, and the SPEC.md symbol table lists ReleasePlan under outfeed_core::plans although the type lives in outfeed_core::model::plans.",
+        "edges": [],
+        "id": "985db371-391e-426e-94f0-a024274e872a",
+        "kind": "tech_debt",
+        "latest_handoff": null,
+        "plan": null,
+        "priority": 3,
+        "scope": {
+          "crate_name": "outfeed",
+          "labels": [],
+          "module_path": null,
+          "repo": null,
+          "target_files": [
+            "outfeed/README.md,outfeed/SPEC.md"
+          ],
+          "target_symbols": [
+            "outfeed_core::model::ReleasePlan"
+          ]
+        },
+        "slug": "readme-version-badge-and-spec-releaseplan-module-path-are-stale-985db3",
+        "status": "triage",
+        "ticket_key": "OF-30",
+        "title": "README version badge and SPEC ReleasePlan module path are stale",
+        "updated_at_epoch_ms": 1793171797471,
+        "verification_receipt": null
+      }
+    },
+    {
+      "claim": {
+        "agent_id": "cline",
+        "base_commit_sha": "2d869bb0367f28ff91a85756ba0e6fff829928f5",
+        "claimed_at_epoch_ms": 1793174901344,
+        "git_branch": "fix/outfeed-doc-drift",
+        "lease_expires_at_epoch_ms": 1793178501344
+      },
+      "event": "task_claimed",
+      "task_id": "985db371-391e-426e-94f0-a024274e872a"
+    },
+    {
+      "event": "status_changed",
+      "from": "triage",
+      "reason": "Claimed by cline",
+      "task_id": "985db371-391e-426e-94f0-a024274e872a",
+      "timestamp_ms": 1793174901344,
+      "to": "in_progress"
+    },
+    {
+      "event": "task_verified",
+      "receipt": {
+        "base_commit_sha": "2d869bb0367f28ff91a85756ba0e6fff829928f5",
+        "chain_key": null,
+        "command": "n/a",
+        "commit_shas": [
+          "fa2f56da94fb6a4537e7f18ea60fc3074accbeaf"
+        ],
+        "diagnostic_count": null,
+        "exit_code": 0,
+        "git_branch": "main",
+        "head_commit_sha": "fa2f56da94fb6a4537e7f18ea60fc3074accbeaf",
+        "repo": null,
+        "summary": "Docs-only fix on merged outfeed main: README badge now 0.1.0-beta.7, SPEC symbol table corrected (ReleasePlan -> outfeed_core::model::plans, RepoStatus is an enum, removed DeliveryOpts). Scripted AST audit: 36 symbols checked, 0 drifted; chalkline docs check -d outfeed 9/9 clean; cargo fmt --all --check OK.",
+        "verified_at_epoch_ms": 1793175215252,
+        "verifier": "cline"
+      },
+      "task_id": "985db371-391e-426e-94f0-a024274e872a"
+    },
+    {
+      "event": "status_changed",
+      "from": "verified",
+      "reason": "Archived out of active backlog",
+      "task_id": "985db371-391e-426e-94f0-a024274e872a",
+      "timestamp_ms": 1793289308276,
+      "to": "archived"
+    },
+    {
+      "event": "task_archived",
+      "status": "verified",
+      "task_id": "985db371-391e-426e-94f0-a024274e872a",
+      "timestamp_ms": 1794038007196
+    }
+  ],
+  "ticket": {
+    "acceptance_criteria": [],
+    "active_claim": null,
+    "archived_at_epoch_ms": 1794038007196,
+    "created_at_epoch_ms": 1793171797471,
+    "decisions": [],
+    "description": "outfeed/README.md advertises version 0.1.0-beta.5 while Cargo.toml is 0.1.0-beta.7, and the SPEC.md symbol table lists ReleasePlan under outfeed_core::plans although the type lives in outfeed_core::model::plans.",
+    "edges": [],
+    "id": "985db371-391e-426e-94f0-a024274e872a",
+    "kind": "tech_debt",
+    "latest_handoff": null,
+    "plan": null,
+    "priority": 3,
+    "scope": {
+      "crate_name": "outfeed",
+      "labels": [],
+      "module_path": null,
+      "repo": null,
+      "target_files": [
+        "outfeed/README.md,outfeed/SPEC.md"
+      ],
+      "target_symbols": [
+        "outfeed_core::model::ReleasePlan"
+      ]
+    },
+    "slug": "readme-version-badge-and-spec-releaseplan-module-path-are-stale-985db3",
+    "status": "verified",
+    "ticket_key": "OF-30",
+    "title": "README version badge and SPEC ReleasePlan module path are stale",
+    "updated_at_epoch_ms": 1794038007196,
+    "verification_receipt": {
+      "base_commit_sha": "2d869bb0367f28ff91a85756ba0e6fff829928f5",
+      "chain_key": null,
+      "command": "n/a",
+      "commit_shas": [
+        "fa2f56da94fb6a4537e7f18ea60fc3074accbeaf"
+      ],
+      "diagnostic_count": null,
+      "exit_code": 0,
+      "git_branch": "main",
+      "head_commit_sha": "fa2f56da94fb6a4537e7f18ea60fc3074accbeaf",
+      "repo": null,
+      "summary": "Docs-only fix on merged outfeed main: README badge now 0.1.0-beta.7, SPEC symbol table corrected (ReleasePlan -> outfeed_core::model::plans, RepoStatus is an enum, removed DeliveryOpts). Scripted AST audit: 36 symbols checked, 0 drifted; chalkline docs check -d outfeed 9/9 clean; cargo fmt --all --check OK.",
+      "verified_at_epoch_ms": 1793175215252,
+      "verifier": "cline"
+    }
+  }
+}

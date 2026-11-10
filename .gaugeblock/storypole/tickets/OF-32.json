@@ -1,0 +1,136 @@
+{
+  "events": [
+    {
+      "captured_by_agent": "cline",
+      "discovered_from_task_id": null,
+      "event": "deferred_item_captured",
+      "task": {
+        "acceptance_criteria": [],
+        "active_claim": null,
+        "created_at_epoch_ms": 1793176525869,
+        "decisions": [],
+        "description": "OF-28 modularized clean.rs, semver.rs and suite_waves, but suite_plan.rs (202), install.rs (214), engine.rs (219), release.rs (231), clone.rs (232) and git.rs (234) still exceed the 200-line soft target. All are inside the 250-line hard ceiling; split them opportunistically the next time each is edited.",
+        "edges": [],
+        "id": "a272590a-43f0-4550-a16d-426088fb2368",
+        "kind": "tech_debt",
+        "latest_handoff": null,
+        "plan": null,
+        "priority": 3,
+        "scope": {
+          "crate_name": "outfeed-core",
+          "labels": [],
+          "module_path": null,
+          "repo": null,
+          "target_files": [
+            "outfeed/crates/outfeed-core/src/{suite_plan,install,engine,release,clone,git}.rs"
+          ],
+          "target_symbols": []
+        },
+        "slug": "six-outfeed-core-modules-remain-between-200-and-250-lines-after-the-gb-126-split-a27259",
+        "status": "triage",
+        "ticket_key": "OF-32",
+        "title": "Six outfeed-core modules remain between 200 and 250 lines after the OF-28 split",
+        "updated_at_epoch_ms": 1793176525869,
+        "verification_receipt": null
+      }
+    },
+    {
+      "claim": {
+        "agent_id": "cline",
+        "base_commit_sha": null,
+        "claimed_at_epoch_ms": 1793244897038,
+        "git_branch": null,
+        "lease_expires_at_epoch_ms": 1793248497038
+      },
+      "event": "task_claimed",
+      "task_id": "a272590a-43f0-4550-a16d-426088fb2368"
+    },
+    {
+      "event": "status_changed",
+      "from": "triage",
+      "reason": "Claimed by cline",
+      "task_id": "a272590a-43f0-4550-a16d-426088fb2368",
+      "timestamp_ms": 1793244897038,
+      "to": "in_progress"
+    },
+    {
+      "event": "task_verified",
+      "receipt": {
+        "base_commit_sha": "20ed6851332953d21a4918790c957d43bd72bfa7",
+        "chain_key": null,
+        "command": "n/a",
+        "commit_shas": [
+          "20ed6851332953d21a4918790c957d43bd72bfa7"
+        ],
+        "diagnostic_count": null,
+        "exit_code": 0,
+        "git_branch": "main",
+        "head_commit_sha": "20ed6851332953d21a4918790c957d43bd72bfa7",
+        "repo": null,
+        "summary": "All of outfeed-core is now under 200 lines: seven atomic splits on outfeed main (eb1a3ef release/mod 156 + pipeline 104; e8bf826 git/mod 152 + history 95; 1713746 suite_plan/mod 106 + actions 119; 61afdb7 engine/mod 117 + apply 113; 170c359 install/mod 158 + registry 77; 03262f2 clone/mod 175 + types 66; 0b3b967 suite_waves/mod 109 + entry 121; 20ed685 clean/mod 183 + artifacts 27). Every public path is unchanged because each extraction is re-exported from its parent module, and the largest remaining module is push.rs at 189. Gates: fmt clean, clippy --workspace --all-targets -D warnings clean, nextest 73/73.",
+        "verified_at_epoch_ms": 1793244897206,
+        "verifier": "cline"
+      },
+      "task_id": "a272590a-43f0-4550-a16d-426088fb2368"
+    },
+    {
+      "event": "status_changed",
+      "from": "verified",
+      "reason": "Archived out of active backlog",
+      "task_id": "a272590a-43f0-4550-a16d-426088fb2368",
+      "timestamp_ms": 1793289313282,
+      "to": "archived"
+    },
+    {
+      "event": "task_archived",
+      "status": "verified",
+      "task_id": "a272590a-43f0-4550-a16d-426088fb2368",
+      "timestamp_ms": 1794038008945
+    }
+  ],
+  "ticket": {
+    "acceptance_criteria": [],
+    "active_claim": null,
+    "archived_at_epoch_ms": 1794038008945,
+    "created_at_epoch_ms": 1793176525869,
+    "decisions": [],
+    "description": "OF-28 modularized clean.rs, semver.rs and suite_waves, but suite_plan.rs (202), install.rs (214), engine.rs (219), release.rs (231), clone.rs (232) and git.rs (234) still exceed the 200-line soft target. All are inside the 250-line hard ceiling; split them opportunistically the next time each is edited.",
+    "edges": [],
+    "id": "a272590a-43f0-4550-a16d-426088fb2368",
+    "kind": "tech_debt",
+    "latest_handoff": null,
+    "plan": null,
+    "priority": 3,
+    "scope": {
+      "crate_name": "outfeed-core",
+      "labels": [],
+      "module_path": null,
+      "repo": null,
+      "target_files": [
+        "outfeed/crates/outfeed-core/src/{suite_plan,install,engine,release,clone,git}.rs"
+      ],
+      "target_symbols": []
+    },
+    "slug": "six-outfeed-core-modules-remain-between-200-and-250-lines-after-the-gb-126-split-a27259",
+    "status": "verified",
+    "ticket_key": "OF-32",
+    "title": "Six outfeed-core modules remain between 200 and 250 lines after the OF-28 split",
+    "updated_at_epoch_ms": 1794038008945,
+    "verification_receipt": {
+      "base_commit_sha": "20ed6851332953d21a4918790c957d43bd72bfa7",
+      "chain_key": null,
+      "command": "n/a",
+      "commit_shas": [
+        "20ed6851332953d21a4918790c957d43bd72bfa7"
+      ],
+      "diagnostic_count": null,
+      "exit_code": 0,
+      "git_branch": "main",
+      "head_commit_sha": "20ed6851332953d21a4918790c957d43bd72bfa7",
+      "repo": null,
+      "summary": "All of outfeed-core is now under 200 lines: seven atomic splits on outfeed main (eb1a3ef release/mod 156 + pipeline 104; e8bf826 git/mod 152 + history 95; 1713746 suite_plan/mod 106 + actions 119; 61afdb7 engine/mod 117 + apply 113; 170c359 install/mod 158 + registry 77; 03262f2 clone/mod 175 + types 66; 0b3b967 suite_waves/mod 109 + entry 121; 20ed685 clean/mod 183 + artifacts 27). Every public path is unchanged because each extraction is re-exported from its parent module, and the largest remaining module is push.rs at 189. Gates: fmt clean, clippy --workspace --all-targets -D warnings clean, nextest 73/73.",
+      "verified_at_epoch_ms": 1793244897206,
+      "verifier": "cline"
+    }
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "events": [
+    {
+      "event": "task_created",
+      "task": {
+        "acceptance_criteria": [
+          "File is at or under 250 lines and the CI audit step passes",
+          "Same test names still run under cargo nextest"
+        ],
+        "active_claim": null,
+        "created_at_epoch_ms": 1793307217578,
+        "decisions": [],
+        "description": "Third file over the ceiling in the suite, and it is in tests/ so the CI audit counts it. miter slice proposes splitting into delivery_tests/test_resolve_publish_order_topological.rs (lines 12-183, four tests) and delivery_tests/test_release_all_with_progress_reporting.rs (186-260, two tests), leaving 94 and 187 lines respectively with no circular risk.",
+        "edges": [],
+        "id": "6d1e30dd-9d1e-4925-86f8-fdc4f5371e72",
+        "kind": "tech_debt",
+        "latest_handoff": null,
+        "plan": null,
+        "priority": 3,
+        "scope": {
+          "crate_name": "outfeed-core",
+          "labels": [],
+          "module_path": null,
+          "repo": null,
+          "target_files": [
+            "outfeed/crates/outfeed-core/tests/delivery_tests.rs"
+          ],
+          "target_symbols": []
+        },
+        "slug": "split-outfeed-core-tests-delivery-tests-rs-260-lines-over-the-hard-250-ceiling-6d1e30",
+        "status": "ready",
+        "ticket_key": "OF-38",
+        "title": "Split outfeed-core tests/delivery_tests.rs: 260 lines, over the hard 250 ceiling",
+        "updated_at_epoch_ms": 1793307217578,
+        "verification_receipt": null
+      }
+    },
+    {
+      "event": "task_verified",
+      "receipt": {
+        "base_commit_sha": "22caec5a3801cf70178fa157855b2df42fba4d11",
+        "chain_key": null,
+        "command": "n/a",
+        "commit_shas": [
+          "3e2d55777348e202e95f3dae26adff55a6ec0303",
+          "b7b201350779ef351c9bfe777ec180f4e248707b"
+        ],
+        "diagnostic_count": null,
+        "exit_code": 0,
+        "git_branch": "refactor/gb-193-split-delivery-tests",
+        "head_commit_sha": "b7b201350779ef351c9bfe777ec180f4e248707b",
+        "repo": null,
+        "summary": "tests/delivery_tests.rs 260 lines became main 8 + git_and_publish 138 + release_all 126; all six tests still discovered; outfeed-core 78 tests pass",
+        "verified_at_epoch_ms": 1793308082929,
+        "verifier": "cargo-nextest"
+      },
+      "task_id": "6d1e30dd-9d1e-4925-86f8-fdc4f5371e72"
+    },
+    {
+      "event": "status_changed",
+      "from": "verified",
+      "reason": "Archived out of active backlog",
+      "task_id": "6d1e30dd-9d1e-4925-86f8-fdc4f5371e72",
+      "timestamp_ms": 1793953201271,
+      "to": "archived"
+    },
+    {
+      "event": "task_archived",
+      "status": "verified",
+      "task_id": "6d1e30dd-9d1e-4925-86f8-fdc4f5371e72",
+      "timestamp_ms": 1794038016211
+    }
+  ],
+  "ticket": {
+    "acceptance_criteria": [
+      "File is at or under 250 lines and the CI audit step passes",
+      "Same test names still run under cargo nextest"
+    ],
+    "active_claim": null,
+    "archived_at_epoch_ms": 1794038016211,
+    "created_at_epoch_ms": 1793307217578,
+    "decisions": [],
+    "description": "Third file over the ceiling in the suite, and it is in tests/ so the CI audit counts it. miter slice proposes splitting into delivery_tests/test_resolve_publish_order_topological.rs (lines 12-183, four tests) and delivery_tests/test_release_all_with_progress_reporting.rs (186-260, two tests), leaving 94 and 187 lines respectively with no circular risk.",
+    "edges": [],
+    "id": "6d1e30dd-9d1e-4925-86f8-fdc4f5371e72",
+    "kind": "tech_debt",
+    "latest_handoff": null,
+    "plan": null,
+    "priority": 3,
+    "scope": {
+      "crate_name": "outfeed-core",
+      "labels": [],
+      "module_path": null,
+      "repo": null,
+      "target_files": [
+        "outfeed/crates/outfeed-core/tests/delivery_tests.rs"
+      ],
+      "target_symbols": []
+    },
+    "slug": "split-outfeed-core-tests-delivery-tests-rs-260-lines-over-the-hard-250-ceiling-6d1e30",
+    "status": "verified",
+    "ticket_key": "OF-38",
+    "title": "Split outfeed-core tests/delivery_tests.rs: 260 lines, over the hard 250 ceiling",
+    "updated_at_epoch_ms": 1794038016211,
+    "verification_receipt": {
+      "base_commit_sha": "22caec5a3801cf70178fa157855b2df42fba4d11",
+      "chain_key": null,
+      "command": "n/a",
+      "commit_shas": [
+        "3e2d55777348e202e95f3dae26adff55a6ec0303",
+        "b7b201350779ef351c9bfe777ec180f4e248707b"
+      ],
+      "diagnostic_count": null,
+      "exit_code": 0,
+      "git_branch": "refactor/gb-193-split-delivery-tests",
+      "head_commit_sha": "b7b201350779ef351c9bfe777ec180f4e248707b",
+      "repo": null,
+      "summary": "tests/delivery_tests.rs 260 lines became main 8 + git_and_publish 138 + release_all 126; all six tests still discovered; outfeed-core 78 tests pass",
+      "verified_at_epoch_ms": 1793308082929,
+      "verifier": "cargo-nextest"
+    }
+  }
+}

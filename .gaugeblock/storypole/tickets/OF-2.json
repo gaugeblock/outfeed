@@ -1,0 +1,215 @@
+{
+  "events": [
+    {
+      "event": "task_created",
+      "task": {
+        "acceptance_criteria": [],
+        "active_claim": null,
+        "created_at_epoch_ms": 1792986267084,
+        "decisions": [],
+        "description": "Ecosystem release orchestrator, AST drift gauge, and neurosymbolic changelog synthesizer for the gaugeblock suite",
+        "edges": [],
+        "id": "3666de0f-07a0-4aa1-ac9a-4cc902051c10",
+        "kind": "epic",
+        "latest_handoff": null,
+        "plan": null,
+        "priority": 1,
+        "scope": {
+          "crate_name": "outfeed-core",
+          "labels": [],
+          "module_path": null,
+          "repo": "outfeed",
+          "target_files": [],
+          "target_symbols": []
+        },
+        "slug": "phase-9-outfeed-neurosymbolic-release-gate-ast-drift-inspector-changelog-synthesizer-3666de",
+        "status": "ready",
+        "ticket_key": "OF-2",
+        "title": "Phase 9: outfeed — Neurosymbolic Release Gate, AST Drift Inspector & Changelog Synthesizer",
+        "updated_at_epoch_ms": 1792986267084,
+        "verification_receipt": null
+      }
+    },
+    {
+      "event": "plan_updated",
+      "plan": {
+        "design_markdown": "# OF-2: Phase 9: `outfeed` — Neurosymbolic Release Gate, AST Drift Inspector & Changelog Synthesizer\n\n> **Status:** Ready / Specified  \n> **Target Scope:** `outfeed` (`outfeed-core`, `outfeed-cli`, `outfeed-mcp`), `workspace`, `storypole-core`  \n> **Key Decisions:** D1 (Trunk-Based Release Orchestration), D2 (Closed-Loop Storypole Chore Ticket Generation), D3 (Dual-Mode Sawhorse LLM Release Synthesis & AST Verification), D4 (Transactional Manifest Rollback on Tier 4 Failure), D5 (Dedicated MCP Server for Antigravity / Cline)\n\n---\n\n## 1. Executive Summary & Vision\n\nAs the `gaugeblock` suite expanded across 9 standalone repositories, release management faced a critical tooling void:\n1. **Per-Task vs. Release Tension:** Agents attempting to bump versions at `storypole verify` created churn or confusion, while batching releases left unreleased commits uncataloged across multiple repos.\n2. **Multi-Repo Manifest Drift:** Bumping a repository requires synchronized updates across root `Cargo.toml`, member crate path requirements, `web/package.json`, and lockfiles.\n3. **Mechanical vs. Meaningful Changelogs:** Standard changelog generators dump raw commit strings. High-quality releases require synthesizing architectural narratives from git commits, Storypole task plans, and `miter` AST impact diffs.\n\n`outfeed` (Phase 9) serves as the dedicated release gate and delivery engine for `gaugeblock`. Named after the woodworking outfeed table—which receives, supports, and guides finished stock as it leaves the machine—`outfeed` provides precision release planning, neurosymbolic changelog synthesis, manifest bumping, and closed-loop Storypole synchronization.\n\n---\n\n## 2. Architecture & Subsystem Taxonomy\n\n```text\noutfeed/\n├── Cargo.toml                 # Workspace root & facade crate\n├── README.md                  # Usage, CLI verbs, and MCP protocol specs\n├── src/lib.rs                 # Re-exports outfeed-core\n└── crates/\n    ├── outfeed-core/          # Pure domain: Git inspection, SemVer rules, toml_edit, sawhorse synthesis\n    │   ├── Cargo.toml\n    │   └── src/\n    │       ├── git.rs         # Commit range traversal, tag discovery, clean tree assertions\n    │       ├── semver.rs      # Conventional Commit classifier & SemVer calculator\n    │       ├── manifest.rs    # toml_edit AST workspace & member dependency synchronizer\n    │       ├── changelog.rs   # Keep-a-Changelog parser, formatter, and merge engine\n    │       ├── synthesis.rs   # sawhorse-core prompt executor for narrative changelog generation\n    │       ├── storypole.rs   # Ledger reader & release chore ticket creator\n    │       └── error.rs       # Strongly-typed thiserror enum\n    ├── outfeed-cli/           # Clap CLI entrypoint\n    │   ├── Cargo.toml\n    │   └── src/\n    │       ├── main.rs        # CLI dispatcher (plan, apply, rollback, status)\n    │       └── commands/      # Command handlers with --dry-run and --json support\n    └── outfeed-mcp/           # Dedicated MCP stdio server\n        ├── Cargo.toml\n        └── src/\n            ├── lib.rs         # MCP JSON-RPC protocol server\n            └── tools.rs       # outfeed_plan and outfeed_apply tool handlers\n```\n\n---\n\n## 3. Implementation Phases & Milestones\n\n### Phase 0: Project Naming & Namespace Verification\n* [ ] Confirm availability of `outfeed`, `outfeed-core`, `outfeed-cli`, `outfeed-mcp` on crates.io (verified clean).\n* [ ] Add `outfeed` to `scripts/reserve-namespaces.sh` and execute dry-run check.\n* [ ] Scaffold `gaugeblock/outfeed` workspace with Rust 2024 root `Cargo.toml`.\n* [ ] Map sibling checkout into root `.cargo/config.toml` `[patch.crates-io]`.\n\n### Phase 1: `outfeed-core` Deterministic Engine\n* [ ] `git.rs`: Assert clean git state on `main`; resolve `latest_tag..HEAD` commit lineage.\n* [ ] `semver.rs`: Parse Conventional Commits (`feat`, `fix`, `refactor`, `BREAKING CHANGE:`) and compute pre-release vs minor base bump.\n* [ ] `manifest.rs`: Use `toml_edit` to bump `[workspace.package] version` and intra-repo sibling constraints in `Cargo.toml` without dropping comments.\n* [ ] `manifest.rs`: Update `benchwork/web/package.json` version in tandem if present.\n* [ ] `rollback.rs`: Transactional rollback mechanism restoring files if downstream checks fail.\n\n### Phase 2: Neurosymbolic Changelog Synthesis (`sawhorse` + `storypole`)\n* [ ] `storypole.rs`: Parse referenced `GB-XX` ticket keys from commits and extract task blueprints and verification receipts from `.gaugeblock/storypole`.\n* [ ] `synthesis.rs`: Construct structured prompt containing commit summaries, AST diffs, and Storypole plans.\n* [ ] `synthesis.rs`: Invoke `sawhorse-core` via configured provider from `.gaugeblock/config.toml` to draft Keep a Changelog markdown sections with SemVer justification.\n\n### Phase 3: `outfeed-cli` Command Surface\n* [ ] Implement `outfeed plan <repo>` (`--dry-run`, `--json`): outputs proposed SemVer bump and full changelog diff.\n* [ ] Implement `outfeed apply <repo>`: writes manifests, runs Tier 4 verification, commits `chore(release): release vX.Y.Z`, and creates annotated git tag.\n* [ ] Implement `outfeed rollup`: evaluates all 9 member repositories and synthesizes root meta-harness `CHANGELOG.md` for milestone `suite-vX.Y.Z`.\n\n### Phase 4: Closed-Loop Storypole Integration\n* [ ] On `outfeed plan`, optionally scaffold a Storypole chore ticket: `chore(release): release <repo> vX.Y.Z`.\n* [ ] On `outfeed apply`, record a `VerificationReceipt` certifying the release ticket and stamp verified member tasks with release metadata.\n* [ ] Ensure release tickets render rich changelog previews inside Benchwork UI (Panels 1 & 2).\n\n### Phase 5: `outfeed-mcp` Agent Protocol Server\n* [ ] Implement stdio MCP server exposing `outfeed_plan` and `outfeed_apply`.\n* [ ] Enable Antigravity and Cline to inspect release readiness, preview release notes in chat, and trigger releases interactively.\n\n---\n\n## 4. Verification & Dogfooding Criteria\n* **Dogfooding Target:** Immediately use `outfeed` to evaluate and cut the pending releases for `sawhorse` and `benchwork`.\n* **Zero 250+ LOC Files:** Enforced across all `.rs` files.\n* **Tier 3 Verification:** Full clean pass across `cargo fmt`, `cargo clippy`, `cargo nextest`, and `cargo test --doc`.\n",
+        "plan_file_path": ".gaugeblock/storypole/plans/OF-2.md",
+        "steps": [
+          {
+            "completed": false,
+            "step_id": "P0",
+            "target_files": [],
+            "title": "Namespace Verification & Workspace Scaffolding",
+            "verification_gate": "scripts/reserve-namespaces.sh check"
+          },
+          {
+            "completed": false,
+            "step_id": "P1",
+            "target_files": [],
+            "title": "outfeed-core Deterministic Engine & Manifest Bumper",
+            "verification_gate": "cargo test -p outfeed-core"
+          },
+          {
+            "completed": false,
+            "step_id": "P2",
+            "target_files": [],
+            "title": "Neurosymbolic Changelog Synthesis with sawhorse & storypole",
+            "verification_gate": "cargo test -p outfeed-core --lib synthesis"
+          },
+          {
+            "completed": false,
+            "step_id": "P3",
+            "target_files": [],
+            "title": "outfeed-cli Binary with --dry-run & Tier 4 Gate",
+            "verification_gate": "cargo test -p outfeed-cli"
+          },
+          {
+            "completed": false,
+            "step_id": "P4",
+            "target_files": [],
+            "title": "Closed-Loop Storypole & Benchwork Integration",
+            "verification_gate": "cargo test -p outfeed-core --lib storypole"
+          },
+          {
+            "completed": false,
+            "step_id": "P5",
+            "target_files": [],
+            "title": "outfeed-mcp Server for Antigravity & Cline",
+            "verification_gate": "cargo test -p outfeed-mcp"
+          }
+        ],
+        "summary": "Phase 9: outfeed — Neurosymbolic Release Gate, AST Drift Inspector & Changelog Synthesizer",
+        "updated_at_epoch_ms": 1792986291942
+      },
+      "task_id": "3666de0f-07a0-4aa1-ac9a-4cc902051c10",
+      "timestamp_ms": 1792986291942
+    },
+    {
+      "claim": {
+        "agent_id": "agent-antigravity",
+        "base_commit_sha": "02fa3f3e26301d7bcee1b32cb9b1ab24fc7473ca",
+        "claimed_at_epoch_ms": 1792986727152,
+        "git_branch": "feat/gb-47-outfeed-release-gate",
+        "lease_expires_at_epoch_ms": 1792990327152
+      },
+      "event": "task_claimed",
+      "task_id": "3666de0f-07a0-4aa1-ac9a-4cc902051c10"
+    },
+    {
+      "event": "status_changed",
+      "from": "ready",
+      "reason": "Claimed by agent-antigravity",
+      "task_id": "3666de0f-07a0-4aa1-ac9a-4cc902051c10",
+      "timestamp_ms": 1792986727152,
+      "to": "in_progress"
+    },
+    {
+      "event": "plan_updated",
+      "plan": {
+        "design_markdown": "# OF-2: Phase 9: `outfeed` — Neurosymbolic Release Gate, AST Drift Inspector & Changelog Synthesizer\n\n> **Status:** Ready / Specified  \n> **Target Scope:** `outfeed` (`outfeed-core`, `outfeed-cli`, `outfeed-mcp`), `workspace`, `storypole-core`  \n> **Key Decisions:** D1 (Trunk-Based Release Orchestration), D2 (Closed-Loop Storypole Chore Ticket Generation), D3 (Dual-Mode Sawhorse LLM Release Synthesis & AST Verification), D4 (Transactional Manifest Rollback on Tier 4 Failure), D5 (Dedicated MCP Server for Antigravity / Cline)\n\n---\n\n## 1. Executive Summary & Vision\n\nAs the `gaugeblock` suite expanded across 9 standalone repositories, release management faced a critical tooling void:\n1. **Per-Task vs. Release Tension:** Agents attempting to bump versions at `storypole verify` created churn or confusion, while batching releases left unreleased commits uncataloged across multiple repos.\n2. **Multi-Repo Manifest Drift:** Bumping a repository requires synchronized updates across root `Cargo.toml`, member crate path requirements, `web/package.json`, and lockfiles.\n3. **Mechanical vs. Meaningful Changelogs:** Standard changelog generators dump raw commit strings. High-quality releases require synthesizing architectural narratives from git commits, Storypole task plans, and `miter` AST impact diffs.\n\n`outfeed` (Phase 9) serves as the dedicated release gate and delivery engine for `gaugeblock`. Named after the woodworking outfeed table—which receives, supports, and guides finished stock as it leaves the machine—`outfeed` provides precision release planning, neurosymbolic changelog synthesis, manifest bumping, and closed-loop Storypole synchronization.\n\n---\n\n## 2. Architecture & Subsystem Taxonomy\n\n```text\noutfeed/\n├── Cargo.toml                 # Workspace root & facade crate\n├── README.md                  # Usage, CLI verbs, and MCP protocol specs\n├── src/lib.rs                 # Re-exports outfeed-core\n└── crates/\n    ├── outfeed-core/          # Pure domain: Git inspection, SemVer rules, toml_edit, sawhorse synthesis\n    │   ├── Cargo.toml\n    │   └── src/\n    │       ├── git.rs         # Commit range traversal, tag discovery, clean tree assertions\n    │       ├── semver.rs      # Conventional Commit classifier & SemVer calculator\n    │       ├── manifest.rs    # toml_edit AST workspace & member dependency synchronizer\n    │       ├── changelog.rs   # Keep-a-Changelog parser, formatter, and merge engine\n    │       ├── synthesis.rs   # sawhorse-core prompt executor for narrative changelog generation\n    │       ├── storypole.rs   # Ledger reader & release chore ticket creator\n    │       └── error.rs       # Strongly-typed thiserror enum\n    ├── outfeed-cli/           # Clap CLI entrypoint\n    │   ├── Cargo.toml\n    │   └── src/\n    │       ├── main.rs        # CLI dispatcher (plan, apply, rollback, status)\n    │       └── commands/      # Command handlers with --dry-run and --json support\n    └── outfeed-mcp/           # Dedicated MCP stdio server\n        ├── Cargo.toml\n        └── src/\n            ├── lib.rs         # MCP JSON-RPC protocol server\n            └── tools.rs       # outfeed_plan and outfeed_apply tool handlers\n```\n\n---\n\n## 3. Implementation Phases & Milestones\n\n### Phase 0: Project Naming & Namespace Verification\n* [x] Confirm availability of `outfeed`, `outfeed-core`, `outfeed-cli`, `outfeed-mcp` on crates.io (verified clean).\n* [x] Add `outfeed` to `scripts/reserve-namespaces.sh` and execute dry-run check.\n* [x] Scaffold `gaugeblock/outfeed` workspace with Rust 2024 root `Cargo.toml`.\n* [x] Map sibling checkout into root `.cargo/config.toml` `[patch.crates-io]`.\n\n### Phase 1: `outfeed-core` Deterministic Engine\n* [x] `git.rs`: Assert clean git state on `main`; resolve `latest_tag..HEAD` commit lineage.\n* [x] `semver.rs`: Parse Conventional Commits (`feat`, `fix`, `refactor`, `BREAKING CHANGE:`) and compute pre-release vs minor base bump.\n* [x] `manifest.rs`: Use `toml_edit` to bump `[workspace.package] version` and intra-repo sibling constraints in `Cargo.toml` without dropping comments.\n* [x] `manifest.rs`: Update `benchwork/web/package.json` version in tandem if present.\n* [x] `rollback.rs`: Transactional rollback mechanism restoring files if downstream checks fail.\n\n### Phase 2: Neurosymbolic Changelog Synthesis (`sawhorse` + `storypole`)\n* [x] `storypole.rs`: Parse referenced `GB-XX` ticket keys from commits and extract task blueprints and verification receipts from `.gaugeblock/storypole`.\n* [x] `synthesis.rs`: Construct structured prompt containing commit summaries, AST diffs, and Storypole plans.\n* [x] `synthesis.rs`: Invoke `sawhorse-core` via configured provider from `.gaugeblock/config.toml` to draft Keep a Changelog markdown sections with SemVer justification.\n\n### Phase 3: `outfeed-cli` Command Surface\n* [x] Implement `outfeed plan <repo>` (`--dry-run`, `--json`): outputs proposed SemVer bump and full changelog diff.\n* [x] Implement `outfeed apply <repo>`: writes manifests, runs Tier 4 verification, commits `chore(release): release vX.Y.Z`, and creates annotated git tag.\n* [x] Implement `outfeed rollup`: evaluates all 9 member repositories and synthesizes root meta-harness `CHANGELOG.md` for milestone `suite-vX.Y.Z`.\n\n### Phase 4: Closed-Loop Storypole Integration\n* [x] On `outfeed plan`, optionally scaffold a Storypole chore ticket: `chore(release): release <repo> vX.Y.Z`.\n* [x] On `outfeed apply`, record a `VerificationReceipt` certifying the release ticket and stamp verified member tasks with release metadata.\n* [x] Ensure release tickets render rich changelog previews inside Benchwork UI (Panels 1 & 2).\n\n### Phase 5: `outfeed-mcp` Agent Protocol Server\n* [x] Implement stdio MCP server exposing `outfeed_plan` and `outfeed_apply`.\n* [x] Enable Antigravity and Cline to inspect release readiness, preview release notes in chat, and trigger releases interactively.\n\n---\n\n## 4. Verification & Dogfooding Criteria\n* **Dogfooding Target:** Immediately use `outfeed` to evaluate and cut the pending releases for `sawhorse` and `benchwork`.\n* **Zero 250+ LOC Files:** Enforced across all `.rs` files.\n* **Tier 3 Verification:** Full clean pass across `cargo fmt`, `cargo clippy`, `cargo nextest`, and `cargo test --doc`.\n\n",
+        "plan_file_path": ".gaugeblock/storypole/plans/OF-2.md",
+        "steps": [],
+        "summary": "OF-2: Phase 9: `outfeed` — Neurosymbolic Release Gate, AST Drift Inspector & Changelog Synthesizer",
+        "updated_at_epoch_ms": 1792988254050
+      },
+      "task_id": "3666de0f-07a0-4aa1-ac9a-4cc902051c10",
+      "timestamp_ms": 1792988254050
+    },
+    {
+      "event": "task_verified",
+      "receipt": {
+        "base_commit_sha": "02fa3f3e26301d7bcee1b32cb9b1ab24fc7473ca",
+        "chain_key": null,
+        "command": "n/a",
+        "commit_shas": [
+          "02fa3f3e26301d7bcee1b32cb9b1ab24fc7473ca"
+        ],
+        "diagnostic_count": null,
+        "exit_code": 0,
+        "git_branch": "feat/gb-47-outfeed-release-gate",
+        "head_commit_sha": "02fa3f3e26301d7bcee1b32cb9b1ab24fc7473ca",
+        "repo": null,
+        "summary": "Completed Phase 9 outfeed release gate implementation, tests, and global installation",
+        "verified_at_epoch_ms": 1792988260218,
+        "verifier": "agent-antigravity"
+      },
+      "task_id": "3666de0f-07a0-4aa1-ac9a-4cc902051c10"
+    },
+    {
+      "event": "task_verified",
+      "receipt": {
+        "base_commit_sha": "2fafe563e840503b0dd4fc4f3d9a66b4d26fb73e",
+        "chain_key": null,
+        "command": "n/a",
+        "commit_shas": [
+          "2fafe563e840503b0dd4fc4f3d9a66b4d26fb73e"
+        ],
+        "diagnostic_count": null,
+        "exit_code": 0,
+        "git_branch": "main",
+        "head_commit_sha": "2fafe563e840503b0dd4fc4f3d9a66b4d26fb73e",
+        "repo": null,
+        "summary": "Delivered as the Phase 10 roadmap exit: outfeed gate matrix (fmt/clippy/tests/contracts --check/layers/lockfiles/docs), semver+manifest release engine, changelog synthesis (synthesis.rs, changelog.rs), and suite_plan/suite_release/suite_waves/suite_lock. AST drift inspection lives in chalkline docs check (GB-102/GB-103, verified).",
+        "verified_at_epoch_ms": 1793942109473,
+        "verifier": "manual"
+      },
+      "task_id": "3666de0f-07a0-4aa1-ac9a-4cc902051c10"
+    },
+    {
+      "event": "task_archived",
+      "status": "verified",
+      "task_id": "3666de0f-07a0-4aa1-ac9a-4cc902051c10",
+      "timestamp_ms": 1794037961594
+    }
+  ],
+  "ticket": {
+    "acceptance_criteria": [],
+    "active_claim": null,
+    "archived_at_epoch_ms": 1794037961594,
+    "created_at_epoch_ms": 1792986267084,
+    "decisions": [],
+    "description": "Ecosystem release orchestrator, AST drift gauge, and neurosymbolic changelog synthesizer for the gaugeblock suite",
+    "edges": [],
+    "id": "3666de0f-07a0-4aa1-ac9a-4cc902051c10",
+    "kind": "epic",
+    "latest_handoff": null,
+    "plan": {
+      "design_markdown": "# OF-2: Phase 9: `outfeed` — Neurosymbolic Release Gate, AST Drift Inspector & Changelog Synthesizer\n\n> **Status:** Ready / Specified  \n> **Target Scope:** `outfeed` (`outfeed-core`, `outfeed-cli`, `outfeed-mcp`), `workspace`, `storypole-core`  \n> **Key Decisions:** D1 (Trunk-Based Release Orchestration), D2 (Closed-Loop Storypole Chore Ticket Generation), D3 (Dual-Mode Sawhorse LLM Release Synthesis & AST Verification), D4 (Transactional Manifest Rollback on Tier 4 Failure), D5 (Dedicated MCP Server for Antigravity / Cline)\n\n---\n\n## 1. Executive Summary & Vision\n\nAs the `gaugeblock` suite expanded across 9 standalone repositories, release management faced a critical tooling void:\n1. **Per-Task vs. Release Tension:** Agents attempting to bump versions at `storypole verify` created churn or confusion, while batching releases left unreleased commits uncataloged across multiple repos.\n2. **Multi-Repo Manifest Drift:** Bumping a repository requires synchronized updates across root `Cargo.toml`, member crate path requirements, `web/package.json`, and lockfiles.\n3. **Mechanical vs. Meaningful Changelogs:** Standard changelog generators dump raw commit strings. High-quality releases require synthesizing architectural narratives from git commits, Storypole task plans, and `miter` AST impact diffs.\n\n`outfeed` (Phase 9) serves as the dedicated release gate and delivery engine for `gaugeblock`. Named after the woodworking outfeed table—which receives, supports, and guides finished stock as it leaves the machine—`outfeed` provides precision release planning, neurosymbolic changelog synthesis, manifest bumping, and closed-loop Storypole synchronization.\n\n---\n\n## 2. Architecture & Subsystem Taxonomy\n\n```text\noutfeed/\n├── Cargo.toml                 # Workspace root & facade crate\n├── README.md                  # Usage, CLI verbs, and MCP protocol specs\n├── src/lib.rs                 # Re-exports outfeed-core\n└── crates/\n    ├── outfeed-core/          # Pure domain: Git inspection, SemVer rules, toml_edit, sawhorse synthesis\n    │   ├── Cargo.toml\n    │   └── src/\n    │       ├── git.rs         # Commit range traversal, tag discovery, clean tree assertions\n    │       ├── semver.rs      # Conventional Commit classifier & SemVer calculator\n    │       ├── manifest.rs    # toml_edit AST workspace & member dependency synchronizer\n    │       ├── changelog.rs   # Keep-a-Changelog parser, formatter, and merge engine\n    │       ├── synthesis.rs   # sawhorse-core prompt executor for narrative changelog generation\n    │       ├── storypole.rs   # Ledger reader & release chore ticket creator\n    │       └── error.rs       # Strongly-typed thiserror enum\n    ├── outfeed-cli/           # Clap CLI entrypoint\n    │   ├── Cargo.toml\n    │   └── src/\n    │       ├── main.rs        # CLI dispatcher (plan, apply, rollback, status)\n    │       └── commands/      # Command handlers with --dry-run and --json support\n    └── outfeed-mcp/           # Dedicated MCP stdio server\n        ├── Cargo.toml\n        └── src/\n            ├── lib.rs         # MCP JSON-RPC protocol server\n            └── tools.rs       # outfeed_plan and outfeed_apply tool handlers\n```\n\n---\n\n## 3. Implementation Phases & Milestones\n\n### Phase 0: Project Naming & Namespace Verification\n* [x] Confirm availability of `outfeed`, `outfeed-core`, `outfeed-cli`, `outfeed-mcp` on crates.io (verified clean).\n* [x] Add `outfeed` to `scripts/reserve-namespaces.sh` and execute dry-run check.\n* [x] Scaffold `gaugeblock/outfeed` workspace with Rust 2024 root `Cargo.toml`.\n* [x] Map sibling checkout into root `.cargo/config.toml` `[patch.crates-io]`.\n\n### Phase 1: `outfeed-core` Deterministic Engine\n* [x] `git.rs`: Assert clean git state on `main`; resolve `latest_tag..HEAD` commit lineage.\n* [x] `semver.rs`: Parse Conventional Commits (`feat`, `fix`, `refactor`, `BREAKING CHANGE:`) and compute pre-release vs minor base bump.\n* [x] `manifest.rs`: Use `toml_edit` to bump `[workspace.package] version` and intra-repo sibling constraints in `Cargo.toml` without dropping comments.\n* [x] `manifest.rs`: Update `benchwork/web/package.json` version in tandem if present.\n* [x] `rollback.rs`: Transactional rollback mechanism restoring files if downstream checks fail.\n\n### Phase 2: Neurosymbolic Changelog Synthesis (`sawhorse` + `storypole`)\n* [x] `storypole.rs`: Parse referenced `GB-XX` ticket keys from commits and extract task blueprints and verification receipts from `.gaugeblock/storypole`.\n* [x] `synthesis.rs`: Construct structured prompt containing commit summaries, AST diffs, and Storypole plans.\n* [x] `synthesis.rs`: Invoke `sawhorse-core` via configured provider from `.gaugeblock/config.toml` to draft Keep a Changelog markdown sections with SemVer justification.\n\n### Phase 3: `outfeed-cli` Command Surface\n* [x] Implement `outfeed plan <repo>` (`--dry-run`, `--json`): outputs proposed SemVer bump and full changelog diff.\n* [x] Implement `outfeed apply <repo>`: writes manifests, runs Tier 4 verification, commits `chore(release): release vX.Y.Z`, and creates annotated git tag.\n* [x] Implement `outfeed rollup`: evaluates all 9 member repositories and synthesizes root meta-harness `CHANGELOG.md` for milestone `suite-vX.Y.Z`.\n\n### Phase 4: Closed-Loop Storypole Integration\n* [x] On `outfeed plan`, optionally scaffold a Storypole chore ticket: `chore(release): release <repo> vX.Y.Z`.\n* [x] On `outfeed apply`, record a `VerificationReceipt` certifying the release ticket and stamp verified member tasks with release metadata.\n* [x] Ensure release tickets render rich changelog previews inside Benchwork UI (Panels 1 & 2).\n\n### Phase 5: `outfeed-mcp` Agent Protocol Server\n* [x] Implement stdio MCP server exposing `outfeed_plan` and `outfeed_apply`.\n* [x] Enable Antigravity and Cline to inspect release readiness, preview release notes in chat, and trigger releases interactively.\n\n---\n\n## 4. Verification & Dogfooding Criteria\n* **Dogfooding Target:** Immediately use `outfeed` to evaluate and cut the pending releases for `sawhorse` and `benchwork`.\n* **Zero 250+ LOC Files:** Enforced across all `.rs` files.\n* **Tier 3 Verification:** Full clean pass across `cargo fmt`, `cargo clippy`, `cargo nextest`, and `cargo test --doc`.\n\n",
+      "plan_file_path": ".gaugeblock/storypole/plans/OF-2.md",
+      "steps": [],
+      "summary": "OF-2: Phase 9: `outfeed` — Neurosymbolic Release Gate, AST Drift Inspector & Changelog Synthesizer",
+      "updated_at_epoch_ms": 1792988254050
+    },
+    "priority": 1,
+    "scope": {
+      "crate_name": "outfeed-core",
+      "labels": [],
+      "module_path": null,
+      "repo": "outfeed",
+      "target_files": [],
+      "target_symbols": []
+    },
+    "slug": "phase-9-outfeed-neurosymbolic-release-gate-ast-drift-inspector-changelog-synthesizer-3666de",
+    "status": "verified",
+    "ticket_key": "OF-2",
+    "title": "Phase 9: outfeed — Neurosymbolic Release Gate, AST Drift Inspector & Changelog Synthesizer",
+    "updated_at_epoch_ms": 1794037961594,
+    "verification_receipt": {
+      "base_commit_sha": "2fafe563e840503b0dd4fc4f3d9a66b4d26fb73e",
+      "chain_key": null,
+      "command": "n/a",
+      "commit_shas": [
+        "2fafe563e840503b0dd4fc4f3d9a66b4d26fb73e"
+      ],
+      "diagnostic_count": null,
+      "exit_code": 0,
+      "git_branch": "main",
+      "head_commit_sha": "2fafe563e840503b0dd4fc4f3d9a66b4d26fb73e",
+      "repo": null,
+      "summary": "Delivered as the Phase 10 roadmap exit: outfeed gate matrix (fmt/clippy/tests/contracts --check/layers/lockfiles/docs), semver+manifest release engine, changelog synthesis (synthesis.rs, changelog.rs), and suite_plan/suite_release/suite_waves/suite_lock. AST drift inspection lives in chalkline docs check (GB-102/GB-103, verified).",
+      "verified_at_epoch_ms": 1793942109473,
+      "verifier": "manual"
+    }
+  }
+}

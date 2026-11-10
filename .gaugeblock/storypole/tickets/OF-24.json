@@ -1,0 +1,258 @@
+{
+  "events": [
+    {
+      "event": "handoff_recorded",
+      "handoff": {
+        "completed_items": [
+          "Adaptive headroom guard implemented in outfeed-core (src/headroom/{mod.rs,tests.rs}); cache retention is now the default (ReleaseOpts::clean_between_repos=false); pre-flight uses a single 4.0 GB threshold; guard measures free space before/after each repository release with 3.5 GB surgical prune and 2.0 GB emergency clean; SCCACHE_CACHE_SIZE=15G set in harness .cargo/config.toml; CLI flag inverted to opt-in --clean-between-repos; SPEC invariant 6, README, CHANGELOG updated."
+        ],
+        "dirty_files": [],
+        "git_ref": "dd42b57",
+        "last_error_or_blocker": null,
+        "recorded_by_agent": "cline",
+        "remaining_items": [
+          "Merge feat/outfeed-adaptive-headroom in outfeed to main, then run Tier 3 workspace verification (cargo fmt --all --check, cargo clippy --workspace --all-targets, cargo nextest run --workspace, miter contracts, chalkline docs check --workspace) before storypole verify."
+        ],
+        "timestamp_ms": 1793171916618
+      },
+      "new_status": "ready",
+      "task_id": "0b5516b6-f960-452e-81d9-608ded1d9c12"
+    },
+    {
+      "event": "task_created",
+      "task": {
+        "acceptance_criteria": [
+          "clean_between_repos defaults to false,Pre-flight check passes with 4.0GB free,On-demand pruning reclaims test binary space if disk < 3.5GB,SCCACHE_CACHE_SIZE set to 15G"
+        ],
+        "active_claim": null,
+        "created_at_epoch_ms": 1793170294360,
+        "decisions": [],
+        "description": "Replace the binary clean switch and unrealistic 20GB requirement with a continuous 4.0GB headroom guard. Cache retention is enabled by default, with automatic adaptive surgical pruning of test binaries when available disk drops below 3.5GB. Configure SCCACHE_CACHE_SIZE=15G in .cargo/config.toml.",
+        "edges": [],
+        "id": "0b5516b6-f960-452e-81d9-608ded1d9c12",
+        "kind": "feature",
+        "latest_handoff": null,
+        "plan": null,
+        "priority": 1,
+        "scope": {
+          "crate_name": "outfeed-core",
+          "labels": [
+            "perf,disk,cache,outfeed"
+          ],
+          "module_path": null,
+          "repo": "outfeed",
+          "target_files": [],
+          "target_symbols": []
+        },
+        "slug": "implement-adaptive-disk-space-headroom-guard-and-cache-retention-in-outfeed-0b5516",
+        "status": "ready",
+        "ticket_key": "OF-24",
+        "title": "Implement Adaptive Disk Space Headroom Guard and cache retention in outfeed",
+        "updated_at_epoch_ms": 1793170294360,
+        "verification_receipt": null
+      }
+    },
+    {
+      "edge": {
+        "kind": "parent_epic",
+        "target_id": "68e622ee-6f35-40ee-aa01-03c509c1dc44",
+        "target_repo": "outfeed",
+        "target_ticket_key": "OF-23"
+      },
+      "event": "edge_added",
+      "task_id": "0b5516b6-f960-452e-81d9-608ded1d9c12",
+      "timestamp_ms": 1793170297546
+    },
+    {
+      "event": "plan_updated",
+      "plan": {
+        "design_markdown": "# Task Plan: OF-24 — Implement Adaptive Disk Space Headroom Guard and Cache Retention in outfeed\n\n> **Task Key:** `OF-24`  \n> **Parent Epic:** `OF-23`  \n> **Scope:** `outfeed-core`  \n> **Status:** Planned\n\n---\n\n## 1. Problem Statement\n`clean_between_repos` currently defaults to `true`, wiping `target/debug` after every released repository. This forces all 10 tools to recompile `syn`, `tokio`, `serde`, and uncached proc-macros from scratch, adding 30–50 minutes of pure CPU churn. If disabled, `outfeed` artificially demanded 20.0 GB of free disk, failing on systems with 12 GB free despite the shared target directory plateauing at only ~5.0 GB.\n\n---\n\n## 2. Technical Blueprint\n1. In `outfeed-core/src/model/options.rs`:\n   * Change `ReleaseOpts.clean_between_repos` default to `false`.\n2. In `outfeed-core/src/suite_check.rs`:\n   * Change required headroom threshold to `DEFAULT_MIN_SUITE_DISK_BYTES` (4.0 GB) regardless of `clean_between_repos`.\n3. In `outfeed-core/src/suite_exec.rs`:\n   * Add continuous `get_available_disk_space()` monitoring before/after every repository release.\n   * If available disk `< 3.5 GB`: trigger adaptive surgical pruning of test binaries in `target/debug/deps` using `prune_workspace()`.\n   * If available disk `< 2.0 GB`: trigger emergency target clean.\n4. In `.cargo/config.toml`:\n   * Add `[env] SCCACHE_CACHE_SIZE = \"15G\"` to prevent LRU cache eviction thrashing.\n\n---\n\n## 3. Execution Steps\n* **Step 1:** Modify default options in `options.rs` and preflight threshold in `suite_check.rs`.\n* **Step 2:** Implement continuous adaptive headroom guard in `suite_exec.rs`.\n* **Step 3:** Add `SCCACHE_CACHE_SIZE` configuration to `.cargo/config.toml`.\n* **Step 4:** Tier 2 verification (`cargo nextest run -p outfeed-core`).\n",
+        "plan_file_path": ".gaugeblock/storypole/plans/OF-24.md",
+        "steps": [
+          {
+            "completed": false,
+            "step_id": "1",
+            "target_files": [],
+            "title": "Modify default options and preflight threshold",
+            "verification_gate": "cargo check -p outfeed-core"
+          },
+          {
+            "completed": false,
+            "step_id": "2",
+            "target_files": [],
+            "title": "Implement continuous adaptive headroom guard in suite_exec.rs",
+            "verification_gate": "cargo check -p outfeed-core"
+          },
+          {
+            "completed": false,
+            "step_id": "3",
+            "target_files": [],
+            "title": "Configure SCCACHE_CACHE_SIZE in .cargo/config.toml",
+            "verification_gate": "cargo check -p outfeed-core"
+          },
+          {
+            "completed": false,
+            "step_id": "4",
+            "target_files": [],
+            "title": "Tier 2 verification",
+            "verification_gate": "cargo nextest run -p outfeed-core"
+          }
+        ],
+        "summary": "Adaptive Disk Space Headroom Guard and cache retention",
+        "updated_at_epoch_ms": 1793170454894
+      },
+      "task_id": "0b5516b6-f960-452e-81d9-608ded1d9c12",
+      "timestamp_ms": 1793170454894
+    },
+    {
+      "claim": {
+        "agent_id": "cline",
+        "base_commit_sha": "eed78249006ec23d23a2e423990152a4d0eaea8a",
+        "claimed_at_epoch_ms": 1793171001523,
+        "git_branch": "feat/outfeed-adaptive-headroom",
+        "lease_expires_at_epoch_ms": 1793174601523
+      },
+      "event": "task_claimed",
+      "task_id": "0b5516b6-f960-452e-81d9-608ded1d9c12"
+    },
+    {
+      "event": "status_changed",
+      "from": "ready",
+      "reason": "Claimed by cline",
+      "task_id": "0b5516b6-f960-452e-81d9-608ded1d9c12",
+      "timestamp_ms": 1793171001523,
+      "to": "in_progress"
+    },
+    {
+      "event": "task_verified",
+      "receipt": {
+        "base_commit_sha": "eed78249006ec23d23a2e423990152a4d0eaea8a",
+        "chain_key": null,
+        "command": "n/a",
+        "commit_shas": [
+          "e12bf0cbe3a053df6d9edca07d7ffa20e8457350",
+          "cfc2caffca583376e1f8ff30fe07f2ecab2f7316",
+          "7d1d5229ac573e102172c11f3ccd202799c47cc5"
+        ],
+        "diagnostic_count": null,
+        "exit_code": 0,
+        "git_branch": "feat/outfeed-adaptive-headroom",
+        "head_commit_sha": "7d1d5229ac573e102172c11f3ccd202799c47cc5",
+        "repo": null,
+        "summary": "Tier 3 gate green on merged main (dd42b57): cargo fmt --all --check OK; cargo clippy --workspace --all-targets -- -D warnings OK; cargo nextest run --workspace 40/40 passed; cargo test --doc --workspace OK; chalkline docs check --workspace 11 targets / 99 docs / 0 drifted; miter contracts exit 0 (8 pre-existing drifts in benchwork/storypole/dado, none in outfeed). Headroom guard verified live: 13.02 GB free -> Retained.",
+        "verified_at_epoch_ms": 1793172452476,
+        "verifier": "cline"
+      },
+      "task_id": "0b5516b6-f960-452e-81d9-608ded1d9c12"
+    },
+    {
+      "event": "task_archived",
+      "status": "verified",
+      "task_id": "0b5516b6-f960-452e-81d9-608ded1d9c12",
+      "timestamp_ms": 1794037981541
+    }
+  ],
+  "ticket": {
+    "acceptance_criteria": [
+      "clean_between_repos defaults to false,Pre-flight check passes with 4.0GB free,On-demand pruning reclaims test binary space if disk < 3.5GB,SCCACHE_CACHE_SIZE set to 15G"
+    ],
+    "active_claim": null,
+    "archived_at_epoch_ms": 1794037981541,
+    "created_at_epoch_ms": 1793170294360,
+    "decisions": [],
+    "description": "Replace the binary clean switch and unrealistic 20GB requirement with a continuous 4.0GB headroom guard. Cache retention is enabled by default, with automatic adaptive surgical pruning of test binaries when available disk drops below 3.5GB. Configure SCCACHE_CACHE_SIZE=15G in .cargo/config.toml.",
+    "edges": [
+      {
+        "kind": "parent_epic",
+        "target_id": "68e622ee-6f35-40ee-aa01-03c509c1dc44",
+        "target_repo": "outfeed",
+        "target_ticket_key": "OF-23"
+      }
+    ],
+    "id": "0b5516b6-f960-452e-81d9-608ded1d9c12",
+    "kind": "feature",
+    "latest_handoff": {
+      "completed_items": [
+        "Adaptive headroom guard implemented in outfeed-core (src/headroom/{mod.rs,tests.rs}); cache retention is now the default (ReleaseOpts::clean_between_repos=false); pre-flight uses a single 4.0 GB threshold; guard measures free space before/after each repository release with 3.5 GB surgical prune and 2.0 GB emergency clean; SCCACHE_CACHE_SIZE=15G set in harness .cargo/config.toml; CLI flag inverted to opt-in --clean-between-repos; SPEC invariant 6, README, CHANGELOG updated."
+      ],
+      "dirty_files": [],
+      "git_ref": "dd42b57",
+      "last_error_or_blocker": null,
+      "recorded_by_agent": "cline",
+      "remaining_items": [
+        "Merge feat/outfeed-adaptive-headroom in outfeed to main, then run Tier 3 workspace verification (cargo fmt --all --check, cargo clippy --workspace --all-targets, cargo nextest run --workspace, miter contracts, chalkline docs check --workspace) before storypole verify."
+      ],
+      "timestamp_ms": 1793171916618
+    },
+    "plan": {
+      "design_markdown": "# Task Plan: OF-24 — Implement Adaptive Disk Space Headroom Guard and Cache Retention in outfeed\n\n> **Task Key:** `OF-24`  \n> **Parent Epic:** `OF-23`  \n> **Scope:** `outfeed-core`  \n> **Status:** Planned\n\n---\n\n## 1. Problem Statement\n`clean_between_repos` currently defaults to `true`, wiping `target/debug` after every released repository. This forces all 10 tools to recompile `syn`, `tokio`, `serde`, and uncached proc-macros from scratch, adding 30–50 minutes of pure CPU churn. If disabled, `outfeed` artificially demanded 20.0 GB of free disk, failing on systems with 12 GB free despite the shared target directory plateauing at only ~5.0 GB.\n\n---\n\n## 2. Technical Blueprint\n1. In `outfeed-core/src/model/options.rs`:\n   * Change `ReleaseOpts.clean_between_repos` default to `false`.\n2. In `outfeed-core/src/suite_check.rs`:\n   * Change required headroom threshold to `DEFAULT_MIN_SUITE_DISK_BYTES` (4.0 GB) regardless of `clean_between_repos`.\n3. In `outfeed-core/src/suite_exec.rs`:\n   * Add continuous `get_available_disk_space()` monitoring before/after every repository release.\n   * If available disk `< 3.5 GB`: trigger adaptive surgical pruning of test binaries in `target/debug/deps` using `prune_workspace()`.\n   * If available disk `< 2.0 GB`: trigger emergency target clean.\n4. In `.cargo/config.toml`:\n   * Add `[env] SCCACHE_CACHE_SIZE = \"15G\"` to prevent LRU cache eviction thrashing.\n\n---\n\n## 3. Execution Steps\n* **Step 1:** Modify default options in `options.rs` and preflight threshold in `suite_check.rs`.\n* **Step 2:** Implement continuous adaptive headroom guard in `suite_exec.rs`.\n* **Step 3:** Add `SCCACHE_CACHE_SIZE` configuration to `.cargo/config.toml`.\n* **Step 4:** Tier 2 verification (`cargo nextest run -p outfeed-core`).\n",
+      "plan_file_path": ".gaugeblock/storypole/plans/OF-24.md",
+      "steps": [
+        {
+          "completed": false,
+          "step_id": "1",
+          "target_files": [],
+          "title": "Modify default options and preflight threshold",
+          "verification_gate": "cargo check -p outfeed-core"
+        },
+        {
+          "completed": false,
+          "step_id": "2",
+          "target_files": [],
+          "title": "Implement continuous adaptive headroom guard in suite_exec.rs",
+          "verification_gate": "cargo check -p outfeed-core"
+        },
+        {
+          "completed": false,
+          "step_id": "3",
+          "target_files": [],
+          "title": "Configure SCCACHE_CACHE_SIZE in .cargo/config.toml",
+          "verification_gate": "cargo check -p outfeed-core"
+        },
+        {
+          "completed": false,
+          "step_id": "4",
+          "target_files": [],
+          "title": "Tier 2 verification",
+          "verification_gate": "cargo nextest run -p outfeed-core"
+        }
+      ],
+      "summary": "Adaptive Disk Space Headroom Guard and cache retention",
+      "updated_at_epoch_ms": 1793170454894
+    },
+    "priority": 1,
+    "scope": {
+      "crate_name": "outfeed-core",
+      "labels": [
+        "perf,disk,cache,outfeed"
+      ],
+      "module_path": null,
+      "repo": "outfeed",
+      "target_files": [],
+      "target_symbols": []
+    },
+    "slug": "implement-adaptive-disk-space-headroom-guard-and-cache-retention-in-outfeed-0b5516",
+    "status": "verified",
+    "ticket_key": "OF-24",
+    "title": "Implement Adaptive Disk Space Headroom Guard and cache retention in outfeed",
+    "updated_at_epoch_ms": 1794037981541,
+    "verification_receipt": {
+      "base_commit_sha": "eed78249006ec23d23a2e423990152a4d0eaea8a",
+      "chain_key": null,
+      "command": "n/a",
+      "commit_shas": [
+        "e12bf0cbe3a053df6d9edca07d7ffa20e8457350",
+        "cfc2caffca583376e1f8ff30fe07f2ecab2f7316",
+        "7d1d5229ac573e102172c11f3ccd202799c47cc5"
+      ],
+      "diagnostic_count": null,
+      "exit_code": 0,
+      "git_branch": "feat/outfeed-adaptive-headroom",
+      "head_commit_sha": "7d1d5229ac573e102172c11f3ccd202799c47cc5",
+      "repo": null,
+      "summary": "Tier 3 gate green on merged main (dd42b57): cargo fmt --all --check OK; cargo clippy --workspace --all-targets -- -D warnings OK; cargo nextest run --workspace 40/40 passed; cargo test --doc --workspace OK; chalkline docs check --workspace 11 targets / 99 docs / 0 drifted; miter contracts exit 0 (8 pre-existing drifts in benchwork/storypole/dado, none in outfeed). Headroom guard verified live: 13.02 GB free -> Retained.",
+      "verified_at_epoch_ms": 1793172452476,
+      "verifier": "cline"
+    }
+  }
+}

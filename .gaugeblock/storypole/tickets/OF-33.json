@@ -1,0 +1,140 @@
+{
+  "events": [
+    {
+      "captured_by_agent": "cline",
+      "discovered_from_task_id": null,
+      "event": "deferred_item_captured",
+      "task": {
+        "acceptance_criteria": [],
+        "active_claim": null,
+        "created_at_epoch_ms": 1793201526692,
+        "decisions": [],
+        "description": "Observed during the GB-127 namespace reservation: crates.io returns 429 with the deadline only in the message body ('You have published too many new crates in a short period of time. Please try again after Wed, 28 Oct 2026 15:30:25 GMT') and no Retry-After header. parse_cooldown matched neither 'retry after <n>' nor 'try again in <n>', so it fell back to the 30s default and the 3-attempt budget was exhausted before the real ~2 minute cooldown elapsed. Add a 'try again after <RFC2822>' form plus a generic HTTP-date scan.",
+        "edges": [],
+        "id": "45d0e0bf-ad71-4137-95e3-fbda310e401b",
+        "kind": "bug",
+        "latest_handoff": null,
+        "plan": null,
+        "priority": 3,
+        "scope": {
+          "crate_name": "outfeed-core",
+          "labels": [],
+          "module_path": null,
+          "repo": null,
+          "target_files": [
+            "outfeed/crates/outfeed-core/src/rate_limit.rs"
+          ],
+          "target_symbols": [
+            "outfeed_core::rate_limit::parse_cooldown"
+          ]
+        },
+        "slug": "parse-cooldown-misses-crates-io-s-try-again-after-rfc2822-date-body-form-45d0e0",
+        "status": "triage",
+        "ticket_key": "OF-33",
+        "title": "parse_cooldown misses crates.io's 'try again after <RFC2822 date>' body form",
+        "updated_at_epoch_ms": 1793201526692,
+        "verification_receipt": null
+      }
+    },
+    {
+      "claim": {
+        "agent_id": "cline",
+        "base_commit_sha": null,
+        "claimed_at_epoch_ms": 1793201589666,
+        "git_branch": "fix/outfeed-cooldown-date-form",
+        "lease_expires_at_epoch_ms": 1793205189666
+      },
+      "event": "task_claimed",
+      "task_id": "45d0e0bf-ad71-4137-95e3-fbda310e401b"
+    },
+    {
+      "event": "status_changed",
+      "from": "triage",
+      "reason": "Claimed by cline",
+      "task_id": "45d0e0bf-ad71-4137-95e3-fbda310e401b",
+      "timestamp_ms": 1793201589666,
+      "to": "in_progress"
+    },
+    {
+      "event": "task_verified",
+      "receipt": {
+        "base_commit_sha": "9f84ff1d6fd14616adf719311d3501dc7dfe73b2",
+        "chain_key": null,
+        "command": "n/a",
+        "commit_shas": [
+          "9f84ff1d6fd14616adf719311d3501dc7dfe73b2"
+        ],
+        "diagnostic_count": null,
+        "exit_code": 0,
+        "git_branch": "main",
+        "head_commit_sha": "9f84ff1d6fd14616adf719311d3501dc7dfe73b2",
+        "repo": null,
+        "summary": "Merged to outfeed main (9f84ff1): parse_cooldown resolves an explicit Retry-After token first, then prose deadlines as RFC 2822 dates before any bare integer (a day-of-month was previously read as 28 seconds), then scans the whole output as a last resort. Reproduced with the verbatim crates.io 429 body observed during the GB-127 reservation; gates: clippy --workspace --all-targets -D warnings clean, nextest --workspace 67/67, fmt OK, docs 9/9.",
+        "verified_at_epoch_ms": 1793201785506,
+        "verifier": "cline"
+      },
+      "task_id": "45d0e0bf-ad71-4137-95e3-fbda310e401b"
+    },
+    {
+      "event": "status_changed",
+      "from": "verified",
+      "reason": "Archived out of active backlog",
+      "task_id": "45d0e0bf-ad71-4137-95e3-fbda310e401b",
+      "timestamp_ms": 1793289286115,
+      "to": "archived"
+    },
+    {
+      "event": "task_archived",
+      "status": "verified",
+      "task_id": "45d0e0bf-ad71-4137-95e3-fbda310e401b",
+      "timestamp_ms": 1794038009106
+    }
+  ],
+  "ticket": {
+    "acceptance_criteria": [],
+    "active_claim": null,
+    "archived_at_epoch_ms": 1794038009106,
+    "created_at_epoch_ms": 1793201526692,
+    "decisions": [],
+    "description": "Observed during the GB-127 namespace reservation: crates.io returns 429 with the deadline only in the message body ('You have published too many new crates in a short period of time. Please try again after Wed, 28 Oct 2026 15:30:25 GMT') and no Retry-After header. parse_cooldown matched neither 'retry after <n>' nor 'try again in <n>', so it fell back to the 30s default and the 3-attempt budget was exhausted before the real ~2 minute cooldown elapsed. Add a 'try again after <RFC2822>' form plus a generic HTTP-date scan.",
+    "edges": [],
+    "id": "45d0e0bf-ad71-4137-95e3-fbda310e401b",
+    "kind": "bug",
+    "latest_handoff": null,
+    "plan": null,
+    "priority": 3,
+    "scope": {
+      "crate_name": "outfeed-core",
+      "labels": [],
+      "module_path": null,
+      "repo": null,
+      "target_files": [
+        "outfeed/crates/outfeed-core/src/rate_limit.rs"
+      ],
+      "target_symbols": [
+        "outfeed_core::rate_limit::parse_cooldown"
+      ]
+    },
+    "slug": "parse-cooldown-misses-crates-io-s-try-again-after-rfc2822-date-body-form-45d0e0",
+    "status": "verified",
+    "ticket_key": "OF-33",
+    "title": "parse_cooldown misses crates.io's 'try again after <RFC2822 date>' body form",
+    "updated_at_epoch_ms": 1794038009106,
+    "verification_receipt": {
+      "base_commit_sha": "9f84ff1d6fd14616adf719311d3501dc7dfe73b2",
+      "chain_key": null,
+      "command": "n/a",
+      "commit_shas": [
+        "9f84ff1d6fd14616adf719311d3501dc7dfe73b2"
+      ],
+      "diagnostic_count": null,
+      "exit_code": 0,
+      "git_branch": "main",
+      "head_commit_sha": "9f84ff1d6fd14616adf719311d3501dc7dfe73b2",
+      "repo": null,
+      "summary": "Merged to outfeed main (9f84ff1): parse_cooldown resolves an explicit Retry-After token first, then prose deadlines as RFC 2822 dates before any bare integer (a day-of-month was previously read as 28 seconds), then scans the whole output as a last resort. Reproduced with the verbatim crates.io 429 body observed during the GB-127 reservation; gates: clippy --workspace --all-targets -D warnings clean, nextest --workspace 67/67, fmt OK, docs 9/9.",
+      "verified_at_epoch_ms": 1793201785506,
+      "verifier": "cline"
+    }
+  }
+}

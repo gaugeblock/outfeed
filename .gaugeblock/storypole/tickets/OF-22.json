@@ -1,0 +1,140 @@
+{
+  "events": [
+    {
+      "event": "task_created",
+      "task": {
+        "acceptance_criteria": [],
+        "active_claim": null,
+        "created_at_epoch_ms": 1793149859136,
+        "decisions": [],
+        "description": "Document release orchestration, git porcelain checks, changelog synthesis, suite.lock multi-repo packaging, crates.io publishing, ADRs, and domain AGENTS.md laws",
+        "edges": [],
+        "id": "f9038512-bcb1-4711-9b77-571900fda9d7",
+        "kind": "feature",
+        "latest_handoff": null,
+        "plan": null,
+        "priority": 1,
+        "scope": {
+          "crate_name": "outfeed-core",
+          "labels": [],
+          "module_path": null,
+          "repo": "outfeed",
+          "target_files": [],
+          "target_symbols": []
+        },
+        "slug": "elevate-outfeed-documentation-across-all-9-canonical-documents-f90385",
+        "status": "ready",
+        "ticket_key": "OF-22",
+        "title": "Elevate outfeed documentation across all 9 canonical documents",
+        "updated_at_epoch_ms": 1793149859136,
+        "verification_receipt": null
+      }
+    },
+    {
+      "edge": {
+        "kind": "parent_epic",
+        "target_id": "150580f0-de24-4825-985d-b5565297c041",
+        "target_repo": "workspace",
+        "target_ticket_key": "GB-114"
+      },
+      "event": "edge_added",
+      "task_id": "f9038512-bcb1-4711-9b77-571900fda9d7",
+      "timestamp_ms": 1793149862211
+    },
+    {
+      "claim": {
+        "agent_id": "antigravity-agent",
+        "base_commit_sha": "a71e02c00a58fa5229fe406e5667db9e793b2981",
+        "claimed_at_epoch_ms": 1793160864023,
+        "git_branch": "feat/outfeed-docs-elevation",
+        "lease_expires_at_epoch_ms": 1793164464023
+      },
+      "event": "task_claimed",
+      "task_id": "f9038512-bcb1-4711-9b77-571900fda9d7"
+    },
+    {
+      "event": "status_changed",
+      "from": "ready",
+      "reason": "Claimed by antigravity-agent",
+      "task_id": "f9038512-bcb1-4711-9b77-571900fda9d7",
+      "timestamp_ms": 1793160864023,
+      "to": "in_progress"
+    },
+    {
+      "event": "task_verified",
+      "receipt": {
+        "base_commit_sha": "a71e02c00a58fa5229fe406e5667db9e793b2981",
+        "chain_key": null,
+        "command": "n/a",
+        "commit_shas": [
+          "a71e02c00a58fa5229fe406e5667db9e793b2981"
+        ],
+        "diagnostic_count": null,
+        "exit_code": 0,
+        "git_branch": "feat/outfeed-docs-elevation",
+        "head_commit_sha": "a71e02c00a58fa5229fe406e5667db9e793b2981",
+        "repo": null,
+        "summary": "Manual verification confirmed",
+        "verified_at_epoch_ms": 1793161090400,
+        "verifier": "manual"
+      },
+      "task_id": "f9038512-bcb1-4711-9b77-571900fda9d7"
+    },
+    {
+      "event": "task_archived",
+      "status": "verified",
+      "task_id": "f9038512-bcb1-4711-9b77-571900fda9d7",
+      "timestamp_ms": 1794037979601
+    }
+  ],
+  "ticket": {
+    "acceptance_criteria": [],
+    "active_claim": null,
+    "archived_at_epoch_ms": 1794037979601,
+    "created_at_epoch_ms": 1793149859136,
+    "decisions": [],
+    "description": "Document release orchestration, git porcelain checks, changelog synthesis, suite.lock multi-repo packaging, crates.io publishing, ADRs, and domain AGENTS.md laws",
+    "edges": [
+      {
+        "kind": "parent_epic",
+        "target_id": "150580f0-de24-4825-985d-b5565297c041",
+        "target_repo": "workspace",
+        "target_ticket_key": "GB-114"
+      }
+    ],
+    "id": "f9038512-bcb1-4711-9b77-571900fda9d7",
+    "kind": "feature",
+    "latest_handoff": null,
+    "plan": null,
+    "priority": 1,
+    "scope": {
+      "crate_name": "outfeed-core",
+      "labels": [],
+      "module_path": null,
+      "repo": "outfeed",
+      "target_files": [],
+      "target_symbols": []
+    },
+    "slug": "elevate-outfeed-documentation-across-all-9-canonical-documents-f90385",
+    "status": "verified",
+    "ticket_key": "OF-22",
+    "title": "Elevate outfeed documentation across all 9 canonical documents",
+    "updated_at_epoch_ms": 1794037979601,
+    "verification_receipt": {
+      "base_commit_sha": "a71e02c00a58fa5229fe406e5667db9e793b2981",
+      "chain_key": null,
+      "command": "n/a",
+      "commit_shas": [
+        "a71e02c00a58fa5229fe406e5667db9e793b2981"
+      ],
+      "diagnostic_count": null,
+      "exit_code": 0,
+      "git_branch": "feat/outfeed-docs-elevation",
+      "head_commit_sha": "a71e02c00a58fa5229fe406e5667db9e793b2981",
+      "repo": null,
+      "summary": "Manual verification confirmed",
+      "verified_at_epoch_ms": 1793161090400,
+      "verifier": "manual"
+    }
+  }
+}

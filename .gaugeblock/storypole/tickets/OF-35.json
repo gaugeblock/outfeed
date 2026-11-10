@@ -1,0 +1,144 @@
+{
+  "events": [
+    {
+      "captured_by_agent": "cline",
+      "discovered_from_task_id": null,
+      "event": "deferred_item_captured",
+      "task": {
+        "acceptance_criteria": [],
+        "active_claim": null,
+        "created_at_epoch_ms": 1793230986420,
+        "decisions": [],
+        "description": "GB-150 added scripts/check-lockfiles.sh, but the suite direction is that scripts are thin wrappers over outfeed (the packaging and delivery handler) rather than places where logic lives. Today that script is the only script shelling out to cargo metadata and git ls-files on its own. Move the logic into outfeed-core as a hygiene check and expose it as an outfeed subcommand next to clean and prune: for every directory containing a Cargo.toml that is its own git repository, assert Cargo.lock is tracked (git ls-files --error-unmatch) and fresh (cargo metadata --locked), returning a per-repository report with --json support and a non-zero exit when any repository fails. Then reduce scripts/check-lockfiles.sh to a wrapper that execs the installed outfeed binary, keeping the Tier 3 gate command unchanged. Acceptance: outfeed lockfiles reports 11/11 tracked and fresh, exits non-zero on a deliberately ignored lockfile, supports --json, the script is a wrapper of three lines or fewer, and AGENTS.md names outfeed as the owner of the check.",
+        "edges": [],
+        "id": "734880d1-e959-4728-bba8-9eeb35c0d39d",
+        "kind": "feature",
+        "latest_handoff": null,
+        "plan": null,
+        "priority": 3,
+        "scope": {
+          "crate_name": "outfeed-core",
+          "labels": [
+            "outfeed,hygiene,wrapper"
+          ],
+          "module_path": null,
+          "repo": null,
+          "target_files": [
+            "outfeed/crates/outfeed-core/src/lib.rs,outfeed/crates/outfeed-cli/src/args/hygiene.rs,scripts/check-lockfiles.sh,AGENTS.md"
+          ],
+          "target_symbols": [
+            "outfeed_core::hygiene::lockfiles"
+          ]
+        },
+        "slug": "fold-lockfile-verification-into-outfeed-as-a-first-class-command-so-scripts-stay-thin-wrappers-734880",
+        "status": "deferred",
+        "ticket_key": "OF-35",
+        "title": "Fold lockfile verification into outfeed as a first-class command so scripts stay thin wrappers",
+        "updated_at_epoch_ms": 1793230986420,
+        "verification_receipt": null
+      }
+    },
+    {
+      "claim": {
+        "agent_id": "cline",
+        "base_commit_sha": null,
+        "claimed_at_epoch_ms": 1793231202956,
+        "git_branch": "feat/outfeed-lockfiles",
+        "lease_expires_at_epoch_ms": 1793234802956
+      },
+      "event": "task_claimed",
+      "task_id": "734880d1-e959-4728-bba8-9eeb35c0d39d"
+    },
+    {
+      "event": "status_changed",
+      "from": "deferred",
+      "reason": "Claimed by cline",
+      "task_id": "734880d1-e959-4728-bba8-9eeb35c0d39d",
+      "timestamp_ms": 1793231202956,
+      "to": "in_progress"
+    },
+    {
+      "event": "task_verified",
+      "receipt": {
+        "base_commit_sha": "7bca9b6cffbc7a50bb12f466f869ca46d589f038",
+        "chain_key": null,
+        "command": "n/a",
+        "commit_shas": [
+          "7bca9b6cffbc7a50bb12f466f869ca46d589f038"
+        ],
+        "diagnostic_count": null,
+        "exit_code": 0,
+        "git_branch": "main",
+        "head_commit_sha": "7bca9b6cffbc7a50bb12f466f869ca46d589f038",
+        "repo": null,
+        "summary": "Merged to outfeed main (18e6532 + docs 7bca9b6): outfeed_core::lockfiles discovers every directory owning .git and Cargo.toml, asserts the lockfile is tracked (git ls-files --error-unmatch) and fresh (cargo metadata --locked), and reports per repository with ok/untracked/stale status. outfeed lockfiles [ROOT] [--json] exits non-zero on failure; scripts/check-lockfiles.sh is now a ten-line wrapper that execs it and AGENTS.md names outfeed as the owner. Gates: clippy --workspace --all-targets -D warnings clean, nextest --workspace 69/69 (4 new tests: tracking repo, ignoring repo, non-repository dir, empty workspace), docs check --workspace 12 targets / 0 drifted, and the installed binary reports 11/11 tracked and fresh.",
+        "verified_at_epoch_ms": 1793231801613,
+        "verifier": "cline"
+      },
+      "task_id": "734880d1-e959-4728-bba8-9eeb35c0d39d"
+    },
+    {
+      "event": "status_changed",
+      "from": "verified",
+      "reason": "Archived out of active backlog",
+      "task_id": "734880d1-e959-4728-bba8-9eeb35c0d39d",
+      "timestamp_ms": 1793289296206,
+      "to": "archived"
+    },
+    {
+      "event": "task_archived",
+      "status": "verified",
+      "task_id": "734880d1-e959-4728-bba8-9eeb35c0d39d",
+      "timestamp_ms": 1794038010540
+    }
+  ],
+  "ticket": {
+    "acceptance_criteria": [],
+    "active_claim": null,
+    "archived_at_epoch_ms": 1794038010540,
+    "created_at_epoch_ms": 1793230986420,
+    "decisions": [],
+    "description": "GB-150 added scripts/check-lockfiles.sh, but the suite direction is that scripts are thin wrappers over outfeed (the packaging and delivery handler) rather than places where logic lives. Today that script is the only script shelling out to cargo metadata and git ls-files on its own. Move the logic into outfeed-core as a hygiene check and expose it as an outfeed subcommand next to clean and prune: for every directory containing a Cargo.toml that is its own git repository, assert Cargo.lock is tracked (git ls-files --error-unmatch) and fresh (cargo metadata --locked), returning a per-repository report with --json support and a non-zero exit when any repository fails. Then reduce scripts/check-lockfiles.sh to a wrapper that execs the installed outfeed binary, keeping the Tier 3 gate command unchanged. Acceptance: outfeed lockfiles reports 11/11 tracked and fresh, exits non-zero on a deliberately ignored lockfile, supports --json, the script is a wrapper of three lines or fewer, and AGENTS.md names outfeed as the owner of the check.",
+    "edges": [],
+    "id": "734880d1-e959-4728-bba8-9eeb35c0d39d",
+    "kind": "feature",
+    "latest_handoff": null,
+    "plan": null,
+    "priority": 3,
+    "scope": {
+      "crate_name": "outfeed-core",
+      "labels": [
+        "outfeed,hygiene,wrapper"
+      ],
+      "module_path": null,
+      "repo": null,
+      "target_files": [
+        "outfeed/crates/outfeed-core/src/lib.rs,outfeed/crates/outfeed-cli/src/args/hygiene.rs,scripts/check-lockfiles.sh,AGENTS.md"
+      ],
+      "target_symbols": [
+        "outfeed_core::hygiene::lockfiles"
+      ]
+    },
+    "slug": "fold-lockfile-verification-into-outfeed-as-a-first-class-command-so-scripts-stay-thin-wrappers-734880",
+    "status": "verified",
+    "ticket_key": "OF-35",
+    "title": "Fold lockfile verification into outfeed as a first-class command so scripts stay thin wrappers",
+    "updated_at_epoch_ms": 1794038010540,
+    "verification_receipt": {
+      "base_commit_sha": "7bca9b6cffbc7a50bb12f466f869ca46d589f038",
+      "chain_key": null,
+      "command": "n/a",
+      "commit_shas": [
+        "7bca9b6cffbc7a50bb12f466f869ca46d589f038"
+      ],
+      "diagnostic_count": null,
+      "exit_code": 0,
+      "git_branch": "main",
+      "head_commit_sha": "7bca9b6cffbc7a50bb12f466f869ca46d589f038",
+      "repo": null,
+      "summary": "Merged to outfeed main (18e6532 + docs 7bca9b6): outfeed_core::lockfiles discovers every directory owning .git and Cargo.toml, asserts the lockfile is tracked (git ls-files --error-unmatch) and fresh (cargo metadata --locked), and reports per repository with ok/untracked/stale status. outfeed lockfiles [ROOT] [--json] exits non-zero on failure; scripts/check-lockfiles.sh is now a ten-line wrapper that execs it and AGENTS.md names outfeed as the owner. Gates: clippy --workspace --all-targets -D warnings clean, nextest --workspace 69/69 (4 new tests: tracking repo, ignoring repo, non-repository dir, empty workspace), docs check --workspace 12 targets / 0 drifted, and the installed binary reports 11/11 tracked and fresh.",
+      "verified_at_epoch_ms": 1793231801613,
+      "verifier": "cline"
+    }
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "events": [
+    {
+      "event": "task_created",
+      "task": {
+        "acceptance_criteria": [
+          "Tier 4 cross-repo verification passes",
+          "Manifest version bumped to 0.1.0-beta.3",
+          "Annotated git tag created"
+        ],
+        "active_claim": null,
+        "created_at_epoch_ms": 1793001897117,
+        "decisions": [],
+        "description": "Automated release ticket for outfeed v0.1.0-beta.3.\n\nRationale: New feature detected; incrementing beta pre-release\nShipped Tasks: OF-6",
+        "edges": [],
+        "id": "77f38a17-7c7c-4c73-846f-52eaa0abf6f7",
+        "kind": "refactor",
+        "latest_handoff": null,
+        "plan": null,
+        "priority": 1,
+        "scope": {
+          "crate_name": "outfeed-core",
+          "labels": [
+            "release"
+          ],
+          "module_path": null,
+          "repo": "outfeed",
+          "target_files": [],
+          "target_symbols": []
+        },
+        "slug": "chore-release-release-outfeed-v0-1-0-beta-3-77f38a",
+        "status": "ready",
+        "ticket_key": "OF-7",
+        "title": "chore(release): release outfeed v0.1.0-beta.3",
+        "updated_at_epoch_ms": 1793001897117,
+        "verification_receipt": null
+      }
+    },
+    {
+      "event": "task_verified",
+      "receipt": {
+        "base_commit_sha": null,
+        "chain_key": null,
+        "command": "outfeed apply",
+        "commit_shas": [],
+        "diagnostic_count": 0,
+        "exit_code": 0,
+        "git_branch": null,
+        "head_commit_sha": null,
+        "repo": null,
+        "summary": "Release v0.1.0-beta.3 successfully certified and tagged",
+        "verified_at_epoch_ms": 1793001897130,
+        "verifier": "outfeed"
+      },
+      "task_id": "77f38a17-7c7c-4c73-846f-52eaa0abf6f7"
+    },
+    {
+      "event": "task_archived",
+      "status": "verified",
+      "task_id": "77f38a17-7c7c-4c73-846f-52eaa0abf6f7",
+      "timestamp_ms": 1794037968253
+    }
+  ],
+  "ticket": {
+    "acceptance_criteria": [
+      "Tier 4 cross-repo verification passes",
+      "Manifest version bumped to 0.1.0-beta.3",
+      "Annotated git tag created"
+    ],
+    "active_claim": null,
+    "archived_at_epoch_ms": 1794037968253,
+    "created_at_epoch_ms": 1793001897117,
+    "decisions": [],
+    "description": "Automated release ticket for outfeed v0.1.0-beta.3.\n\nRationale: New feature detected; incrementing beta pre-release\nShipped Tasks: OF-6",
+    "edges": [],
+    "id": "77f38a17-7c7c-4c73-846f-52eaa0abf6f7",
+    "kind": "refactor",
+    "latest_handoff": null,
+    "plan": null,
+    "priority": 1,
+    "scope": {
+      "crate_name": "outfeed-core",
+      "labels": [
+        "release"
+      ],
+      "module_path": null,
+      "repo": "outfeed",
+      "target_files": [],
+      "target_symbols": []
+    },
+    "slug": "chore-release-release-outfeed-v0-1-0-beta-3-77f38a",
+    "status": "verified",
+    "ticket_key": "OF-7",
+    "title": "chore(release): release outfeed v0.1.0-beta.3",
+    "updated_at_epoch_ms": 1794037968253,
+    "verification_receipt": {
+      "base_commit_sha": null,
+      "chain_key": null,
+      "command": "outfeed apply",
+      "commit_shas": [],
+      "diagnostic_count": 0,
+      "exit_code": 0,
+      "git_branch": null,
+      "head_commit_sha": null,
+      "repo": null,
+      "summary": "Release v0.1.0-beta.3 successfully certified and tagged",
+      "verified_at_epoch_ms": 1793001897130,
+      "verifier": "outfeed"
+    }
+  }
+}

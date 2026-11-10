@@ -1,0 +1,140 @@
+{
+  "events": [
+    {
+      "captured_by_agent": "cline",
+      "discovered_from_task_id": null,
+      "event": "deferred_item_captured",
+      "task": {
+        "acceptance_criteria": [],
+        "active_claim": null,
+        "created_at_epoch_ms": 1793171797471,
+        "decisions": [],
+        "description": "clean_workspace_with_progress calls reporter.on_complete twice (lines ~141-153), so a single clean operation reports both 'reclaimed X' and 'pruned X' to the progress reporter. Only one completion event should be emitted.",
+        "edges": [],
+        "id": "b455603a-83df-40ea-a4eb-435eb49a5ebe",
+        "kind": "bug",
+        "latest_handoff": null,
+        "plan": null,
+        "priority": 3,
+        "scope": {
+          "crate_name": "outfeed-core",
+          "labels": [],
+          "module_path": null,
+          "repo": null,
+          "target_files": [
+            "outfeed/crates/outfeed-core/src/clean.rs"
+          ],
+          "target_symbols": [
+            "outfeed_core::clean::clean_workspace_with_progress"
+          ]
+        },
+        "slug": "duplicate-reporter-on-complete-calls-in-clean-workspace-with-progress-emit-both-clean-and-prune-messages-b45560",
+        "status": "triage",
+        "ticket_key": "OF-29",
+        "title": "Duplicate reporter.on_complete calls in clean_workspace_with_progress emit both clean and prune messages",
+        "updated_at_epoch_ms": 1793171797471,
+        "verification_receipt": null
+      }
+    },
+    {
+      "claim": {
+        "agent_id": "cline",
+        "base_commit_sha": "2d869bb0367f28ff91a85756ba0e6fff829928f5",
+        "claimed_at_epoch_ms": 1793174901169,
+        "git_branch": "fix/outfeed-clean-progress",
+        "lease_expires_at_epoch_ms": 1793178501169
+      },
+      "event": "task_claimed",
+      "task_id": "b455603a-83df-40ea-a4eb-435eb49a5ebe"
+    },
+    {
+      "event": "status_changed",
+      "from": "triage",
+      "reason": "Claimed by cline",
+      "task_id": "b455603a-83df-40ea-a4eb-435eb49a5ebe",
+      "timestamp_ms": 1793174901169,
+      "to": "in_progress"
+    },
+    {
+      "event": "task_verified",
+      "receipt": {
+        "base_commit_sha": "2d869bb0367f28ff91a85756ba0e6fff829928f5",
+        "chain_key": null,
+        "command": "n/a",
+        "commit_shas": [
+          "fa2f56da94fb6a4537e7f18ea60fc3074accbeaf"
+        ],
+        "diagnostic_count": null,
+        "exit_code": 0,
+        "git_branch": "main",
+        "head_commit_sha": "fa2f56da94fb6a4537e7f18ea60fc3074accbeaf",
+        "repo": null,
+        "summary": "Tier 3 gate green on merged outfeed main: fmt --all --check OK, clippy --workspace --all-targets -D warnings OK, nextest --workspace 49/49. clean_workspace_with_progress now emits exactly one completion event, asserted by a counting-reporter regression test.",
+        "verified_at_epoch_ms": 1793175118646,
+        "verifier": "cline"
+      },
+      "task_id": "b455603a-83df-40ea-a4eb-435eb49a5ebe"
+    },
+    {
+      "event": "status_changed",
+      "from": "verified",
+      "reason": "Archived out of active backlog",
+      "task_id": "b455603a-83df-40ea-a4eb-435eb49a5ebe",
+      "timestamp_ms": 1793289322040,
+      "to": "archived"
+    },
+    {
+      "event": "task_archived",
+      "status": "verified",
+      "task_id": "b455603a-83df-40ea-a4eb-435eb49a5ebe",
+      "timestamp_ms": 1794038007455
+    }
+  ],
+  "ticket": {
+    "acceptance_criteria": [],
+    "active_claim": null,
+    "archived_at_epoch_ms": 1794038007455,
+    "created_at_epoch_ms": 1793171797471,
+    "decisions": [],
+    "description": "clean_workspace_with_progress calls reporter.on_complete twice (lines ~141-153), so a single clean operation reports both 'reclaimed X' and 'pruned X' to the progress reporter. Only one completion event should be emitted.",
+    "edges": [],
+    "id": "b455603a-83df-40ea-a4eb-435eb49a5ebe",
+    "kind": "bug",
+    "latest_handoff": null,
+    "plan": null,
+    "priority": 3,
+    "scope": {
+      "crate_name": "outfeed-core",
+      "labels": [],
+      "module_path": null,
+      "repo": null,
+      "target_files": [
+        "outfeed/crates/outfeed-core/src/clean.rs"
+      ],
+      "target_symbols": [
+        "outfeed_core::clean::clean_workspace_with_progress"
+      ]
+    },
+    "slug": "duplicate-reporter-on-complete-calls-in-clean-workspace-with-progress-emit-both-clean-and-prune-messages-b45560",
+    "status": "verified",
+    "ticket_key": "OF-29",
+    "title": "Duplicate reporter.on_complete calls in clean_workspace_with_progress emit both clean and prune messages",
+    "updated_at_epoch_ms": 1794038007455,
+    "verification_receipt": {
+      "base_commit_sha": "2d869bb0367f28ff91a85756ba0e6fff829928f5",
+      "chain_key": null,
+      "command": "n/a",
+      "commit_shas": [
+        "fa2f56da94fb6a4537e7f18ea60fc3074accbeaf"
+      ],
+      "diagnostic_count": null,
+      "exit_code": 0,
+      "git_branch": "main",
+      "head_commit_sha": "fa2f56da94fb6a4537e7f18ea60fc3074accbeaf",
+      "repo": null,
+      "summary": "Tier 3 gate green on merged outfeed main: fmt --all --check OK, clippy --workspace --all-targets -D warnings OK, nextest --workspace 49/49. clean_workspace_with_progress now emits exactly one completion event, asserted by a counting-reporter regression test.",
+      "verified_at_epoch_ms": 1793175118646,
+      "verifier": "cline"
+    }
+  }
+}

@@ -1,0 +1,210 @@
+{
+  "events": [
+    {
+      "event": "task_created",
+      "task": {
+        "acceptance_criteria": [
+          "jobs argument defaults to num_cpus,Independent suite repositories build and verify concurrently in topological waves,Terminal progress reporter handles concurrent event streaming cleanly"
+        ],
+        "active_claim": null,
+        "created_at_epoch_ms": 1793170312841,
+        "decisions": [],
+        "description": "Wire the jobs argument in execute_suite_plan to execute release operations in parallel waves across independent member repositories. Defaults jobs to num_cpus.",
+        "edges": [],
+        "id": "988a4763-73f1-442c-a311-ac3468609fc9",
+        "kind": "feature",
+        "latest_handoff": null,
+        "plan": null,
+        "priority": 1,
+        "scope": {
+          "crate_name": "outfeed-core",
+          "labels": [
+            "perf,concurrency,dag,outfeed"
+          ],
+          "module_path": null,
+          "repo": "outfeed",
+          "target_files": [],
+          "target_symbols": []
+        },
+        "slug": "implement-topological-dag-parallel-execution-jobs-num-cpus-in-outfeed-988a47",
+        "status": "ready",
+        "ticket_key": "OF-25",
+        "title": "Implement topological DAG parallel execution (jobs = num_cpus) in outfeed",
+        "updated_at_epoch_ms": 1793170312841,
+        "verification_receipt": null
+      }
+    },
+    {
+      "edge": {
+        "kind": "parent_epic",
+        "target_id": "68e622ee-6f35-40ee-aa01-03c509c1dc44",
+        "target_repo": "outfeed",
+        "target_ticket_key": "OF-23"
+      },
+      "event": "edge_added",
+      "task_id": "988a4763-73f1-442c-a311-ac3468609fc9",
+      "timestamp_ms": 1793170316985
+    },
+    {
+      "event": "plan_updated",
+      "plan": {
+        "design_markdown": "# Task Plan: OF-25 — Implement Topological DAG Parallel Execution (jobs = num_cpus) in outfeed\n\n> **Task Key:** `OF-25`  \n> **Parent Epic:** `OF-23`  \n> **Scope:** `outfeed-core`  \n> **Status:** Planned\n\n---\n\n## 1. Problem Statement\n`outfeed release --all` accepts `-j / --jobs`, but `execute_suite_plan()` in `suite_exec.rs` executes a strictly serial loop over `plan.entries`. Member tools that do not depend on each other's unreleased changes are compiled and verified sequentially, causing massive wall-clock latency.\n\n---\n\n## 2. Technical Blueprint\n1. In `outfeed-cli/src/args/release.rs`:\n   * Set default `jobs = num_cpus::get()` or `std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4)`.\n2. In `outfeed-core/src/suite_exec.rs`:\n   * Partition `plan.entries` into topological dependency waves:\n     * Wave 1: `miter`\n     * Wave 2: `storypole`, `sawhorse`, `dado`, `rabbet` (concurrent)\n     * Wave 3: `chalkline`, `batten` (concurrent)\n     * Wave 4: `joiner`\n     * Wave 5: `benchwork`, `outfeed` (concurrent)\n   * Execute each wave using `tokio::task::JoinSet` with a bounded semaphore sized to `opts.jobs`.\n3. In `progress.rs`:\n   * Ensure `ProgressReporter` implementations safely handle multi-threaded progress updates with atomic stdout synchronization.\n\n---\n\n## 3. Execution Steps\n* **Step 1:** Default jobs to available CPU parallelism in CLI args.\n* **Step 2:** Implement topological wave partitioning and JoinSet execution in `suite_exec.rs`.\n* **Step 3:** Tier 2 verification (`cargo nextest run -p outfeed-core`).\n",
+        "plan_file_path": ".gaugeblock/storypole/plans/OF-25.md",
+        "steps": [
+          {
+            "completed": false,
+            "step_id": "1",
+            "target_files": [],
+            "title": "Default jobs to available parallelism in release args",
+            "verification_gate": "cargo check -p outfeed-cli"
+          },
+          {
+            "completed": false,
+            "step_id": "2",
+            "target_files": [],
+            "title": "Implement topological wave partitioning and JoinSet runner",
+            "verification_gate": "cargo check -p outfeed-core"
+          },
+          {
+            "completed": false,
+            "step_id": "3",
+            "target_files": [],
+            "title": "Tier 2 verification",
+            "verification_gate": "cargo nextest run -p outfeed-core"
+          }
+        ],
+        "summary": "Topological DAG parallel execution in outfeed",
+        "updated_at_epoch_ms": 1793170476800
+      },
+      "task_id": "988a4763-73f1-442c-a311-ac3468609fc9",
+      "timestamp_ms": 1793170476800
+    },
+    {
+      "claim": {
+        "agent_id": "cline",
+        "base_commit_sha": "a44f7ec6e5589064e5a3284e22416d565868aa16",
+        "claimed_at_epoch_ms": 1793172818127,
+        "git_branch": "feat/outfeed-parallel-waves",
+        "lease_expires_at_epoch_ms": 1793176418127
+      },
+      "event": "task_claimed",
+      "task_id": "988a4763-73f1-442c-a311-ac3468609fc9"
+    },
+    {
+      "event": "status_changed",
+      "from": "ready",
+      "reason": "Claimed by cline",
+      "task_id": "988a4763-73f1-442c-a311-ac3468609fc9",
+      "timestamp_ms": 1793172818127,
+      "to": "in_progress"
+    },
+    {
+      "event": "task_verified",
+      "receipt": {
+        "base_commit_sha": "a44f7ec6e5589064e5a3284e22416d565868aa16",
+        "chain_key": null,
+        "command": "n/a",
+        "commit_shas": [
+          "a44f7ec6e5589064e5a3284e22416d565868aa16"
+        ],
+        "diagnostic_count": null,
+        "exit_code": 0,
+        "git_branch": "feat/outfeed-parallel-waves",
+        "head_commit_sha": "a44f7ec6e5589064e5a3284e22416d565868aa16",
+        "repo": null,
+        "summary": "Tier 3 gate green on merged main (07aeae2): cargo fmt --all --check OK; cargo clippy --workspace --all-targets -- -D warnings OK; cargo nextest run --workspace 48/48 passed; cargo test --doc --workspace OK; chalkline docs check --workspace 99 docs / 0 drifted; miter contracts exit 0 with no new outfeed drift. Wave pool covered by 4 unit tests (concurrency cap, serial jobs=1/0, panic isolation) and 4 partition integration tests.",
+        "verified_at_epoch_ms": 1793173519112,
+        "verifier": "cline"
+      },
+      "task_id": "988a4763-73f1-442c-a311-ac3468609fc9"
+    },
+    {
+      "event": "task_archived",
+      "status": "verified",
+      "task_id": "988a4763-73f1-442c-a311-ac3468609fc9",
+      "timestamp_ms": 1794037982581
+    }
+  ],
+  "ticket": {
+    "acceptance_criteria": [
+      "jobs argument defaults to num_cpus,Independent suite repositories build and verify concurrently in topological waves,Terminal progress reporter handles concurrent event streaming cleanly"
+    ],
+    "active_claim": null,
+    "archived_at_epoch_ms": 1794037982581,
+    "created_at_epoch_ms": 1793170312841,
+    "decisions": [],
+    "description": "Wire the jobs argument in execute_suite_plan to execute release operations in parallel waves across independent member repositories. Defaults jobs to num_cpus.",
+    "edges": [
+      {
+        "kind": "parent_epic",
+        "target_id": "68e622ee-6f35-40ee-aa01-03c509c1dc44",
+        "target_repo": "outfeed",
+        "target_ticket_key": "OF-23"
+      }
+    ],
+    "id": "988a4763-73f1-442c-a311-ac3468609fc9",
+    "kind": "feature",
+    "latest_handoff": null,
+    "plan": {
+      "design_markdown": "# Task Plan: OF-25 — Implement Topological DAG Parallel Execution (jobs = num_cpus) in outfeed\n\n> **Task Key:** `OF-25`  \n> **Parent Epic:** `OF-23`  \n> **Scope:** `outfeed-core`  \n> **Status:** Planned\n\n---\n\n## 1. Problem Statement\n`outfeed release --all` accepts `-j / --jobs`, but `execute_suite_plan()` in `suite_exec.rs` executes a strictly serial loop over `plan.entries`. Member tools that do not depend on each other's unreleased changes are compiled and verified sequentially, causing massive wall-clock latency.\n\n---\n\n## 2. Technical Blueprint\n1. In `outfeed-cli/src/args/release.rs`:\n   * Set default `jobs = num_cpus::get()` or `std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4)`.\n2. In `outfeed-core/src/suite_exec.rs`:\n   * Partition `plan.entries` into topological dependency waves:\n     * Wave 1: `miter`\n     * Wave 2: `storypole`, `sawhorse`, `dado`, `rabbet` (concurrent)\n     * Wave 3: `chalkline`, `batten` (concurrent)\n     * Wave 4: `joiner`\n     * Wave 5: `benchwork`, `outfeed` (concurrent)\n   * Execute each wave using `tokio::task::JoinSet` with a bounded semaphore sized to `opts.jobs`.\n3. In `progress.rs`:\n   * Ensure `ProgressReporter` implementations safely handle multi-threaded progress updates with atomic stdout synchronization.\n\n---\n\n## 3. Execution Steps\n* **Step 1:** Default jobs to available CPU parallelism in CLI args.\n* **Step 2:** Implement topological wave partitioning and JoinSet execution in `suite_exec.rs`.\n* **Step 3:** Tier 2 verification (`cargo nextest run -p outfeed-core`).\n",
+      "plan_file_path": ".gaugeblock/storypole/plans/OF-25.md",
+      "steps": [
+        {
+          "completed": false,
+          "step_id": "1",
+          "target_files": [],
+          "title": "Default jobs to available parallelism in release args",
+          "verification_gate": "cargo check -p outfeed-cli"
+        },
+        {
+          "completed": false,
+          "step_id": "2",
+          "target_files": [],
+          "title": "Implement topological wave partitioning and JoinSet runner",
+          "verification_gate": "cargo check -p outfeed-core"
+        },
+        {
+          "completed": false,
+          "step_id": "3",
+          "target_files": [],
+          "title": "Tier 2 verification",
+          "verification_gate": "cargo nextest run -p outfeed-core"
+        }
+      ],
+      "summary": "Topological DAG parallel execution in outfeed",
+      "updated_at_epoch_ms": 1793170476800
+    },
+    "priority": 1,
+    "scope": {
+      "crate_name": "outfeed-core",
+      "labels": [
+        "perf,concurrency,dag,outfeed"
+      ],
+      "module_path": null,
+      "repo": "outfeed",
+      "target_files": [],
+      "target_symbols": []
+    },
+    "slug": "implement-topological-dag-parallel-execution-jobs-num-cpus-in-outfeed-988a47",
+    "status": "verified",
+    "ticket_key": "OF-25",
+    "title": "Implement topological DAG parallel execution (jobs = num_cpus) in outfeed",
+    "updated_at_epoch_ms": 1794037982581,
+    "verification_receipt": {
+      "base_commit_sha": "a44f7ec6e5589064e5a3284e22416d565868aa16",
+      "chain_key": null,
+      "command": "n/a",
+      "commit_shas": [
+        "a44f7ec6e5589064e5a3284e22416d565868aa16"
+      ],
+      "diagnostic_count": null,
+      "exit_code": 0,
+      "git_branch": "feat/outfeed-parallel-waves",
+      "head_commit_sha": "a44f7ec6e5589064e5a3284e22416d565868aa16",
+      "repo": null,
+      "summary": "Tier 3 gate green on merged main (07aeae2): cargo fmt --all --check OK; cargo clippy --workspace --all-targets -- -D warnings OK; cargo nextest run --workspace 48/48 passed; cargo test --doc --workspace OK; chalkline docs check --workspace 99 docs / 0 drifted; miter contracts exit 0 with no new outfeed drift. Wave pool covered by 4 unit tests (concurrency cap, serial jobs=1/0, panic isolation) and 4 partition integration tests.",
+      "verified_at_epoch_ms": 1793173519112,
+      "verifier": "cline"
+    }
+  }
+}

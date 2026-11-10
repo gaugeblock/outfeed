@@ -1,0 +1,224 @@
+{
+  "events": [
+    {
+      "event": "task_created",
+      "task": {
+        "acceptance_criteria": [
+          "Phase 2 ReleasePlan is re-used without redundant plan_release calls,create_release_commit_and_tag and commit_and_tag_suite share a unified git implementation,clean.rs and semver.rs are cleanly modularized under 200 LOC"
+        ],
+        "active_claim": null,
+        "created_at_epoch_ms": 1793170343802,
+        "decisions": [],
+        "description": "Pass pre-compiled Phase 2 ReleasePlan into Phase 3 execution in outfeed-core. Unify the 99.2% AST clone between git.rs:176 and suite_release.rs:126. Apply miter slice blueprints to modularize clean.rs and semver.rs to stay strictly under the 250 LOC rule.",
+        "edges": [],
+        "id": "24a4f11a-1dfa-4c4f-8d17-bfc426be7b7a",
+        "kind": "refactor",
+        "latest_handoff": null,
+        "plan": null,
+        "priority": 2,
+        "scope": {
+          "crate_name": "outfeed-core",
+          "labels": [
+            "refactor,clones,miter,outfeed"
+          ],
+          "module_path": null,
+          "repo": "outfeed",
+          "target_files": [],
+          "target_symbols": []
+        },
+        "slug": "unify-ast-structural-clones-eliminate-redundant-re-planning-and-modularize-files-over-200-loc-24a4f1",
+        "status": "ready",
+        "ticket_key": "OF-28",
+        "title": "Unify AST structural clones, eliminate redundant re-planning, and modularize files over 200 LOC",
+        "updated_at_epoch_ms": 1793170343802,
+        "verification_receipt": null
+      }
+    },
+    {
+      "edge": {
+        "kind": "parent_epic",
+        "target_id": "68e622ee-6f35-40ee-aa01-03c509c1dc44",
+        "target_repo": "outfeed",
+        "target_ticket_key": "OF-23"
+      },
+      "event": "edge_added",
+      "task_id": "24a4f11a-1dfa-4c4f-8d17-bfc426be7b7a",
+      "timestamp_ms": 1793170347854
+    },
+    {
+      "event": "plan_updated",
+      "plan": {
+        "design_markdown": "# Task Plan: OF-28 — Unify AST Structural Clones, Eliminate Redundant Re-planning, and Modularize Files Over 200 LOC\n\n> **Task Key:** `OF-28`  \n> **Parent Epic:** `OF-23`  \n> **Scope:** `outfeed-core`  \n> **Status:** Planned\n\n---\n\n## 1. Problem Statement\n`execute_suite_plan()` currently discards `entry.plan` calculated in Phase 2 and calls `plan_release()` a second time in Phase 3, duplicating Git log queries and LLM synthesis. Furthermore, `miter clones` detected a 99.2% AST structural clone between `git.rs:176` and `suite_release.rs:126`, and `miter audit` flagged 9 files exceeding 200 LOC.\n\n---\n\n## 2. Technical Blueprint\n1. In `outfeed-core/src/suite_exec.rs`:\n   * Pass `entry.plan.as_ref()` into `apply_release_with_progress()` to reuse pre-calculated diffs and changelogs.\n2. In `outfeed-core/src/git.rs` & `outfeed-core/src/suite_release.rs`:\n   * Extract unified `create_annotated_commit_and_tag(repo_dir, version, message)` helper to eliminate the 99.2% clone.\n3. In `outfeed-core/src/clean.rs` & `outfeed-core/src/semver.rs`:\n   * Apply `miter slice` blueprints to split `clean.rs` (into `clean/dir_size.rs`) and `semver.rs` (into `semver/parse_commit.rs`), keeping all files strictly under 250 LOC.\n\n---\n\n## 3. Execution Steps\n* **Step 1:** Pass Phase 2 ReleasePlan into Phase 3 execution loop.\n* **Step 2:** Unify git commit and tagging clone in `git.rs` and `suite_release.rs`.\n* **Step 3:** Apply `miter slice` extractions on `clean.rs` and `semver.rs`.\n* **Step 4:** Tier 2 verification (`cargo nextest run -p outfeed-core`).\n",
+        "plan_file_path": ".gaugeblock/storypole/plans/OF-28.md",
+        "steps": [
+          {
+            "completed": false,
+            "step_id": "1",
+            "target_files": [],
+            "title": "Pass Phase 2 ReleasePlan into Phase 3 execution loop",
+            "verification_gate": "cargo check -p outfeed-core"
+          },
+          {
+            "completed": false,
+            "step_id": "2",
+            "target_files": [],
+            "title": "Unify git commit and tagging clone",
+            "verification_gate": "cargo check -p outfeed-core"
+          },
+          {
+            "completed": false,
+            "step_id": "3",
+            "target_files": [],
+            "title": "Apply miter slice extractions on clean.rs and semver.rs",
+            "verification_gate": "cargo check -p outfeed-core"
+          },
+          {
+            "completed": false,
+            "step_id": "4",
+            "target_files": [],
+            "title": "Tier 2 verification",
+            "verification_gate": "cargo nextest run -p outfeed-core"
+          }
+        ],
+        "summary": "Unify AST structural clones, eliminate redundant re-planning, and modularize files over 200 LOC",
+        "updated_at_epoch_ms": 1793170512832
+      },
+      "task_id": "24a4f11a-1dfa-4c4f-8d17-bfc426be7b7a",
+      "timestamp_ms": 1793170512832
+    },
+    {
+      "claim": {
+        "agent_id": "cline",
+        "base_commit_sha": "99d401e22b6e03076200e3245790bd6068e79509",
+        "claimed_at_epoch_ms": 1793176007436,
+        "git_branch": "refactor/outfeed-clone-and-modularity",
+        "lease_expires_at_epoch_ms": 1793179607436
+      },
+      "event": "task_claimed",
+      "task_id": "24a4f11a-1dfa-4c4f-8d17-bfc426be7b7a"
+    },
+    {
+      "event": "status_changed",
+      "from": "ready",
+      "reason": "Claimed by cline",
+      "task_id": "24a4f11a-1dfa-4c4f-8d17-bfc426be7b7a",
+      "timestamp_ms": 1793176007436,
+      "to": "in_progress"
+    },
+    {
+      "event": "task_verified",
+      "receipt": {
+        "base_commit_sha": "99d401e22b6e03076200e3245790bd6068e79509",
+        "chain_key": null,
+        "command": "n/a",
+        "commit_shas": [
+          "99d401e22b6e03076200e3245790bd6068e79509"
+        ],
+        "diagnostic_count": null,
+        "exit_code": 0,
+        "git_branch": "main",
+        "head_commit_sha": "99d401e22b6e03076200e3245790bd6068e79509",
+        "repo": null,
+        "summary": "Tier 3 gate green on merged outfeed main (fecd7e9): fmt OK, clippy --workspace --all-targets -D warnings OK, nextest --workspace 53/53, docs check 9/9, every source file <=250 lines. Suite execution reuses the Phase 2 plan (no second git-log walk or changelog synthesis), the single-repo/suite commit-tag clone is unified in git::stage_commit_and_tag, and clean.rs/semver.rs/suite_waves were modularized. Remaining six 200-249 line modules deferred as OF-32.",
+        "verified_at_epoch_ms": 1793176619348,
+        "verifier": "cline"
+      },
+      "task_id": "24a4f11a-1dfa-4c4f-8d17-bfc426be7b7a"
+    },
+    {
+      "event": "task_archived",
+      "status": "verified",
+      "task_id": "24a4f11a-1dfa-4c4f-8d17-bfc426be7b7a",
+      "timestamp_ms": 1794037998728
+    }
+  ],
+  "ticket": {
+    "acceptance_criteria": [
+      "Phase 2 ReleasePlan is re-used without redundant plan_release calls,create_release_commit_and_tag and commit_and_tag_suite share a unified git implementation,clean.rs and semver.rs are cleanly modularized under 200 LOC"
+    ],
+    "active_claim": null,
+    "archived_at_epoch_ms": 1794037998728,
+    "created_at_epoch_ms": 1793170343802,
+    "decisions": [],
+    "description": "Pass pre-compiled Phase 2 ReleasePlan into Phase 3 execution in outfeed-core. Unify the 99.2% AST clone between git.rs:176 and suite_release.rs:126. Apply miter slice blueprints to modularize clean.rs and semver.rs to stay strictly under the 250 LOC rule.",
+    "edges": [
+      {
+        "kind": "parent_epic",
+        "target_id": "68e622ee-6f35-40ee-aa01-03c509c1dc44",
+        "target_repo": "outfeed",
+        "target_ticket_key": "OF-23"
+      }
+    ],
+    "id": "24a4f11a-1dfa-4c4f-8d17-bfc426be7b7a",
+    "kind": "refactor",
+    "latest_handoff": null,
+    "plan": {
+      "design_markdown": "# Task Plan: OF-28 — Unify AST Structural Clones, Eliminate Redundant Re-planning, and Modularize Files Over 200 LOC\n\n> **Task Key:** `OF-28`  \n> **Parent Epic:** `OF-23`  \n> **Scope:** `outfeed-core`  \n> **Status:** Planned\n\n---\n\n## 1. Problem Statement\n`execute_suite_plan()` currently discards `entry.plan` calculated in Phase 2 and calls `plan_release()` a second time in Phase 3, duplicating Git log queries and LLM synthesis. Furthermore, `miter clones` detected a 99.2% AST structural clone between `git.rs:176` and `suite_release.rs:126`, and `miter audit` flagged 9 files exceeding 200 LOC.\n\n---\n\n## 2. Technical Blueprint\n1. In `outfeed-core/src/suite_exec.rs`:\n   * Pass `entry.plan.as_ref()` into `apply_release_with_progress()` to reuse pre-calculated diffs and changelogs.\n2. In `outfeed-core/src/git.rs` & `outfeed-core/src/suite_release.rs`:\n   * Extract unified `create_annotated_commit_and_tag(repo_dir, version, message)` helper to eliminate the 99.2% clone.\n3. In `outfeed-core/src/clean.rs` & `outfeed-core/src/semver.rs`:\n   * Apply `miter slice` blueprints to split `clean.rs` (into `clean/dir_size.rs`) and `semver.rs` (into `semver/parse_commit.rs`), keeping all files strictly under 250 LOC.\n\n---\n\n## 3. Execution Steps\n* **Step 1:** Pass Phase 2 ReleasePlan into Phase 3 execution loop.\n* **Step 2:** Unify git commit and tagging clone in `git.rs` and `suite_release.rs`.\n* **Step 3:** Apply `miter slice` extractions on `clean.rs` and `semver.rs`.\n* **Step 4:** Tier 2 verification (`cargo nextest run -p outfeed-core`).\n",
+      "plan_file_path": ".gaugeblock/storypole/plans/OF-28.md",
+      "steps": [
+        {
+          "completed": false,
+          "step_id": "1",
+          "target_files": [],
+          "title": "Pass Phase 2 ReleasePlan into Phase 3 execution loop",
+          "verification_gate": "cargo check -p outfeed-core"
+        },
+        {
+          "completed": false,
+          "step_id": "2",
+          "target_files": [],
+          "title": "Unify git commit and tagging clone",
+          "verification_gate": "cargo check -p outfeed-core"
+        },
+        {
+          "completed": false,
+          "step_id": "3",
+          "target_files": [],
+          "title": "Apply miter slice extractions on clean.rs and semver.rs",
+          "verification_gate": "cargo check -p outfeed-core"
+        },
+        {
+          "completed": false,
+          "step_id": "4",
+          "target_files": [],
+          "title": "Tier 2 verification",
+          "verification_gate": "cargo nextest run -p outfeed-core"
+        }
+      ],
+      "summary": "Unify AST structural clones, eliminate redundant re-planning, and modularize files over 200 LOC",
+      "updated_at_epoch_ms": 1793170512832
+    },
+    "priority": 2,
+    "scope": {
+      "crate_name": "outfeed-core",
+      "labels": [
+        "refactor,clones,miter,outfeed"
+      ],
+      "module_path": null,
+      "repo": "outfeed",
+      "target_files": [],
+      "target_symbols": []
+    },
+    "slug": "unify-ast-structural-clones-eliminate-redundant-re-planning-and-modularize-files-over-200-loc-24a4f1",
+    "status": "verified",
+    "ticket_key": "OF-28",
+    "title": "Unify AST structural clones, eliminate redundant re-planning, and modularize files over 200 LOC",
+    "updated_at_epoch_ms": 1794037998728,
+    "verification_receipt": {
+      "base_commit_sha": "99d401e22b6e03076200e3245790bd6068e79509",
+      "chain_key": null,
+      "command": "n/a",
+      "commit_shas": [
+        "99d401e22b6e03076200e3245790bd6068e79509"
+      ],
+      "diagnostic_count": null,
+      "exit_code": 0,
+      "git_branch": "main",
+      "head_commit_sha": "99d401e22b6e03076200e3245790bd6068e79509",
+      "repo": null,
+      "summary": "Tier 3 gate green on merged outfeed main (fecd7e9): fmt OK, clippy --workspace --all-targets -D warnings OK, nextest --workspace 53/53, docs check 9/9, every source file <=250 lines. Suite execution reuses the Phase 2 plan (no second git-log walk or changelog synthesis), the single-repo/suite commit-tag clone is unified in git::stage_commit_and_tag, and clean.rs/semver.rs/suite_waves were modularized. Remaining six 200-249 line modules deferred as OF-32.",
+      "verified_at_epoch_ms": 1793176619348,
+      "verifier": "cline"
+    }
+  }
+}

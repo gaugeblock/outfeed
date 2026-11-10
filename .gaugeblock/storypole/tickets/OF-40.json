@@ -1,0 +1,86 @@
+{
+  "events": [
+    {
+      "captured_by_agent": "cline",
+      "discovered_from_task_id": null,
+      "event": "deferred_item_captured",
+      "task": {
+        "acceptance_criteria": [],
+        "active_claim": null,
+        "created_at_epoch_ms": 1793948519157,
+        "decisions": [],
+        "description": "Observed 2026-11-06 while dogfooding OF-5: checking every name in the suite meant enumerating 51 crates with a shell loop and passing them as arguments, and the same list will be needed before every release. A '--from-workspace' (walk the member repositories' manifests and collect package names) or '--from-file <path>' turns the dogfood into one command, makes 'reserve check' the natural pre-release gate in outfeed's release pipeline, and removes the risk of checking a stale hand-maintained list while a new crate is quietly unpublished.",
+        "edges": [],
+        "id": "64b44a7e-9776-42ac-a4e5-65543f993995",
+        "kind": "feature",
+        "latest_handoff": null,
+        "plan": null,
+        "priority": 3,
+        "scope": {
+          "crate_name": "outfeed-core",
+          "labels": [
+            "outfeed,reserve,of-5,release"
+          ],
+          "module_path": null,
+          "repo": "outfed",
+          "target_files": [],
+          "target_symbols": []
+        },
+        "slug": "outfeed-reserve-check-should-read-the-crate-names-from-the-workspace-instead-of-a-hand-typed-list-64b44a",
+        "status": "deferred",
+        "ticket_key": "OF-40",
+        "title": "outfeed reserve check should read the crate names from the workspace instead of a hand-typed list",
+        "updated_at_epoch_ms": 1793948519157,
+        "verification_receipt": null
+      }
+    },
+    {
+      "acceptance_criteria": null,
+      "description": null,
+      "event": "task_updated",
+      "priority": null,
+      "scope": {
+        "crate_name": "outfeed-core",
+        "labels": [
+          "outfeed,reserve,of-5,release"
+        ],
+        "module_path": null,
+        "repo": "outfeed",
+        "target_files": [],
+        "target_symbols": []
+      },
+      "task_id": "64b44a7e-9776-42ac-a4e5-65543f993995",
+      "timestamp_ms": 1793948527876,
+      "title": null
+    }
+  ],
+  "ticket": {
+    "acceptance_criteria": [],
+    "active_claim": null,
+    "created_at_epoch_ms": 1793948519157,
+    "decisions": [],
+    "description": "Observed 2026-11-06 while dogfooding OF-5: checking every name in the suite meant enumerating 51 crates with a shell loop and passing them as arguments, and the same list will be needed before every release. A '--from-workspace' (walk the member repositories' manifests and collect package names) or '--from-file <path>' turns the dogfood into one command, makes 'reserve check' the natural pre-release gate in outfeed's release pipeline, and removes the risk of checking a stale hand-maintained list while a new crate is quietly unpublished.",
+    "edges": [],
+    "id": "64b44a7e-9776-42ac-a4e5-65543f993995",
+    "kind": "feature",
+    "latest_handoff": null,
+    "plan": null,
+    "priority": 3,
+    "scope": {
+      "crate_name": "outfeed-core",
+      "labels": [
+        "outfeed,reserve,of-5,release"
+      ],
+      "module_path": null,
+      "repo": "outfeed",
+      "target_files": [],
+      "target_symbols": []
+    },
+    "slug": "outfeed-reserve-check-should-read-the-crate-names-from-the-workspace-instead-of-a-hand-typed-list-64b44a",
+    "status": "deferred",
+    "ticket_key": "OF-40",
+    "title": "outfeed reserve check should read the crate names from the workspace instead of a hand-typed list",
+    "updated_at_epoch_ms": 1793948527876,
+    "verification_receipt": null
+  }
+}

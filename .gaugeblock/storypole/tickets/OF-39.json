@@ -1,0 +1,77 @@
+{
+  "events": [
+    {
+      "captured_by_agent": "user",
+      "discovered_from_task_id": "df07c9b8-9e1d-4b4f-aa04-b97d29ed9dfa",
+      "event": "deferred_item_captured",
+      "task": {
+        "acceptance_criteria": [],
+        "active_claim": null,
+        "created_at_epoch_ms": 1793334647990,
+        "decisions": [],
+        "description": "outfeed gate -d miter passed fmt, clippy, tests and docs, then failed at contracts with no index at miter/.miter/miter.redb: run miter index first. A Tier 3 gate that needs a manually pre-built index is not runnable from a clean checkout, which is exactly the situation a gate exists for. The step should build the index itself, index into a temporary database, or treat a missing index as a warned skip.",
+        "edges": [
+          {
+            "kind": "discovered_from",
+            "target_id": "df07c9b8-9e1d-4b4f-aa04-b97d29ed9dfa"
+          }
+        ],
+        "id": "82a68f7a-6aed-46e2-b05b-26ca55a9198f",
+        "kind": "bug",
+        "latest_handoff": null,
+        "plan": null,
+        "priority": 3,
+        "scope": {
+          "crate_name": "outfeed-core",
+          "labels": [],
+          "module_path": null,
+          "repo": null,
+          "target_files": [
+            "outfeed/crates/outfeed-core/src/gate"
+          ],
+          "target_symbols": []
+        },
+        "slug": "outfeed-gate-contracts-step-fails-when-the-member-index-does-not-exist-yet-82a68f",
+        "status": "triage",
+        "ticket_key": "OF-39",
+        "title": "outfeed gate contracts step fails when the member index does not exist yet",
+        "updated_at_epoch_ms": 1793334647990,
+        "verification_receipt": null
+      }
+    }
+  ],
+  "ticket": {
+    "acceptance_criteria": [],
+    "active_claim": null,
+    "created_at_epoch_ms": 1793334647990,
+    "decisions": [],
+    "description": "outfeed gate -d miter passed fmt, clippy, tests and docs, then failed at contracts with no index at miter/.miter/miter.redb: run miter index first. A Tier 3 gate that needs a manually pre-built index is not runnable from a clean checkout, which is exactly the situation a gate exists for. The step should build the index itself, index into a temporary database, or treat a missing index as a warned skip.",
+    "edges": [
+      {
+        "kind": "discovered_from",
+        "target_id": "df07c9b8-9e1d-4b4f-aa04-b97d29ed9dfa"
+      }
+    ],
+    "id": "82a68f7a-6aed-46e2-b05b-26ca55a9198f",
+    "kind": "bug",
+    "latest_handoff": null,
+    "plan": null,
+    "priority": 3,
+    "scope": {
+      "crate_name": "outfeed-core",
+      "labels": [],
+      "module_path": null,
+      "repo": null,
+      "target_files": [
+        "outfeed/crates/outfeed-core/src/gate"
+      ],
+      "target_symbols": []
+    },
+    "slug": "outfeed-gate-contracts-step-fails-when-the-member-index-does-not-exist-yet-82a68f",
+    "status": "triage",
+    "ticket_key": "OF-39",
+    "title": "outfeed gate contracts step fails when the member index does not exist yet",
+    "updated_at_epoch_ms": 1793334647990,
+    "verification_receipt": null
+  }
+}
