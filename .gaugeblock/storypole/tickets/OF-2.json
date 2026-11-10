@@ -150,7 +150,7 @@
         "git_branch": "main",
         "head_commit_sha": "2fafe563e840503b0dd4fc4f3d9a66b4d26fb73e",
         "repo": null,
-        "summary": "Delivered as the Phase 10 roadmap exit: outfeed gate matrix (fmt/clippy/tests/contracts --check/layers/lockfiles/docs), semver+manifest release engine, changelog synthesis (synthesis.rs, changelog.rs), and suite_plan/suite_release/suite_waves/suite_lock. AST drift inspection lives in chalkline docs check (GB-102/GB-103, verified).",
+        "summary": "Delivered as the Phase 10 roadmap exit: outfeed gate matrix (fmt/clippy/tests/contracts --check/layers/lockfiles/docs), semver+manifest release engine, changelog synthesis (synthesis.rs, changelog.rs), and suite_plan/suite_release/suite_waves/suite_lock. AST drift inspection lives in chalkline docs check (CH-2/CH-3, verified).",
         "verified_at_epoch_ms": 1793942109473,
         "verifier": "manual"
       },
@@ -207,7 +207,7 @@
       "git_branch": "main",
       "head_commit_sha": "2fafe563e840503b0dd4fc4f3d9a66b4d26fb73e",
       "repo": null,
-      "summary": "Delivered as the Phase 10 roadmap exit: outfeed gate matrix (fmt/clippy/tests/contracts --check/layers/lockfiles/docs), semver+manifest release engine, changelog synthesis (synthesis.rs, changelog.rs), and suite_plan/suite_release/suite_waves/suite_lock. AST drift inspection lives in chalkline docs check (GB-102/GB-103, verified).",
+      "summary": "Delivered as the Phase 10 roadmap exit: outfeed gate matrix (fmt/clippy/tests/contracts --check/layers/lockfiles/docs), semver+manifest release engine, changelog synthesis (synthesis.rs, changelog.rs), and suite_plan/suite_release/suite_waves/suite_lock. AST drift inspection lives in chalkline docs check (CH-2/CH-3, verified).",
       "verified_at_epoch_ms": 1793942109473,
       "verifier": "manual"
     }

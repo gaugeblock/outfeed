@@ -35,7 +35,7 @@
         "kind": "related_to",
         "target_id": "45af2098-2117-4252-8465-065e4651b9c2",
         "target_repo": "sawhorse",
-        "target_ticket_key": "GB-81"
+        "target_ticket_key": "SH-5"
       },
       "event": "edge_added",
       "task_id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",
@@ -304,7 +304,7 @@
         "kind": "related_to",
         "target_id": "45af2098-2117-4252-8465-065e4651b9c2",
         "target_repo": "sawhorse",
-        "target_ticket_key": "GB-81"
+        "target_ticket_key": "SH-5"
       }
     ],
     "id": "477bb085-4a87-4c75-bc98-ae7f9d42122e",

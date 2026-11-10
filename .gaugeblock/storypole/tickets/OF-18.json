@@ -35,7 +35,7 @@
         "kind": "blocked_by",
         "target_id": "7c460b94-f0ce-4980-a01e-fdf9239cdb75",
         "target_repo": "sawhorse",
-        "target_ticket_key": "GB-84"
+        "target_ticket_key": "SH-6"
       },
       "event": "edge_added",
       "task_id": "50d2e23b-f958-42c0-912c-55b5db4c20e4",
@@ -44,7 +44,7 @@
     {
       "event": "status_changed",
       "from": "ready",
-      "reason": "Blocked by unverified task GB-84",
+      "reason": "Blocked by unverified task SH-6",
       "task_id": "50d2e23b-f958-42c0-912c-55b5db4c20e4",
       "timestamp_ms": 1793065803455,
       "to": "blocked"
@@ -64,7 +64,7 @@
     {
       "event": "status_changed",
       "from": "blocked",
-      "reason": "Dependency GB-84 verified",
+      "reason": "Dependency SH-6 verified",
       "task_id": "50d2e23b-f958-42c0-912c-55b5db4c20e4",
       "timestamp_ms": 1793065907799,
       "to": "ready"
@@ -127,7 +127,7 @@
         "kind": "blocked_by",
         "target_id": "7c460b94-f0ce-4980-a01e-fdf9239cdb75",
         "target_repo": "sawhorse",
-        "target_ticket_key": "GB-84"
+        "target_ticket_key": "SH-6"
       }
     ],
     "id": "50d2e23b-f958-42c0-912c-55b5db4c20e4",
