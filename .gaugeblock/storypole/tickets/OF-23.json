@@ -1,111 +1,123 @@
 {
+  "ticket": {
+    "id": "68e622ee-6f35-40ee-aa01-03c509c1dc44",
+    "ticket_key": "OF-23",
+    "slug": "phase-1-outfeed-high-performance-release-overhaul-adaptive-headroom-engine-68e622",
+    "title": "Phase 1: outfeed High-Performance Release Overhaul & Adaptive Headroom Engine",
+    "description": "High-performance overhaul of the outfeed release pipeline to reduce release --all from 147 minutes to under 3-5 minutes, featuring adaptive cache retention, parallel topological execution, cargo-nextest, and Crates.io 429 rate-limit resilience.",
+    "kind": "epic",
+    "status": "verified",
+    "priority": 1,
+    "scope": {
+      "repo": "outfeed",
+      "crate_name": "outfeed-core",
+      "module_path": null,
+      "target_files": [],
+      "target_symbols": [],
+      "labels": [
+        "perf,release,outfeed"
+      ]
+    },
+    "edges": [],
+    "decisions": [],
+    "acceptance_criteria": [
+      "Full suite dry-run completes in < 10 seconds,Live release completes in < 5 minutes,Continuous disk headroom guard prevents disk exhaustion"
+    ],
+    "plan": null,
+    "active_claim": null,
+    "latest_handoff": null,
+    "verification_receipt": {
+      "verifier": "cline",
+      "command": "n/a",
+      "exit_code": 0,
+      "diagnostic_count": null,
+      "summary": "Phase 1 epic complete: all five work packages are Verified — OF-24 (adaptive headroom guard + cache retention), OF-25 (topological wave parallelism), OF-26 (nextest verification + opt-in install), OF-27 (429 backoff + sparse-index polling), OF-28 (plan reuse, git clone unification, modularization). Empirical baseline 147min is now addressable by retention, wave execution, single-compile verification and propagation polling.",
+      "verified_at_epoch_ms": 1793199655557,
+      "git_branch": "main",
+      "base_commit_sha": "e695b1abae721bc333b363cda4a0c79166f850a3",
+      "head_commit_sha": "e695b1abae721bc333b363cda4a0c79166f850a3",
+      "commit_shas": [
+        "e695b1abae721bc333b363cda4a0c79166f850a3"
+      ],
+      "repo": null,
+      "chain_key": null
+    },
+    "created_at_epoch_ms": 1793170288071,
+    "updated_at_epoch_ms": 1794037980930,
+    "archived_at_epoch_ms": 1794037980930
+  },
   "events": [
     {
       "event": "task_created",
       "task": {
+        "id": "68e622ee-6f35-40ee-aa01-03c509c1dc44",
+        "ticket_key": "OF-23",
+        "slug": "phase-1-outfeed-high-performance-release-overhaul-adaptive-headroom-engine-68e622",
+        "title": "Phase 1: outfeed High-Performance Release Overhaul & Adaptive Headroom Engine",
+        "description": "High-performance overhaul of the outfeed release pipeline to reduce release --all from 147 minutes to under 3-5 minutes, featuring adaptive cache retention, parallel topological execution, cargo-nextest, and Crates.io 429 rate-limit resilience.",
+        "kind": "epic",
+        "status": "ready",
+        "priority": 1,
+        "scope": {
+          "repo": "outfeed",
+          "crate_name": "outfeed-core",
+          "module_path": null,
+          "target_files": [],
+          "target_symbols": [],
+          "labels": [
+            "perf,release,outfeed"
+          ]
+        },
+        "edges": [],
+        "decisions": [],
         "acceptance_criteria": [
           "Full suite dry-run completes in < 10 seconds,Live release completes in < 5 minutes,Continuous disk headroom guard prevents disk exhaustion"
         ],
-        "active_claim": null,
-        "created_at_epoch_ms": 1793170288071,
-        "decisions": [],
-        "description": "High-performance overhaul of the outfeed release pipeline to reduce release --all from 147 minutes to under 3-5 minutes, featuring adaptive cache retention, parallel topological execution, cargo-nextest, and Crates.io 429 rate-limit resilience.",
-        "edges": [],
-        "id": "68e622ee-6f35-40ee-aa01-03c509c1dc44",
-        "kind": "epic",
-        "latest_handoff": null,
         "plan": null,
-        "priority": 1,
-        "scope": {
-          "crate_name": "outfeed-core",
-          "labels": [
-            "perf,release,outfeed"
-          ],
-          "module_path": null,
-          "repo": "outfeed",
-          "target_files": [],
-          "target_symbols": []
-        },
-        "slug": "phase-1-outfeed-high-performance-release-overhaul-adaptive-headroom-engine-68e622",
-        "status": "ready",
-        "ticket_key": "OF-23",
-        "title": "Phase 1: outfeed High-Performance Release Overhaul & Adaptive Headroom Engine",
-        "updated_at_epoch_ms": 1793170288071,
-        "verification_receipt": null
+        "active_claim": null,
+        "latest_handoff": null,
+        "verification_receipt": null,
+        "created_at_epoch_ms": 1793170288071,
+        "updated_at_epoch_ms": 1793170288071
       }
     },
     {
       "event": "task_verified",
+      "task_id": "68e622ee-6f35-40ee-aa01-03c509c1dc44",
       "receipt": {
-        "base_commit_sha": "e695b1abae721bc333b363cda4a0c79166f850a3",
-        "chain_key": null,
+        "verifier": "cline",
         "command": "n/a",
+        "exit_code": 0,
+        "diagnostic_count": null,
+        "summary": "Phase 1 epic complete: all five work packages are Verified — OF-24 (adaptive headroom guard + cache retention), OF-25 (topological wave parallelism), OF-26 (nextest verification + opt-in install), OF-27 (429 backoff + sparse-index polling), OF-28 (plan reuse, git clone unification, modularization). Empirical baseline 147min is now addressable by retention, wave execution, single-compile verification and propagation polling.",
+        "verified_at_epoch_ms": 1793199655557,
+        "git_branch": "main",
+        "base_commit_sha": "e695b1abae721bc333b363cda4a0c79166f850a3",
+        "head_commit_sha": "e695b1abae721bc333b363cda4a0c79166f850a3",
         "commit_shas": [
           "e695b1abae721bc333b363cda4a0c79166f850a3"
         ],
-        "diagnostic_count": null,
-        "exit_code": 0,
-        "git_branch": "main",
-        "head_commit_sha": "e695b1abae721bc333b363cda4a0c79166f850a3",
         "repo": null,
-        "summary": "Phase 1 epic complete: all five work packages are Verified — OF-24 (adaptive headroom guard + cache retention), OF-25 (topological wave parallelism), OF-26 (nextest verification + opt-in install), OF-27 (429 backoff + sparse-index polling), OF-28 (plan reuse, git clone unification, modularization). Empirical baseline 147min is now addressable by retention, wave execution, single-compile verification and propagation polling.",
-        "verified_at_epoch_ms": 1793199655557,
-        "verifier": "cline"
-      },
-      "task_id": "68e622ee-6f35-40ee-aa01-03c509c1dc44"
+        "chain_key": null
+      }
     },
     {
       "event": "task_archived",
-      "status": "verified",
       "task_id": "68e622ee-6f35-40ee-aa01-03c509c1dc44",
+      "status": "verified",
       "timestamp_ms": 1794037980930
-    }
-  ],
-  "ticket": {
-    "acceptance_criteria": [
-      "Full suite dry-run completes in < 10 seconds,Live release completes in < 5 minutes,Continuous disk headroom guard prevents disk exhaustion"
-    ],
-    "active_claim": null,
-    "archived_at_epoch_ms": 1794037980930,
-    "created_at_epoch_ms": 1793170288071,
-    "decisions": [],
-    "description": "High-performance overhaul of the outfeed release pipeline to reduce release --all from 147 minutes to under 3-5 minutes, featuring adaptive cache retention, parallel topological execution, cargo-nextest, and Crates.io 429 rate-limit resilience.",
-    "edges": [],
-    "id": "68e622ee-6f35-40ee-aa01-03c509c1dc44",
-    "kind": "epic",
-    "latest_handoff": null,
-    "plan": null,
-    "priority": 1,
-    "scope": {
-      "crate_name": "outfeed-core",
-      "labels": [
-        "perf,release,outfeed"
-      ],
-      "module_path": null,
-      "repo": "outfeed",
-      "target_files": [],
-      "target_symbols": []
     },
-    "slug": "phase-1-outfeed-high-performance-release-overhaul-adaptive-headroom-engine-68e622",
-    "status": "verified",
-    "ticket_key": "OF-23",
-    "title": "Phase 1: outfeed High-Performance Release Overhaul & Adaptive Headroom Engine",
-    "updated_at_epoch_ms": 1794037980930,
-    "verification_receipt": {
-      "base_commit_sha": "e695b1abae721bc333b363cda4a0c79166f850a3",
-      "chain_key": null,
-      "command": "n/a",
-      "commit_shas": [
-        "e695b1abae721bc333b363cda4a0c79166f850a3"
-      ],
-      "diagnostic_count": null,
-      "exit_code": 0,
-      "git_branch": "main",
-      "head_commit_sha": "e695b1abae721bc333b363cda4a0c79166f850a3",
-      "repo": null,
-      "summary": "Phase 1 epic complete: all five work packages are Verified — OF-24 (adaptive headroom guard + cache retention), OF-25 (topological wave parallelism), OF-26 (nextest verification + opt-in install), OF-27 (429 backoff + sparse-index polling), OF-28 (plan reuse, git clone unification, modularization). Empirical baseline 147min is now addressable by retention, wave execution, single-compile verification and propagation polling.",
-      "verified_at_epoch_ms": 1793199655557,
-      "verifier": "cline"
+    {
+      "event": "plan_updated",
+      "task_id": "68e622ee-6f35-40ee-aa01-03c509c1dc44",
+      "plan": {
+        "summary": "Task Plan: GB-121 — Phase 1: outfeed High-Performance Release Overhaul & Adaptive Headroom Engine",
+        "design_markdown": "# Task Plan: GB-121 — Phase 1: outfeed High-Performance Release Overhaul & Adaptive Headroom Engine\n\n> **Epic Key:** `GB-121`  \n> **Target:** `outfeed` (`outfeed-core`, `outfeed-cli`)  \n> **Status:** Planned\n\n---\n\n## 1. Objective\nOverhaul the `outfeed release --all` orchestration engine to eliminate massive compilation waste, serialize LLVM bottlenecks, and excessive registry polling. Bring down full 10-repository releases from the empirical 147-minute baseline to under 3–5 minutes, and dry-run execution to under 10 seconds.\n\n---\n\n## 2. Invariants & Guardrails\n1. **Adaptive Disk Safety:** Always verify disk headroom. Never permit disk exhaustion, but eliminate the artificial 20 GB barrier for cache retention.\n2. **Deterministic Verification:** Maintain Tier 4 verification rigor by using `cargo-nextest` instead of serial test runners.\n3. **Strict 250 LOC Law:** No file modified or added may exceed 250 lines of code.\n\n---\n\n## 3. Child Work Packages\n* `GB-122`: Adaptive Disk Space Headroom Guard & Build Cache Retention (`clean_between_repos = false`, `SCCACHE_CACHE_SIZE = \"15G\"`).\n* `GB-123`: Topological DAG Parallel Execution (`--jobs num_cpus`).\n* `GB-124`: Switch Release Verification to `cargo-nextest` and Make `--install` Opt-in.\n* `GB-125`: Crates.io 429 Rate-Limit Parser, 30s Terminal Countdown, and Async Sparse Index Polling.\n* `GB-126`: Unify AST Structural Clones, Eliminate Redundant Re-planning, and Modularize Files Over 200 LOC.\n",
+        "steps": [],
+        "plan_file_path": ".gaugeblock/storypole/plans/OF-23.md",
+        "updated_at_epoch_ms": 1794339337264
+      },
+      "timestamp_ms": 1794339337264
     }
-  }
+  ]
 }
