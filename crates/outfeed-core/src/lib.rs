@@ -27,6 +27,7 @@ pub mod rate_limit;
 pub mod registry;
 pub mod reserve;
 pub mod semver;
+pub mod standalone;
 pub mod suite_check;
 pub mod suite_lock;
 pub mod suite_release;
