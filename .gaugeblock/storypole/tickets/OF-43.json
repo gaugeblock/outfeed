@@ -1,0 +1,67 @@
+{
+  "ticket": {
+    "id": "b250c203-1735-40dd-873e-5f43767f9fe3",
+    "ticket_key": "OF-43",
+    "slug": "a-contract-change-compiles-in-its-own-repo-and-breaks-consumers-in-two-others-and-no-gate-builds-across-repositories-b250c2",
+    "title": "a contract change compiles in its own repo and breaks consumers in two others, and no gate builds across repositories",
+    "description": "Measured 2026-11-10, and it has already cost ten tickets. SP-41 added three optional fields to VerificationReceipt in gaugeblock-contracts. Every storypole gate ran green, because storypole own workspace compiled. Two consumers construct that type literally and do not spread defaults: joiner-core src/engine/mod.rs and benchwork-core tests/archive_service_tests.rs. Both stopped compiling the moment the contract landed. Nothing reported it - no chain builds across repositories, and miter contracts checks schema drift rather than compilation - so the breakage sat in main until an unrelated storypole verification happened to pull joiner-core into its build, and then benchwork into another. Two fix commits later (joiner a301233, benchwork de8ad04) main compiles again. OF-41 is the sibling gate and deliberately does not cover this: it resolves every member from outside the suite with cargo metadata, which answers published-crates-only, and it never compiles. Wanted: a cross-repository build check - each member compiled against the workspace as checked out, in one pass, failing with the crate and the diagnostic - run at the atomic-commit gate for any change to a shared contract crate. Acceptance: reverting SP-41 contract change makes the gate fail naming joiner-core and benchwork-core, restoring it makes the gate pass, and a change confined to one repository does not pay for the whole fleet.",
+    "kind": "bug",
+    "status": "triage",
+    "priority": 3,
+    "scope": {
+      "repo": null,
+      "crate_name": "outfeed-core",
+      "module_path": null,
+      "target_files": [],
+      "target_symbols": [
+        "outfeed_core::gate,outfeed_core::standalone"
+      ],
+      "labels": []
+    },
+    "edges": [],
+    "decisions": [],
+    "acceptance_criteria": [],
+    "plan": null,
+    "active_claim": null,
+    "latest_handoff": null,
+    "verification_receipt": null,
+    "created_at_epoch_ms": 1794459131966,
+    "updated_at_epoch_ms": 1794459131966
+  },
+  "events": [
+    {
+      "event": "deferred_item_captured",
+      "task": {
+        "id": "b250c203-1735-40dd-873e-5f43767f9fe3",
+        "ticket_key": "OF-43",
+        "slug": "a-contract-change-compiles-in-its-own-repo-and-breaks-consumers-in-two-others-and-no-gate-builds-across-repositories-b250c2",
+        "title": "a contract change compiles in its own repo and breaks consumers in two others, and no gate builds across repositories",
+        "description": "Measured 2026-11-10, and it has already cost ten tickets. SP-41 added three optional fields to VerificationReceipt in gaugeblock-contracts. Every storypole gate ran green, because storypole own workspace compiled. Two consumers construct that type literally and do not spread defaults: joiner-core src/engine/mod.rs and benchwork-core tests/archive_service_tests.rs. Both stopped compiling the moment the contract landed. Nothing reported it - no chain builds across repositories, and miter contracts checks schema drift rather than compilation - so the breakage sat in main until an unrelated storypole verification happened to pull joiner-core into its build, and then benchwork into another. Two fix commits later (joiner a301233, benchwork de8ad04) main compiles again. OF-41 is the sibling gate and deliberately does not cover this: it resolves every member from outside the suite with cargo metadata, which answers published-crates-only, and it never compiles. Wanted: a cross-repository build check - each member compiled against the workspace as checked out, in one pass, failing with the crate and the diagnostic - run at the atomic-commit gate for any change to a shared contract crate. Acceptance: reverting SP-41 contract change makes the gate fail naming joiner-core and benchwork-core, restoring it makes the gate pass, and a change confined to one repository does not pay for the whole fleet.",
+        "kind": "bug",
+        "status": "triage",
+        "priority": 3,
+        "scope": {
+          "repo": null,
+          "crate_name": "outfeed-core",
+          "module_path": null,
+          "target_files": [],
+          "target_symbols": [
+            "outfeed_core::gate,outfeed_core::standalone"
+          ],
+          "labels": []
+        },
+        "edges": [],
+        "decisions": [],
+        "acceptance_criteria": [],
+        "plan": null,
+        "active_claim": null,
+        "latest_handoff": null,
+        "verification_receipt": null,
+        "created_at_epoch_ms": 1794459131966,
+        "updated_at_epoch_ms": 1794459131966
+      },
+      "captured_by_agent": "user",
+      "discovered_from_task_id": null
+    }
+  ]
+}
