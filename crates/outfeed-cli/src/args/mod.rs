@@ -79,6 +79,8 @@ pub enum Commands {
     /// Verify every member repository tracks a fresh Cargo.lock
     Gate(GateArgs),
     Lockfiles(LockfileArgs),
+    /// Compile every member against the workspace as checked out (OF-43)
+    Consumers(LockfileArgs),
 
     /// Check, scaffold and publish crates.io namespace reservations
     Reserve(ReserveArgs),

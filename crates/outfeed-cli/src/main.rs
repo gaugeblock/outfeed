@@ -69,6 +69,7 @@ async fn main() -> Result<()> {
             Commands::Prune(args) => handle_prune(&args, &root_dir, cli.verbose, cli.quiet)?,
             Commands::Gate(args) => commands::gate::handle_gate(&args, &root_dir)?,
             Commands::Lockfiles(args) => commands::lockfiles::handle_lockfiles(&args, &root_dir)?,
+            Commands::Consumers(args) => commands::consumers::handle_consumers(&args, &root_dir)?,
             Commands::Reserve(args) => {
                 commands::reserve::handle_reserve(&args, &root_dir, cli.quiet)?
             }

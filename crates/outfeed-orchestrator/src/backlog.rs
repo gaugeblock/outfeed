@@ -129,6 +129,12 @@ pub fn certify_release_ticket(
         commit_shas: Vec::new(),
         repo: None,
         chain_key: None,
+        // `outfeed apply` certifies a release, not a diff: there is no window to describe, so all three are
+        // absent rather than invented. A receipt that claimed `window_intact` for a command that never looked
+        // at one would be a receipt saying something it does not know (`SP-41`).
+        diff_hash: None,
+        diff: None,
+        window_intact: None,
     };
 
     verify_task(&mut store, id, Some(receipt), false, false)

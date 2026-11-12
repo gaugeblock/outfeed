@@ -7,6 +7,7 @@ pub mod changelog;
 pub mod clean;
 pub mod clone;
 pub mod cmd;
+pub mod consumer_build;
 pub mod disk_space;
 pub mod engine;
 pub mod error;
