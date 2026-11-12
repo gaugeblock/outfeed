@@ -39,7 +39,8 @@
       "chain_key": "outfeed"
     },
     "created_at_epoch_ms": 1794119456144,
-    "updated_at_epoch_ms": 1794122755708
+    "updated_at_epoch_ms": 1794343399453,
+    "archived_at_epoch_ms": 1794343399453
   },
   "events": [
     {
