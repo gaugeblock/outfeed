@@ -67,7 +67,6 @@ pub fn suite_members(root: &Path) -> Vec<String> {
 /// ecosystem works, this one builds from inside to prove the *checkout* does. A member that fails here is a
 /// consumer left behind by a change somewhere else, which is exactly what nobody was checking.
 #[must_use]
-#[must_use]
 pub fn check_consumers(suite_root: &Path, members: &[String]) -> ConsumerReport {
     check_consumers_with(suite_root, members, |_| {})
 }

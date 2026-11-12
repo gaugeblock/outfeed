@@ -147,6 +147,8 @@ The following 37 types define the complete public and boundary interface for `ou
 | **`SyncArgs`** | `struct` | `outfeed_cli::args` | Arguments for `outfeed sync` synchronization command |
 | **`SyncOpts`** | `struct` | `outfeed_core::sync_model` | Configuration options controlling repo synchronization |
 | **`LockfileReport`** | `struct` | `outfeed_core::lockfiles` | Per-repository lockfile hygiene result: every member must track a fresh `Cargo.lock` |
+| **`StandaloneReport`** | `struct` | `outfeed_core::standalone` | Resolution-only verdict per member: does it resolve from outside the suite, with published crates only (`OF-41`) |
+| **`ConsumerReport`** | `struct` | `outfeed_core::consumer_build` | Compilation verdict per member against the workspace as checked out; names the member and its first diagnostic when a change elsewhere left it behind (`OF-43`) |
 | **`RepoLockfile`** | `struct` | `outfeed_core::lockfiles` | Tracked/fresh state of one repository’s lockfile, with an `ok`/`untracked`/`stale` status |
 | **`NameStatus`** | `struct` | `outfeed_core::reserve` | Registry state of one candidate crate name: `Free`, `Taken` with its published version, or `Unknown` when the registry did not answer |
 | **`ReserveCheckReport`** | `struct` | `outfeed_core::reserve` | Result of `outfeed reserve check`: one `NameStatus` per requested name, with `free()`/`taken()`/`unknown()` partitions and `all_free()`. Unknown is never counted as free |
