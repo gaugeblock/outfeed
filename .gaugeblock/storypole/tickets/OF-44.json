@@ -1,0 +1,67 @@
+{
+  "ticket": {
+    "id": "01bbb5ba-76fc-484b-832b-f8470688a77a",
+    "ticket_key": "OF-44",
+    "slug": "scope-consumers-to-the-dependents-of-changed-crates-11-min-for-a-full-pass-cannot-sit-in-a-commit-chain-01bbb5",
+    "title": "scope consumers to the dependents of changed crates: 11 min for a full pass cannot sit in a commit chain",
+    "description": "`outfeed consumers` compiles all 11 members every time, measured at 11.0 min warm on darwin/stable/sequential (OF-43). That is affordable as an on-demand check and not affordable inside a per-commit chain, which is why OF-43 did not wire it in. The useful scope is tiny by comparison: when a change touches a shared crate, only that crate dependents can break, and SP-41 demonstrated it - three consumers in three repositories, dozens of crates untouched. Wanted: derive the dependent set from cargo metadata (the workspace already resolves the whole graph), build only those, and fall back to a full pass when the changed set cannot be determined - including when a lockfile or the patch table changed, since either can move every edge. Acceptance: a contract edit in common builds and checks only the crates that depend on gaugeblock-contracts and finishes in well under a minute on the same warm tree that took 11.0 min for a full pass; a change touching no shared crate checks nothing and says so rather than reporting a vacuous pass.",
+    "kind": "refactor",
+    "status": "deferred",
+    "priority": 3,
+    "scope": {
+      "repo": null,
+      "crate_name": "outfeed-core",
+      "module_path": null,
+      "target_files": [],
+      "target_symbols": [
+        "outfeed_core::consumer_build::check_consumers_with"
+      ],
+      "labels": []
+    },
+    "edges": [],
+    "decisions": [],
+    "acceptance_criteria": [],
+    "plan": null,
+    "active_claim": null,
+    "latest_handoff": null,
+    "verification_receipt": null,
+    "created_at_epoch_ms": 1794500566014,
+    "updated_at_epoch_ms": 1794500566014
+  },
+  "events": [
+    {
+      "event": "deferred_item_captured",
+      "task": {
+        "id": "01bbb5ba-76fc-484b-832b-f8470688a77a",
+        "ticket_key": "OF-44",
+        "slug": "scope-consumers-to-the-dependents-of-changed-crates-11-min-for-a-full-pass-cannot-sit-in-a-commit-chain-01bbb5",
+        "title": "scope consumers to the dependents of changed crates: 11 min for a full pass cannot sit in a commit chain",
+        "description": "`outfeed consumers` compiles all 11 members every time, measured at 11.0 min warm on darwin/stable/sequential (OF-43). That is affordable as an on-demand check and not affordable inside a per-commit chain, which is why OF-43 did not wire it in. The useful scope is tiny by comparison: when a change touches a shared crate, only that crate dependents can break, and SP-41 demonstrated it - three consumers in three repositories, dozens of crates untouched. Wanted: derive the dependent set from cargo metadata (the workspace already resolves the whole graph), build only those, and fall back to a full pass when the changed set cannot be determined - including when a lockfile or the patch table changed, since either can move every edge. Acceptance: a contract edit in common builds and checks only the crates that depend on gaugeblock-contracts and finishes in well under a minute on the same warm tree that took 11.0 min for a full pass; a change touching no shared crate checks nothing and says so rather than reporting a vacuous pass.",
+        "kind": "refactor",
+        "status": "deferred",
+        "priority": 3,
+        "scope": {
+          "repo": null,
+          "crate_name": "outfeed-core",
+          "module_path": null,
+          "target_files": [],
+          "target_symbols": [
+            "outfeed_core::consumer_build::check_consumers_with"
+          ],
+          "labels": []
+        },
+        "edges": [],
+        "decisions": [],
+        "acceptance_criteria": [],
+        "plan": null,
+        "active_claim": null,
+        "latest_handoff": null,
+        "verification_receipt": null,
+        "created_at_epoch_ms": 1794500566014,
+        "updated_at_epoch_ms": 1794500566014
+      },
+      "captured_by_agent": "user",
+      "discovered_from_task_id": null
+    }
+  ]
+}
