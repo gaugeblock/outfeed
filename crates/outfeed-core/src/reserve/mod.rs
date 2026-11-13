@@ -9,13 +9,15 @@
 //! [`check_names`] asks the registry what is free, [`scaffold_placeholders`] writes the placeholder
 //! crates, and [`publish`] sends them.
 
+mod identity;
 mod publish;
 mod scaffold;
 
+pub use identity::Identity;
 pub use publish::{PublishOutcome, PublishSummary, publish, publish_placeholders};
 pub use scaffold::{
-    DEFAULT_STAGING_DIR, Identity, PLACEHOLDER_VERSION, ScaffoldOpts, ScaffoldOutcome,
-    parent_exclude_hint, scaffold_placeholders,
+    DEFAULT_STAGING_DIR, PLACEHOLDER_VERSION, ScaffoldOpts, ScaffoldOutcome, parent_exclude_hint,
+    scaffold_placeholders,
 };
 
 use crate::error::OutfeedError;
