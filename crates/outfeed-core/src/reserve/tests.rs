@@ -6,6 +6,8 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
+use std::path::Path;
+
 use super::*;
 use std::collections::BTreeMap;
 use tempfile::TempDir;
@@ -50,13 +52,28 @@ fn empty_check_is_vacuously_free() {
     assert!(ReserveCheckReport::default().all_free());
 }
 
+/// The suite's own identity, stated explicitly because it is no longer a default (`GB-364`).
+fn suite_identity() -> Identity {
+    Identity {
+        homepage: "https://gaugeblock.dev".to_string(),
+        license: "Apache-2.0".to_string(),
+        repository_template: "https://github.com/gaugeblock/{name}".to_string(),
+    }
+}
+
+/// Options for the suite, used by the tests that are not about identity.
+fn suite_opts(staging: &Path) -> ScaffoldOpts {
+    ScaffoldOpts {
+        staging_dir: staging.to_path_buf(),
+        identity: suite_identity(),
+        repository_overrides: BTreeMap::new(),
+    }
+}
+
 #[test]
 fn scaffold_writes_a_standalone_placeholder() {
     let temp = TempDir::new().expect("temp dir");
-    let opts = ScaffoldOpts {
-        staging_dir: temp.path().to_path_buf(),
-        ..ScaffoldOpts::default()
-    };
+    let opts = suite_opts(temp.path());
 
     let outcome = scaffold_placeholders(&["gaugeblock-inventory".to_string()], &opts)
         .expect("scaffold succeeds");
@@ -79,10 +96,7 @@ fn scaffold_writes_a_standalone_placeholder() {
 #[test]
 fn scaffold_skips_an_existing_placeholder() {
     let temp = TempDir::new().expect("temp dir");
-    let opts = ScaffoldOpts {
-        staging_dir: temp.path().to_path_buf(),
-        ..ScaffoldOpts::default()
-    };
+    let opts = suite_opts(temp.path());
     let names = vec!["gaugeblock-workspace".to_string()];
 
     let first = scaffold_placeholders(&names, &opts).expect("first scaffold");
@@ -102,9 +116,8 @@ fn scaffold_prefers_a_repository_override() {
         "https://github.com/gaugeblock/common".to_string(),
     );
     let opts = ScaffoldOpts {
-        staging_dir: temp.path().to_path_buf(),
         repository_overrides: overrides,
-        ..ScaffoldOpts::default()
+        ..suite_opts(temp.path())
     };
 
     scaffold_placeholders(&["gaugeblock-inventory".to_string()], &opts).expect("scaffold");

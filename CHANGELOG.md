@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- `outfeed-cli`: `reserve scaffold` no longer stamps the suite's identity into a stranger's placeholder. `--homepage` and `--license` are exposed (neither had a flag before, while both were defaults), `--repository` loses its `github.com/gaugeblock/{name}` default, and all three are required - supplied by flag, or derived from the caller's `origin` remote, or the command fails naming what to pass. A mono repository that publishes several crates omits `{name}` and every placeholder links to the one repository. The SPDX expression is carried verbatim, including `OR` expressions, because a placeholder claiming one half of a dual-licensed project is a licensing statement nobody made, and published metadata is permanent (GB-364).
 - `outfeed-core`: `rate_limit::parse_cooldown` now reads the RFC 2822 deadline that crates.io embeds in a 429 message body (`Please try again after Wed, 28 Oct 2026 15:30:25 GMT`) instead of falling back to 30 s, and it no longer mistakes a day-of-month for a second count; explicit `Retry-After` values still win (GB-140).
 
 ### Added

@@ -5,8 +5,8 @@ use std::path::Path;
 
 use anyhow::{Result, bail};
 use outfeed_core::reserve::{
-    PLACEHOLDER_VERSION, ReserveCheckReport, ScaffoldOpts, check_names, parent_exclude_hint,
-    publish_placeholders, scaffold_placeholders,
+    Identity, PLACEHOLDER_VERSION, ReserveCheckReport, ScaffoldOpts, check_names,
+    parent_exclude_hint, publish_placeholders, scaffold_placeholders,
 };
 
 use crate::args::reserve::{
@@ -80,11 +80,16 @@ fn handle_scaffold(args: &ReserveScaffoldArgs, root_dir: &Path, quiet: bool) -> 
         repository_overrides.insert(name.to_string(), url.to_string());
     }
 
+    let identity = Identity::resolve(
+        args.homepage.as_deref(),
+        args.license.as_deref(),
+        args.repository.as_deref(),
+        root_dir,
+    )?;
     let opts = ScaffoldOpts {
         staging_dir: root_dir.join(&args.staging),
-        repository_template: args.repository.clone(),
+        identity,
         repository_overrides,
-        ..ScaffoldOpts::default()
     };
     let outcome = scaffold_placeholders(&args.names, &opts)?;
 
