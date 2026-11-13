@@ -65,7 +65,7 @@ The `outfeed` binary provides comprehensive release planning, manifest bumping, 
 | `outfeed lockfiles` | `--json` | Verifies every member repository tracks a fresh `Cargo.lock` (reproducible builds) |
 | `outfeed consumers` | `--json` | Compiles every member against the workspace as checked out; names any that no longer build (contract-change gate) |
 | `outfeed reserve check` | `--json` | Lists free/taken/unknown per crate name from the sparse index; exits non-zero when any name is taken or unknown |
-| `outfeed reserve scaffold` | `--staging`, `--repository`, `--repo-override`, `--json` | Writes standalone placeholder crates at `0.1.0-alpha.1` into a gitignored staging directory |
+| `outfeed reserve scaffold` | `--staging`, `--repository`, `--homepage`, `--license`, `--repo-override`, `--json` | Writes standalone placeholder crates at `0.1.0-alpha.1` into a gitignored staging directory. Identity is required: repository and homepage are derived from the `origin` remote when the flags are omitted, and `--license` never defaults (`GB-364`) |
 | `outfeed reserve publish` | `--staging`, `--registry`, `--confirm`, `--json` | Publishes the placeholders to claim their names; refuses without `--confirm` |
 | `outfeed mcp` | *(none)* | Launches stdio JSON-RPC 2.0 Model Context Protocol server |
 

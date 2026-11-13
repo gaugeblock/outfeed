@@ -44,9 +44,25 @@ pub struct ReserveScaffoldArgs {
     #[arg(long, default_value = "reserve-staging")]
     pub staging: String,
 
-    /// Repository URL template; `{name}` is substituted with the crate name
-    #[arg(long, default_value = "https://github.com/gaugeblock/{name}")]
-    pub repository: String,
+    /// Repository URL for the placeholders; `{name}` is substituted with the crate name
+    ///
+    /// Omitted, it is derived from the `origin` remote of the current directory. A mono repository
+    /// publishing several crates omits `{name}` and every placeholder links to the one repository.
+    #[arg(long)]
+    pub repository: Option<String>,
+
+    /// Homepage for the placeholders
+    ///
+    /// Omitted, it is derived from the `origin` remote. There is no built-in default: a placeholder's
+    /// homepage is permanent once published (`GB-364`).
+    #[arg(long)]
+    pub homepage: Option<String>,
+
+    /// SPDX license expression for the placeholders, verbatim (`Apache-2.0 OR MIT`)
+    ///
+    /// Required, with no default and no derivation: guessing a license would license somebody else's crate.
+    #[arg(long)]
+    pub license: Option<String>,
 
     /// Per-name repository override, repeatable: NAME=URL
     #[arg(long = "repo-override", value_name = "NAME=URL")]

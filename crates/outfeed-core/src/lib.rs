@@ -95,8 +95,9 @@ pub use registry::{
     parse_cargo_search_version,
 };
 pub use reserve::{
-    NameState, NameStatus, PLACEHOLDER_VERSION, PublishOutcome, PublishSummary, ReserveCheckReport,
-    ScaffoldOpts, ScaffoldOutcome, check_names, publish_placeholders, scaffold_placeholders,
+    Identity, NameState, NameStatus, PLACEHOLDER_VERSION, PublishOutcome, PublishSummary,
+    ReserveCheckReport, ScaffoldOpts, ScaffoldOutcome, check_names, publish_placeholders,
+    scaffold_placeholders,
 };
 pub use semver::{apply_bump, calculate_bump, parse_commit};
 pub use suite_check::{
