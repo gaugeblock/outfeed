@@ -1,0 +1,67 @@
+{
+  "ticket": {
+    "id": "2657c5f6-95f9-433c-94d1-c71ba38fdbe3",
+    "ticket_key": "OF-45",
+    "slug": "derive-reserve-names-and-descriptions-from-a-cargo-workspace-so-a-mono-repo-needs-no-parallel-list-2657c5",
+    "title": "derive reserve names and descriptions from a Cargo workspace so a mono repo needs no parallel list",
+    "description": "Split out of GB-364, whose remaining acceptance criterion asked that names and descriptions be derivable from a Cargo workspace so a mono repository needs no parallel list. The identity defect in that ticket is fixed (a1549d1): homepage, license and repository now come from flags or the caller origin remote and never default. What is left is not a defect but a convenience for exactly the caller that filed it - aerofoil, whose AF-22 wants to replace a 200-line shell script and would rather not repeat its crate list on the command line.\n\nWanted: either `outfeed reserve scaffold --from-workspace [path]`, which reads the root Cargo.toml members, takes each package name, and derives the description from that package description, adding names positionally alongside it; or the same derivation in `reserve check` so a caller validates what the workspace holds without naming anything. One of those, not both, and the choice needs a decision about which verb owns reading somebody else Cargo.toml - scaffolding reads one file per name today and has no workspace awareness at all.\n\nNot attempted with GB-364 because a half-built name derivation would scaffold a set nobody asked for, which is worse than making the caller type the names.\n\nAcceptance: a workspace with three members scaffolds three placeholders and no list is passed; a name passed explicitly alongside --from-workspace is scaffolded too rather than ignored; and a workspace file that cannot be parsed is an error naming the path rather than a silent empty list.",
+    "kind": "feature",
+    "status": "deferred",
+    "priority": 3,
+    "scope": {
+      "repo": null,
+      "crate_name": "outfeed-cli",
+      "module_path": null,
+      "target_files": [],
+      "target_symbols": [
+        "outfeed_cli::args::reserve::ReserveScaffoldArgs,outfeed_core::reserve::scaffold"
+      ],
+      "labels": []
+    },
+    "edges": [],
+    "decisions": [],
+    "acceptance_criteria": [],
+    "plan": null,
+    "active_claim": null,
+    "latest_handoff": null,
+    "verification_receipt": null,
+    "created_at_epoch_ms": 1794608788401,
+    "updated_at_epoch_ms": 1794608788401
+  },
+  "events": [
+    {
+      "event": "deferred_item_captured",
+      "task": {
+        "id": "2657c5f6-95f9-433c-94d1-c71ba38fdbe3",
+        "ticket_key": "OF-45",
+        "slug": "derive-reserve-names-and-descriptions-from-a-cargo-workspace-so-a-mono-repo-needs-no-parallel-list-2657c5",
+        "title": "derive reserve names and descriptions from a Cargo workspace so a mono repo needs no parallel list",
+        "description": "Split out of GB-364, whose remaining acceptance criterion asked that names and descriptions be derivable from a Cargo workspace so a mono repository needs no parallel list. The identity defect in that ticket is fixed (a1549d1): homepage, license and repository now come from flags or the caller origin remote and never default. What is left is not a defect but a convenience for exactly the caller that filed it - aerofoil, whose AF-22 wants to replace a 200-line shell script and would rather not repeat its crate list on the command line.\n\nWanted: either `outfeed reserve scaffold --from-workspace [path]`, which reads the root Cargo.toml members, takes each package name, and derives the description from that package description, adding names positionally alongside it; or the same derivation in `reserve check` so a caller validates what the workspace holds without naming anything. One of those, not both, and the choice needs a decision about which verb owns reading somebody else Cargo.toml - scaffolding reads one file per name today and has no workspace awareness at all.\n\nNot attempted with GB-364 because a half-built name derivation would scaffold a set nobody asked for, which is worse than making the caller type the names.\n\nAcceptance: a workspace with three members scaffolds three placeholders and no list is passed; a name passed explicitly alongside --from-workspace is scaffolded too rather than ignored; and a workspace file that cannot be parsed is an error naming the path rather than a silent empty list.",
+        "kind": "feature",
+        "status": "deferred",
+        "priority": 3,
+        "scope": {
+          "repo": null,
+          "crate_name": "outfeed-cli",
+          "module_path": null,
+          "target_files": [],
+          "target_symbols": [
+            "outfeed_cli::args::reserve::ReserveScaffoldArgs,outfeed_core::reserve::scaffold"
+          ],
+          "labels": []
+        },
+        "edges": [],
+        "decisions": [],
+        "acceptance_criteria": [],
+        "plan": null,
+        "active_claim": null,
+        "latest_handoff": null,
+        "verification_receipt": null,
+        "created_at_epoch_ms": 1794608788401,
+        "updated_at_epoch_ms": 1794608788401
+      },
+      "captured_by_agent": "user",
+      "discovered_from_task_id": null
+    }
+  ]
+}
