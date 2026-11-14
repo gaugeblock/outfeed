@@ -13,6 +13,7 @@ use crate::error::OutfeedError;
 use crate::progress::{ProgressReporter, RepoStatus};
 
 mod execute;
+
 use execute::execute;
 pub use execute::format_gate_report;
 
@@ -31,6 +32,14 @@ pub enum GateCommand {
     /// Run the suite layer gate, which is only meaningful where the allowlist lives: the layer map
     /// spans 42 crates across 11 repositories, so a single repository cannot evaluate it (`GB-200`).
     Layers,
+    /// Index the repository into a temporary database, then check polyglot contract drift against it
+    /// (`OF-39`).
+    ///
+    /// `miter contracts` reads an index, and a member repository has none until somebody runs `miter index`
+    /// there by hand - so the step failed from a clean checkout, which is exactly where a gate has to work.
+    /// It indexes into the temp directory rather than the repository's own database so that running a gate
+    /// leaves no artefact behind, and so that a stale checked-in index can never decide a result.
+    Contracts,
 }
 
 /// One entry in the verification matrix.
@@ -138,13 +147,13 @@ pub fn gate_steps() -> Vec<GateStep> {
             &["nextest", "run", "--workspace"],
         ),
         // `--check` is what makes this a gate: without the flag `miter contracts` describes drift and
-        // succeeds, which is why this step could never fail (GB-223).
-        step(
-            "contracts",
-            "polyglot wire contracts agree",
-            "miter",
-            &["contracts", "--check"],
-        ),
+        // succeeds, which is why this step could never fail (GB-223). The index it reads is built by the
+        // step itself, into a temp database (OF-39).
+        GateStep {
+            name: "contracts".to_string(),
+            description: "polyglot wire contracts agree".to_string(),
+            command: GateCommand::Contracts,
+        },
         GateStep {
             name: "layers".to_string(),
             description: "no cross-product crate edge is unexplained".to_string(),
