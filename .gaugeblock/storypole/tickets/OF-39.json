@@ -4,9 +4,9 @@
     "ticket_key": "OF-39",
     "slug": "outfeed-gate-contracts-step-fails-when-the-member-index-does-not-exist-yet-82a68f",
     "title": "outfeed gate contracts step fails when the member index does not exist yet",
-    "description": "outfeed gate -d miter passed fmt, clippy, tests and docs, then failed at contracts with no index at miter/.miter/miter.redb: run miter index first. A Tier 3 gate that needs a manually pre-built index is not runnable from a clean checkout, which is exactly the situation a gate exists for. The step should build the index itself, index into a temporary database, or treat a missing index as a warned skip.\n\nREPRODUCED 2026-11-12, and it is worse than filed: it blocks verifying any ticket whose scope is a member repository. `storypole verify CO-3 --dir common` failed with the chain output:\n  miter: no index at .../common/.gaugeblock/miter/miter.redb: run `miter index <PATH> --db ...` first\nso the contracts step refuses from a clean checkout, exactly as this ticket says. The workaround is to build that index by hand first, after which the same verify passes (CO-3 verified exit 0) - which is the point: a Tier 3 gate that needs a manually prepared artefact is not runnable where a gate matters. Note the failure surfaced through GB-341-style chain reporting, so the operator sees the reason rather than a bare exit code.",
+    "description": "outfeed gate -d miter passed fmt, clippy, tests and docs, then failed at contracts with no index at miter/.miter/miter.redb: run miter index first. A Tier 3 gate that needs a manually pre-built index is not runnable from a clean checkout, which is exactly the situation a gate exists for. The step should build the index itself, index into a temporary database, or treat a missing index as a warned skip.\n\nREPRODUCED 2026-11-12, and it is worse than filed: it blocks verifying any ticket whose scope is a member repository. `storypole verify CO-3 --dir common` failed with the chain output:\n  miter: no index at .../common/.gaugeblock/miter/miter.redb: run `miter index <PATH> --db ...` first\nso the contracts step refuses from a clean checkout, exactly as this ticket says. The workaround is to build that index by hand first, after which the same verify passes (CO-3 verified exit 0) - which is the point: a Tier 3 gate that needs a manually prepared artefact is not runnable where a gate matters. Note the failure surfaced through GB-341-style chain reporting, so the operator sees the reason rather than a bare exit code.\n\nFIXED 2026-11-12 (outfeed 845412c), verified on the outfeed chain (exit 0) - whose contracts step is the thing that was broken, so the receipt is the end-to-end proof.\n\nThe step now indexes into a temporary database and checks against it: nothing is written into the repository, and an index left over from an earlier run cannot decide a result. Fixing that exposed a second defect the old failure had been hiding: a member checking without the suite contracts allowlist reported the suite own non-mirror declarations as drift - role_override_config.api_key, a secret deliberately absent from TypeScript - so a clean benchwork failed while the suite root was clean. The step now passes the allowlist that governs it: the suite when this is a member, its own otherwise.\n\nPROVEN from a repository with no index at all: `outfeed gate benchwork --skip fmt --skip clippy --skip tests --skip lockfiles --skip docs` reports 1 passed, 0 failed. Before the fix the same command refused with `miter: no index at .../benchwork/.gaugeblock/miter/miter.redb`.\n\nAn honest note on the route: the first attempt passed the repository as the index source while also making it the working directory, which doubled a relative root into repo/repo and surfaced as an ingestion i/o error that read like a missing index. The fix is a literal \".\" and a comment saying why.",
     "kind": "bug",
-    "status": "triage",
+    "status": "verified",
     "priority": 3,
     "scope": {
       "repo": null,
@@ -29,9 +29,26 @@
     "plan": null,
     "active_claim": null,
     "latest_handoff": null,
-    "verification_receipt": null,
+    "verification_receipt": {
+      "verifier": "storypole-verify",
+      "command": "cargo fmt --all -- --check && cargo clippy --workspace --all-targets -- -D warnings && cargo nextest run --workspace && miter audit --path . --threshold 250 --paths && chalkline docs check -d outfeed",
+      "exit_code": 0,
+      "diagnostic_count": null,
+      "summary": "[window: no base commit could be named, so this receipt covers HEAD only]\nAUDIT PASSED: No files exceed 250 lines in .\nAUDIT PASSED: every crate naming .gaugeblock depends on gaugeblock-workspace\nAUDIT PASSED: every crate resolving the suite has a multi-repository test\nSIZE RATCHET UNRECORDED: 8 file(s) in the 200-line band and no baseline; run `miter audit --paths --write-size-ratchet` to record them\n\n=== Gaugeblock 9-Document Architecture Audit ===\nRepository: /Users/wolff/dev2026/neurosymbolic-suite/outfeed\n\n[OK]      Readme           (README.md)\n[OK]      Contributing     (CONTRIBUTING.md)\n[OK]      Product          (docs/PRODUCT.md)\n[OK]      Architecture     (docs/ARCHITECTURE.md)\n[OK]      Spec             (docs/SPEC.md)\n[OK]      Design           (docs/DESIGN.md)\n[OK]      Roadmap          (docs/ROADMAP.md)\n[OK]      Changelog        (CHANGELOG.md)\n[OK]      Agents           (AGENTS.md)\n\nSummary: 9 present, 0 missing, 0 drifted\n\n",
+      "verified_at_epoch_ms": 1794683629891,
+      "git_branch": "main",
+      "base_commit_sha": null,
+      "head_commit_sha": "2407821ee1e4bea79ac1879cbcfac8a988355eb9",
+      "commit_shas": [
+        "2407821ee1e4bea79ac1879cbcfac8a988355eb9"
+      ],
+      "repo": "outfeed",
+      "chain_key": "outfeed",
+      "window_intact": true
+    },
     "created_at_epoch_ms": 1793334647990,
-    "updated_at_epoch_ms": 1794609184485
+    "updated_at_epoch_ms": 1794683678044,
+    "archived_at_epoch_ms": 1794683678044
   },
   "events": [
     {
@@ -82,6 +99,43 @@
       "scope": null,
       "acceptance_criteria": null,
       "timestamp_ms": 1794609184485
+    },
+    {
+      "event": "task_verified",
+      "task_id": "82a68f7a-6aed-46e2-b05b-26ca55a9198f",
+      "receipt": {
+        "verifier": "storypole-verify",
+        "command": "cargo fmt --all -- --check && cargo clippy --workspace --all-targets -- -D warnings && cargo nextest run --workspace && miter audit --path . --threshold 250 --paths && chalkline docs check -d outfeed",
+        "exit_code": 0,
+        "diagnostic_count": null,
+        "summary": "[window: no base commit could be named, so this receipt covers HEAD only]\nAUDIT PASSED: No files exceed 250 lines in .\nAUDIT PASSED: every crate naming .gaugeblock depends on gaugeblock-workspace\nAUDIT PASSED: every crate resolving the suite has a multi-repository test\nSIZE RATCHET UNRECORDED: 8 file(s) in the 200-line band and no baseline; run `miter audit --paths --write-size-ratchet` to record them\n\n=== Gaugeblock 9-Document Architecture Audit ===\nRepository: /Users/wolff/dev2026/neurosymbolic-suite/outfeed\n\n[OK]      Readme           (README.md)\n[OK]      Contributing     (CONTRIBUTING.md)\n[OK]      Product          (docs/PRODUCT.md)\n[OK]      Architecture     (docs/ARCHITECTURE.md)\n[OK]      Spec             (docs/SPEC.md)\n[OK]      Design           (docs/DESIGN.md)\n[OK]      Roadmap          (docs/ROADMAP.md)\n[OK]      Changelog        (CHANGELOG.md)\n[OK]      Agents           (AGENTS.md)\n\nSummary: 9 present, 0 missing, 0 drifted\n\n",
+        "verified_at_epoch_ms": 1794683629891,
+        "git_branch": "main",
+        "base_commit_sha": null,
+        "head_commit_sha": "2407821ee1e4bea79ac1879cbcfac8a988355eb9",
+        "commit_shas": [
+          "2407821ee1e4bea79ac1879cbcfac8a988355eb9"
+        ],
+        "repo": "outfeed",
+        "chain_key": "outfeed",
+        "window_intact": true
+      }
+    },
+    {
+      "event": "task_updated",
+      "task_id": "82a68f7a-6aed-46e2-b05b-26ca55a9198f",
+      "title": null,
+      "description": "outfeed gate -d miter passed fmt, clippy, tests and docs, then failed at contracts with no index at miter/.miter/miter.redb: run miter index first. A Tier 3 gate that needs a manually pre-built index is not runnable from a clean checkout, which is exactly the situation a gate exists for. The step should build the index itself, index into a temporary database, or treat a missing index as a warned skip.\n\nREPRODUCED 2026-11-12, and it is worse than filed: it blocks verifying any ticket whose scope is a member repository. `storypole verify CO-3 --dir common` failed with the chain output:\n  miter: no index at .../common/.gaugeblock/miter/miter.redb: run `miter index <PATH> --db ...` first\nso the contracts step refuses from a clean checkout, exactly as this ticket says. The workaround is to build that index by hand first, after which the same verify passes (CO-3 verified exit 0) - which is the point: a Tier 3 gate that needs a manually prepared artefact is not runnable where a gate matters. Note the failure surfaced through GB-341-style chain reporting, so the operator sees the reason rather than a bare exit code.\n\nFIXED 2026-11-12 (outfeed 845412c), verified on the outfeed chain (exit 0) - whose contracts step is the thing that was broken, so the receipt is the end-to-end proof.\n\nThe step now indexes into a temporary database and checks against it: nothing is written into the repository, and an index left over from an earlier run cannot decide a result. Fixing that exposed a second defect the old failure had been hiding: a member checking without the suite contracts allowlist reported the suite own non-mirror declarations as drift - role_override_config.api_key, a secret deliberately absent from TypeScript - so a clean benchwork failed while the suite root was clean. The step now passes the allowlist that governs it: the suite when this is a member, its own otherwise.\n\nPROVEN from a repository with no index at all: `outfeed gate benchwork --skip fmt --skip clippy --skip tests --skip lockfiles --skip docs` reports 1 passed, 0 failed. Before the fix the same command refused with `miter: no index at .../benchwork/.gaugeblock/miter/miter.redb`.\n\nAn honest note on the route: the first attempt passed the repository as the index source while also making it the working directory, which doubled a relative root into repo/repo and surfaced as an ingestion i/o error that read like a missing index. The fix is a literal \".\" and a comment saying why.",
+      "priority": null,
+      "scope": null,
+      "acceptance_criteria": null,
+      "timestamp_ms": 1794683677513
+    },
+    {
+      "event": "task_archived",
+      "task_id": "82a68f7a-6aed-46e2-b05b-26ca55a9198f",
+      "status": "verified",
+      "timestamp_ms": 1794683678044
     }
   ]
 }
