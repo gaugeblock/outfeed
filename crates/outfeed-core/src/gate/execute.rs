@@ -1,6 +1,6 @@
 //! Step execution and reporting for the Tier 3 gate.
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use super::{GateCommand, GateReport, GateStepResult};
@@ -65,6 +65,82 @@ pub(super) fn execute(dir: &Path, command: &GateCommand) -> Result<GateStepResul
                         .collect(),
                 },
             )
+        }
+        GateCommand::Contracts => {
+            // `miter contracts` reads an index; a member repository has none until somebody builds one by
+            // hand, so this step used to fail precisely where a gate must work (`OF-39`). Building it here,
+            // into the temp directory, keeps the repository clean and makes the result independent of any
+            // index left lying around by an earlier run.
+            let db = std::env::temp_dir().join(format!(
+                "outfeed-gate-contracts-{}-{}.redb",
+                std::process::id(),
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map(|d| d.as_millis())
+                    .unwrap_or(0)
+            ));
+            let indexed = execute(
+                dir,
+                &GateCommand::Process {
+                    program: "miter".to_string(),
+                    args: vec![
+                        "index".to_string(),
+                        // `.` because the child already runs with `dir` as its working directory: passing
+                        // `dir` as well doubled a relative root into `repo/repo` and miter reported an
+                        // ingestion i/o error, which read like a missing index rather than a bad argument.
+                        ".".to_string(),
+                        "--db".to_string(),
+                        db.display().to_string(),
+                    ],
+                },
+            )?;
+            if !indexed.passed {
+                let _ = std::fs::remove_file(&db);
+                return Ok(GateStepResult {
+                    name: String::new(),
+                    passed: false,
+                    skipped: false,
+                    detail: format!(
+                        "miter index failed, so contract drift cannot be judged: {}",
+                        indexed.detail
+                    ),
+                });
+            }
+            let checked = execute(
+                dir,
+                &GateCommand::Process {
+                    program: "miter".to_string(),
+                    args: {
+                        let mut args = vec![
+                            "contracts".to_string(),
+                            "--check".to_string(),
+                            "--db".to_string(),
+                            db.display().to_string(),
+                        ];
+                        // The allowlist declares non-mirrors - fields that are deliberately absent on one
+                        // side, like a secret that never reaches TypeScript. It lives at the suite root, so
+                        // a member checking without it reported the suite's own decision as drift
+                        // (`role_override_config.api_key`). Same shape as `Layers`: the allowlist is a gate
+                        // input, and a gate input that lives elsewhere has to be passed.
+                        if let Some(allowlist) = contracts_allowlist(dir) {
+                            args.push("--allowlist".to_string());
+                            args.push(allowlist.display().to_string());
+                            args.push("--path".to_string());
+                            args.push(
+                                allowlist
+                                    .parent()
+                                    .and_then(|miter_dir| miter_dir.parent())
+                                    .and_then(|gaugeblock_dir| gaugeblock_dir.parent())
+                                    .map(|root| root.display().to_string())
+                                    .unwrap_or_else(|| dir.display().to_string()),
+                            );
+                        }
+                        args
+                    },
+                },
+            );
+            let _ = std::fs::remove_file(&db);
+            checked
         }
         GateCommand::Process { program, args } => {
             // GB-243: hand the run's trace to the child so its spans join ours. One trace per gate
@@ -149,3 +225,24 @@ pub fn format_gate_report(report: &GateReport) -> String {
     ));
     out
 }
+
+/// The contracts allowlist that governs `dir`: the suite's when this is a member, else its own.
+///
+/// The allowlist declares non-mirrors, so the file that holds the decision decides the result - and it lives at
+/// the suite root while the check runs in a member (`OF-39`). Reads only; a gate never writes an allowlist.
+fn contracts_allowlist(dir: &Path) -> Option<PathBuf> {
+    let canonical = std::fs::canonicalize(dir).unwrap_or_else(|_| dir.to_path_buf());
+    let mut candidates = Vec::new();
+    if let Some(membership) = gaugeblock_workspace::Membership::containing(&canonical) {
+        candidates.push(
+            membership
+                .suite_root
+                .join(".gaugeblock/miter/contracts-allowlist.toml"),
+        );
+    }
+    candidates.push(canonical.join(".gaugeblock/miter/contracts-allowlist.toml"));
+    candidates.into_iter().find(|path| path.is_file())
+}
+
+#[cfg(test)]
+mod allowlist_tests;
